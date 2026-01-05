@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@65d868f8d4d85d7d4abb7de0875cde3fcc8798f5 # v6.0.0
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Install dependencies
