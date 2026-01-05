@@ -35,7 +35,7 @@ npm run build
 
 ### 2. Configure Claude Code
 
-Add these environment variables to your shell profile:
+Add these environment variables to your shell profile for production:
 
 ```bash
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
@@ -44,6 +44,15 @@ export OTEL_LOGS_EXPORTER=otlp
 export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-<region>.grafana.net/otlp"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <your-token>"
+```
+
+Add these environment variables to your shell profile for dev:
+```bash
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
 ```
 
 ### 3. Enable the Plugin
@@ -61,8 +70,8 @@ npm install
 # Start development server (watches for changes)
 npm run dev
 
-# Start Grafana with the plugin
-docker compose up
+# Start Grafana and other services with the plugin
+npm run server
 
 # Access Grafana at http://localhost:3000
 ```

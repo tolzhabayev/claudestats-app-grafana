@@ -10,8 +10,10 @@
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "server": "docker compose up --build",
-    "test": "jest --passWithNoTests",
-    "typecheck": "tsc --noEmit"
+    "test": "jest --watch --onlyChanged",
+    "test:ci": "jest --passWithNoTests --maxWorkers 4",
+    "typecheck": "tsc --noEmit",
+    "sign": "npx --yes @grafana/sign-plugin@latest"
   },
   "author": "Timur Digital",
   "license": "Apache-2.0",

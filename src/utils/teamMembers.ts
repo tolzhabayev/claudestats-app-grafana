@@ -1,5 +1,6 @@
 import { getBackendSrv, getDataSourceSrv } from '@grafana/runtime';
 import { SceneDataTransformer, SceneQueryRunner } from '@grafana/scenes';
+import { MappingType, ValueMapping } from '@grafana/data';
 import { PLUGIN_ID, METRICS, LABELS } from '../constants';
 import { ClaudeStatsSettings, parseTeamMembers } from '../types';
 
@@ -113,15 +114,13 @@ function escapeRegex(str: string): string {
  * Create value mappings for table panels
  * Maps UUID values to display names
  */
-export function createTeamMemberValueMappings(mappings: Record<string, string>): Array<{
-  type: 'value';
-  options: Record<string, { text: string }>;
-}> {
-  const options: Record<string, { text: string }> = {};
+export function createTeamMemberValueMappings(mappings: Record<string, string>): ValueMapping[] {
+  const options: Record<string, { text: string; index: number }> = {};
+  let index = 0;
   for (const [uuid, name] of Object.entries(mappings)) {
-    options[uuid] = { text: name };
+    options[uuid] = { text: name, index: index++ };
   }
-  return [{ type: 'value', options }];
+  return [{ type: MappingType.ValueToText, options }];
 }
 
 /**
