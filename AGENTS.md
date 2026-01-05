@@ -42,7 +42,7 @@ Claude Code → OTLP Export → OTEL Collector → Prometheus → This App
 src/
 ├── components/
 │   ├── App.tsx              # Main router component
-│   ├── AppConfig.tsx        # Plugin configuration page (setup guide, team members, troubleshooting)
+│   ├── AppConfig.tsx        # Plugin configuration page (setup guide, troubleshooting)
 │   └── scenes/
 │       └── SceneAppPage.tsx # Main Scenes app with tab navigation
 ├── scenes/
@@ -54,9 +54,7 @@ src/
 │       ├── TokensScene.ts     # Token usage scene
 │       ├── ToolsScene.ts      # Tool usage scene
 │       └── ProductivityScene.ts # Productivity metrics scene
-├── utils/
-│   └── teamMembers.ts       # Team member name mapping utilities
-├── types.ts                 # TypeScript types and parsing utilities
+├── types.ts                 # TypeScript types
 ├── constants.ts             # Metric names, labels, routes
 ├── module.ts                # Plugin entry point
 └── plugin.json              # Plugin metadata
@@ -77,12 +75,11 @@ src/
 All setup and configuration is consolidated in the plugin Configuration page (Administration > Plugins > Claude Stats > Configuration):
 
 - **Setup Guide tab**: Step-by-step instructions for configuring Claude Code OpenTelemetry export with credential input and generated shell script
-- **Team Members tab**: UUID to display name mappings
 - **Troubleshooting tab**: Common issues, metrics reference, documentation links
 
 ### Team Filtering
 
-- QueryVariable for filtering by `user_account_uuid`
+- QueryVariable for filtering by `user_email` (team members identified by email address)
 - QueryVariable for filtering by `model`
 - All scenes support filtering to individual team members or models
 - "All" option for aggregate views
@@ -91,16 +88,6 @@ All setup and configuration is consolidated in the plugin Configuration page (Ad
 
 - DataSourceVariable for Prometheus auto-discovery
 - Supports multiple Prometheus-compatible data sources
-
-### Team Member Name Mapping
-
-- Configure UUID to display name mappings in plugin settings
-- Stored in plugin jsonData as `teamMembers` string (UUID|Name format, one per line)
-- Parsed at runtime into a dictionary for lookups
-- Applied via `renameByRegex` transformations on relevant panels
-- Names appear in pie charts, time series legends, and bar gauges
-- Configuration page: Administration > Plugins > Claude Stats > Configuration
-- Can be provisioned via `provisioning/plugins/apps.yaml`
 
 ## Claude Code Metrics Reference
 
@@ -119,7 +106,8 @@ These metrics are exported by Claude Code when OTLP is enabled. Note that OTEL a
 
 ### Labels
 
-- `user_account_uuid` - Anonymized user identifier
+- `user_email` - User's email address (primary identifier for team members)
+- `user_account_uuid` - Anonymized user identifier (for privacy-sensitive deployments)
 - `model` - Claude model used (e.g., claude-sonnet-4-20250514, claude-opus-4-5-20250514)
 - `type` - Token type (input, output, cache_read, cache_creation) or LOC type (added, removed)
 - `session_id` - Unique session identifier

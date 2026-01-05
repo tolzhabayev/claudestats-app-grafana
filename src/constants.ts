@@ -26,7 +26,7 @@ export const METRICS = {
 
 // Label names from OTEL
 export const LABELS = {
-  USER_ACCOUNT_UUID: 'user_account_uuid',
+  USER_EMAIL: 'user_email',
   MODEL: 'model',
   TOKEN_TYPE: 'type', // input, output, cache_read, cache_creation
   LOC_TYPE: 'type', // added, removed

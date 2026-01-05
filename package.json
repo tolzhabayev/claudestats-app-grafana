@@ -1,6 +1,6 @@
 {
   "name": "timurdigital-claudestats-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Claude Code team usage analytics for Grafana Cloud",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",

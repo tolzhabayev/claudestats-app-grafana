@@ -10,20 +10,15 @@ import {
   SceneControlsSpacer,
   SceneTimePicker,
   SceneRefreshPicker,
-  SceneDataTransformer,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
 import { QUERIES } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
-import { createTeamMemberRenameTransformations } from '../../utils/teamMembers';
 
 export function getOverviewScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet,
-  teamMembers: Record<string, string>
+  variables: SceneVariableSet
 ): EmbeddedScene {
-  const teamMemberTransforms = createTeamMemberRenameTransformations(teamMembers);
-
   // Data queries
   const totalCostQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
@@ -80,22 +75,16 @@ export function getOverviewScene(
     ],
   });
 
-  const costByMemberQueryRunner = new SceneQueryRunner({
+  const costByMemberQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'CostByMember',
         expr: QUERIES.costByMember,
-        legendFormat: '{{user_account_uuid}}',
+        legendFormat: '{{user_email}}',
         instant: true,
       },
     ],
-  });
-
-  // Apply team member name transformations
-  const costByMemberQuery = new SceneDataTransformer({
-    $data: costByMemberQueryRunner,
-    transformations: teamMemberTransforms,
   });
 
   const tokensOverTimeQuery = new SceneQueryRunner({

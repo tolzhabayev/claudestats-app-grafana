@@ -10,21 +10,15 @@ import {
   SceneControlsSpacer,
   SceneTimePicker,
   SceneRefreshPicker,
-  SceneDataTransformer,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
 import { QUERIES } from '../queries';
 import { PANEL_HEIGHTS, LABELS, METRICS } from '../../constants';
-import { createTeamMemberRenameTransformations, createTeamMemberValueMappings } from '../../utils/teamMembers';
 
 export function getCostsScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet,
-  teamMembers: Record<string, string>
+  variables: SceneVariableSet
 ): EmbeddedScene {
-  const teamMemberTransforms = createTeamMemberRenameTransformations(teamMembers);
-  const teamMemberValueMappings = createTeamMemberValueMappings(teamMembers);
-
   const totalCostQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
@@ -59,55 +53,40 @@ export function getCostsScene(
     ],
   });
 
-  const costOverTimeByMemberQueryRunner = new SceneQueryRunner({
+  const costOverTimeByMemberQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'CostOverTimeByMember',
         expr: QUERIES.costOverTimeByMember,
-        legendFormat: '{{user_account_uuid}}',
+        legendFormat: '{{user_email}}',
       },
     ],
   });
 
-  const costOverTimeByMemberQuery = new SceneDataTransformer({
-    $data: costOverTimeByMemberQueryRunner,
-    transformations: teamMemberTransforms,
-  });
-
-  const costByMemberQueryRunner = new SceneQueryRunner({
+  const costByMemberQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'CostByMember',
         expr: QUERIES.costByMember,
-        legendFormat: '{{user_account_uuid}}',
+        legendFormat: '{{user_email}}',
         instant: true,
       },
     ],
   });
 
-  const costByMemberQuery = new SceneDataTransformer({
-    $data: costByMemberQueryRunner,
-    transformations: teamMemberTransforms,
-  });
-
   // Table query for detailed breakdown
-  const costTableQueryRunner = new SceneQueryRunner({
+  const costTableQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'CostTable',
-        expr: `sum by (${LABELS.USER_ACCOUNT_UUID}, ${LABELS.MODEL}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"})`,
+        expr: `sum by (${LABELS.USER_EMAIL}, ${LABELS.MODEL}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"})`,
         instant: true,
         format: 'table',
       },
     ],
-  });
-
-  const costTableQuery = new SceneDataTransformer({
-    $data: costTableQueryRunner,
-    transformations: teamMemberTransforms,
   });
 
   return new EmbeddedScene({
@@ -197,7 +176,7 @@ export function getCostsScene(
                 .setData(costTableQuery)
                 .setOption('sortBy', [{ displayName: 'Value', desc: true }])
                 .setOverrides((b) =>
-                  b.matchFieldsWithName('user_account_uuid').overrideDisplayName('Team Member').overrideMappings(teamMemberValueMappings)
+                  b.matchFieldsWithName('user_email').overrideDisplayName('Team Member')
                 )
                 .build(),
             }),

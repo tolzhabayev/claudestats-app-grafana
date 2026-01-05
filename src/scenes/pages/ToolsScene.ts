@@ -24,8 +24,7 @@ import { PANEL_HEIGHTS, LABELS, METRICS } from '../../constants';
 
 export function getToolsScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet,
-  _teamMembers: Record<string, string>
+  variables: SceneVariableSet
 ): EmbeddedScene {
   const toolDecisionsQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
@@ -67,7 +66,7 @@ export function getToolsScene(
     queries: [
       {
         refId: 'ToolDecisionsOverTime',
-        expr: `sum(increase(${METRICS.TOOL_DECISION}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}[$__rate_interval])) by (${LABELS.DECISION})`,
+        expr: `sum(increase(${METRICS.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval])) by (${LABELS.DECISION})`,
         legendFormat: '{{decision}}',
       },
     ],

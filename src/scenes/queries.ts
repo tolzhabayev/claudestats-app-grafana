@@ -8,114 +8,114 @@ export const QUERIES = {
   // ==================== COST QUERIES ====================
 
   /** Total cost across all users/models (instant) */
-  totalCost: `sum(${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"})`,
+  totalCost: `sum(${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"})`,
 
   /** Cost breakdown by model */
-  costByModel: `sum by (${LABELS.MODEL}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  costByModel: `sum by (${LABELS.MODEL}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Cost breakdown by team member */
-  costByMember: `sum by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.COST_USAGE}{${LABELS.MODEL}=~"$model"})`,
+  costByMember: `sum by (${LABELS.USER_EMAIL}) (${METRICS.COST_USAGE}{${LABELS.MODEL}=~"$model"})`,
 
   /** Cost over time (rate) */
-  costOverTime: `sum(increase(${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"}[$__rate_interval])) by (${LABELS.MODEL})`,
+  costOverTime: `sum(increase(${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__rate_interval])) by (${LABELS.MODEL})`,
 
   /** Cost over time by member */
-  costOverTimeByMember: `sum(increase(${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"}[$__rate_interval])) by (${LABELS.USER_ACCOUNT_UUID})`,
+  costOverTimeByMember: `sum(increase(${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__rate_interval])) by (${LABELS.USER_EMAIL})`,
 
   // ==================== TOKEN QUERIES ====================
 
   /** Total tokens (all types) */
-  totalTokens: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"})`,
+  totalTokens: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"})`,
 
   /** Tokens by type (input, output, cache_read, cache_creation) */
-  tokensByType: `sum by (${LABELS.TOKEN_TYPE}) (${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"})`,
+  tokensByType: `sum by (${LABELS.TOKEN_TYPE}) (${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"})`,
 
   /** Tokens by model */
-  tokensByModel: `sum by (${LABELS.MODEL}) (${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  tokensByModel: `sum by (${LABELS.MODEL}) (${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Tokens over time */
-  tokensOverTime: `sum(rate(${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model"}[$__rate_interval])) by (${LABELS.TOKEN_TYPE})`,
+  tokensOverTime: `sum(rate(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__rate_interval])) by (${LABELS.TOKEN_TYPE})`,
 
   /** Tokens by member */
-  tokensByMember: `sum by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.TOKEN_USAGE}{${LABELS.MODEL}=~"$model"})`,
+  tokensByMember: `sum by (${LABELS.USER_EMAIL}) (${METRICS.TOKEN_USAGE}{${LABELS.MODEL}=~"$model"})`,
 
   // ==================== SESSION QUERIES ====================
 
   /** Total sessions - count unique session_id labels */
-  totalSessions: `count(count by (${LABELS.SESSION_ID}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}))`,
+  totalSessions: `count(count by (${LABELS.SESSION_ID}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"}))`,
 
   /** Sessions by member */
-  sessionsByMember: `count by (${LABELS.USER_ACCOUNT_UUID}) (count by (${LABELS.SESSION_ID}, ${LABELS.USER_ACCOUNT_UUID}) (${METRICS.COST_USAGE}))`,
+  sessionsByMember: `count by (${LABELS.USER_EMAIL}) (count by (${LABELS.SESSION_ID}, ${LABELS.USER_EMAIL}) (${METRICS.COST_USAGE}))`,
 
-  /** Active users - count unique user_account_uuid labels */
-  activeUsers: `count(count by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}))`,
+  /** Active users - count unique user_email labels */
+  activeUsers: `count(count by (${LABELS.USER_EMAIL}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"}))`,
 
   // ==================== PRODUCTIVITY QUERIES ====================
 
   /** Total lines of code (added + removed) */
-  totalLinesOfCode: `sum(${METRICS.LINES_OF_CODE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  totalLinesOfCode: `sum(${METRICS.LINES_OF_CODE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Lines of code by type (added, removed) */
-  linesOfCodeByType: `sum by (${LABELS.LOC_TYPE}) (${METRICS.LINES_OF_CODE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  linesOfCodeByType: `sum by (${LABELS.LOC_TYPE}) (${METRICS.LINES_OF_CODE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Lines of code by member */
-  linesOfCodeByMember: `sum by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.LINES_OF_CODE})`,
+  linesOfCodeByMember: `sum by (${LABELS.USER_EMAIL}) (${METRICS.LINES_OF_CODE})`,
 
   /** Lines of code over time */
-  linesOfCodeOverTime: `sum(increase(${METRICS.LINES_OF_CODE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}[$__rate_interval])) by (${LABELS.LOC_TYPE})`,
+  linesOfCodeOverTime: `sum(increase(${METRICS.LINES_OF_CODE}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval])) by (${LABELS.LOC_TYPE})`,
 
   /** Total commits */
-  totalCommits: `sum(${METRICS.COMMITS}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  totalCommits: `sum(${METRICS.COMMITS}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Commits by member */
-  commitsByMember: `sum by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.COMMITS})`,
+  commitsByMember: `sum by (${LABELS.USER_EMAIL}) (${METRICS.COMMITS})`,
 
   /** Commits over time */
-  commitsOverTime: `sum(increase(${METRICS.COMMITS}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}[$__rate_interval]))`,
+  commitsOverTime: `sum(increase(${METRICS.COMMITS}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval]))`,
 
   /** Total pull requests */
-  totalPullRequests: `sum(${METRICS.PULL_REQUESTS}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  totalPullRequests: `sum(${METRICS.PULL_REQUESTS}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Pull requests by member */
-  pullRequestsByMember: `sum by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.PULL_REQUESTS})`,
+  pullRequestsByMember: `sum by (${LABELS.USER_EMAIL}) (${METRICS.PULL_REQUESTS})`,
 
   /** Pull requests over time */
-  pullRequestsOverTime: `sum(increase(${METRICS.PULL_REQUESTS}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}[$__rate_interval]))`,
+  pullRequestsOverTime: `sum(increase(${METRICS.PULL_REQUESTS}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval]))`,
 
   // ==================== ACTIVITY QUERIES ====================
 
   /** Total active time in seconds */
-  totalActiveTime: `sum(${METRICS.ACTIVE_TIME}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  totalActiveTime: `sum(${METRICS.ACTIVE_TIME}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Active time by member */
-  activeTimeByMember: `sum by (${LABELS.USER_ACCOUNT_UUID}) (${METRICS.ACTIVE_TIME})`,
+  activeTimeByMember: `sum by (${LABELS.USER_EMAIL}) (${METRICS.ACTIVE_TIME})`,
 
   /** Active time over time */
-  activeTimeOverTime: `sum(increase(${METRICS.ACTIVE_TIME}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}[$__rate_interval]))`,
+  activeTimeOverTime: `sum(increase(${METRICS.ACTIVE_TIME}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval]))`,
 
   // ==================== TOOL QUERIES ====================
 
   /** Tool decisions (accepted, rejected) */
-  toolDecisions: `sum by (${LABELS.DECISION}) (${METRICS.TOOL_DECISION}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  toolDecisions: `sum by (${LABELS.DECISION}) (${METRICS.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Tool decisions by tool */
-  toolDecisionsByTool: `sum by (${LABELS.TOOL}) (${METRICS.TOOL_DECISION}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  toolDecisionsByTool: `sum by (${LABELS.TOOL}) (${METRICS.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Tool acceptance rate */
-  toolAcceptanceRate: `sum(${METRICS.TOOL_DECISION}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.DECISION}="accept"}) / sum(${METRICS.TOOL_DECISION}{${LABELS.USER_ACCOUNT_UUID}=~"$member"}) * 100`,
+  toolAcceptanceRate: `sum(${METRICS.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.DECISION}="accept"}) / sum(${METRICS.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}) * 100`,
 
   // ==================== ENVIRONMENT QUERIES ====================
 
   /** Usage by OS type (darwin, linux, windows) */
-  usageByOsType: `sum by (${LABELS.OS_TYPE}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  usageByOsType: `sum by (${LABELS.OS_TYPE}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Usage by host architecture (arm64, x64) */
-  usageByHostArch: `sum by (${LABELS.HOST_ARCH}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  usageByHostArch: `sum by (${LABELS.HOST_ARCH}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Usage by terminal type */
-  usageByTerminalType: `sum by (${LABELS.TERMINAL_TYPE}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  usageByTerminalType: `sum by (${LABELS.TERMINAL_TYPE}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
   /** Usage by service version */
-  usageByServiceVersion: `sum by (${LABELS.SERVICE_VERSION}) (${METRICS.COST_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member"})`,
+  usageByServiceVersion: `sum by (${LABELS.SERVICE_VERSION}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"})`,
 
 } as const;

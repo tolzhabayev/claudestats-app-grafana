@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { PluginConfigPageProps, AppPluginMeta, PluginMeta, GrafanaTheme2 } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import {
@@ -7,7 +7,6 @@ import {
   Alert,
   useStyles2,
   Field,
-  TextArea,
   Input,
   Tab,
   TabsBar,
@@ -21,7 +20,7 @@ import {
   Badge,
 } from '@grafana/ui';
 import { css } from '@emotion/css';
-import { ClaudeStatsSettings, parseTeamMembers } from '../types';
+import { ClaudeStatsSettings } from '../types';
 
 export interface AppConfigProps extends PluginConfigPageProps<AppPluginMeta<ClaudeStatsSettings>> {}
 
@@ -32,11 +31,8 @@ interface SetupConfig {
 
 export function AppConfig({ plugin }: AppConfigProps) {
   const styles = useStyles2(getStyles);
-  const { enabled, jsonData } = plugin.meta;
+  const { enabled } = plugin.meta;
   const [isEnabled] = useState(enabled);
-  const [teamMembersInput, setTeamMembersInput] = useState(jsonData?.teamMembers || '');
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('setup');
   const [setupConfig, setSetupConfig] = useState<SetupConfig>({
     otlpEndpoint: '',
@@ -56,10 +52,7 @@ export function AppConfig({ plugin }: AppConfigProps) {
     updatePluginAndReload(plugin.meta.id, {
       enabled: true,
       pinned: true,
-      jsonData: {
-        teamMembers: {},
-        teamMembersRaw: '',
-      },
+      jsonData: {},
     });
   };
 
@@ -68,30 +61,6 @@ export function AppConfig({ plugin }: AppConfigProps) {
       enabled: false,
       pinned: false,
     });
-  };
-
-  const onTeamMembersChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setTeamMembersInput(event.target.value);
-    setSaveSuccess(false);
-  };
-
-  const onSaveTeamMembers = async () => {
-    setIsSaving(true);
-    setSaveSuccess(false);
-    try {
-      await getBackendSrv().post(`/api/plugins/${plugin.meta.id}/settings`, {
-        enabled: true,
-        pinned: true,
-        jsonData: {
-          teamMembers: teamMembersInput,
-        },
-      });
-      setSaveSuccess(true);
-    } catch (e) {
-      console.error('Error saving team members:', e);
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   const generateEnvScript = () => {
@@ -121,11 +90,8 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
 # source ~/.zshrc  # or source ~/.bashrc`;
   };
 
-  const parsedCount = Object.keys(parseTeamMembers(teamMembersInput)).length;
-
   const tabs = [
     { label: 'Setup Guide', value: 'setup', icon: 'rocket' as const },
-    { label: 'Team Members', value: 'team-members', icon: 'users-alt' as const },
     { label: 'Troubleshooting', value: 'troubleshooting', icon: 'bug' as const },
   ];
 
@@ -265,66 +231,14 @@ claude`}
                     <p className={styles.dataFlowDescription}>
                       Claude Code exports metrics to <strong>Mimir</strong> (Prometheus-compatible).
                       This app queries the metrics to display your team&apos;s usage analytics.
+                      Team members are identified by their <code>user_email</code> label.
                     </p>
                   </Card.Description>
                 </Card>
 
                 <Alert title="Next Step" severity="success">
-                  Once configured, data should appear within a few minutes. Then configure <strong>Team Members</strong> tab to map UUIDs to names.
+                  Once configured, data should appear within a few minutes. Team members will be identified by their email address automatically.
                 </Alert>
-              </VerticalGroup>
-            )}
-
-            {activeTab === 'team-members' && (
-              <VerticalGroup spacing="lg">
-                <Alert title="Team Member Names" severity="info">
-                  Map team member UUIDs to display names. Names will appear in charts instead of UUIDs.
-                </Alert>
-
-                <Card>
-                  <Card.Heading>UUID to Name Mappings</Card.Heading>
-                  <Card.Description>
-                    <p className={styles.description}>
-                      Enter one mapping per line in the format: <code className={styles.code}>UUID|Display Name</code>
-                    </p>
-                    <p className={styles.description}>
-                      Find UUIDs in the <strong>Team Member</strong> dropdown on the dashboard, or check the Cost Breakdown table.
-                    </p>
-                    <Field
-                      label="Team Member Mappings"
-                      description={`${parsedCount} mapping${parsedCount !== 1 ? 's' : ''} configured`}
-                    >
-                      <TextArea
-                        value={teamMembersInput}
-                        onChange={onTeamMembersChange}
-                        placeholder={`# Example mappings (lines starting with # are ignored)
-abc-123-def-456|John Smith
-ghi-789-jkl-012|Jane Doe`}
-                        rows={10}
-                        className={styles.textarea}
-                      />
-                    </Field>
-                    <div className={styles.buttonRow}>
-                      <Button variant="primary" onClick={onSaveTeamMembers} disabled={isSaving}>
-                        {isSaving ? 'Saving...' : 'Save Mappings'}
-                      </Button>
-                      {saveSuccess && (
-                        <span className={styles.successMessage}>Saved! Refresh dashboards to see changes.</span>
-                      )}
-                    </div>
-                  </Card.Description>
-                </Card>
-
-                <Card>
-                  <Card.Heading>Security Note</Card.Heading>
-                  <Card.Description>
-                    <ul className={styles.list}>
-                      <li>The <code>user_account_uuid</code> is derived from each user&apos;s Claude account</li>
-                      <li>UUIDs are anonymized - only you can associate them with team members</li>
-                      <li>Mappings are stored in Grafana and not sent to external services</li>
-                    </ul>
-                  </Card.Description>
-                </Card>
               </VerticalGroup>
             )}
 
@@ -430,28 +344,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
   container: css`
     max-width: 900px;
   `,
-  description: css`
-    color: ${theme.colors.text.secondary};
-    margin-bottom: ${theme.spacing(2)};
-  `,
   buttonRow: css`
     margin-top: ${theme.spacing(2)};
     display: flex;
     align-items: center;
     gap: ${theme.spacing(2)};
-  `,
-  code: css`
-    background: ${theme.colors.background.secondary};
-    padding: ${theme.spacing(0.5)} ${theme.spacing(1)};
-    border-radius: ${theme.shape.radius.default};
-    font-family: monospace;
-  `,
-  textarea: css`
-    font-family: monospace;
-    font-size: 12px;
-  `,
-  successMessage: css`
-    color: ${theme.colors.success.text};
   `,
   tabContent: css`
     padding: ${theme.spacing(3)} 0;

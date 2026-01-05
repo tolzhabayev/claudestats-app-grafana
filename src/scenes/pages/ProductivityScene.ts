@@ -10,7 +10,6 @@ import {
   SceneControlsSpacer,
   SceneTimePicker,
   SceneRefreshPicker,
-  SceneDataTransformer,
 } from '@grafana/scenes';
 import {
   BigValueGraphMode,
@@ -23,15 +22,11 @@ import {
 } from '@grafana/schema';
 import { QUERIES } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
-import { createTeamMemberRenameTransformations } from '../../utils/teamMembers';
 
 export function getProductivityScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet,
-  teamMembers: Record<string, string>
+  variables: SceneVariableSet
 ): EmbeddedScene {
-  const teamMemberTransforms = createTeamMemberRenameTransformations(teamMembers);
-
   const totalLinesOfCodeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
@@ -119,21 +114,16 @@ export function getProductivityScene(
     ],
   });
 
-  const activeTimeByMemberQueryRunner = new SceneQueryRunner({
+  const activeTimeByMemberQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'ActiveTimeByMember',
         expr: QUERIES.activeTimeByMember,
-        legendFormat: '{{user_account_uuid}}',
+        legendFormat: '{{user_email}}',
         instant: true,
       },
     ],
-  });
-
-  const activeTimeByMemberQuery = new SceneDataTransformer({
-    $data: activeTimeByMemberQueryRunner,
-    transformations: teamMemberTransforms,
   });
 
   return new EmbeddedScene({

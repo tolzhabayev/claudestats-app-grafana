@@ -10,7 +10,6 @@ import {
   SceneControlsSpacer,
   SceneTimePicker,
   SceneRefreshPicker,
-  SceneDataTransformer,
 } from '@grafana/scenes';
 import {
   BigValueGraphMode,
@@ -19,15 +18,11 @@ import {
 } from '@grafana/schema';
 import { QUERIES } from '../queries';
 import { PANEL_HEIGHTS, LABELS, METRICS } from '../../constants';
-import { createTeamMemberRenameTransformations } from '../../utils/teamMembers';
 
 export function getTokensScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet,
-  teamMembers: Record<string, string>
+  variables: SceneVariableSet
 ): EmbeddedScene {
-  const teamMemberTransforms = createTeamMemberRenameTransformations(teamMembers);
-
   const totalTokensQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
@@ -44,7 +39,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'InputTokens',
-        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="input"})`,
+        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="input"})`,
         instant: true,
       },
     ],
@@ -55,7 +50,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'OutputTokens',
-        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="output"})`,
+        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="output"})`,
         instant: true,
       },
     ],
@@ -66,7 +61,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'CacheReadTokens',
-        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_ACCOUNT_UUID}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cache_read"})`,
+        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cache_read"})`,
         instant: true,
       },
     ],
@@ -107,21 +102,16 @@ export function getTokensScene(
     ],
   });
 
-  const tokensByMemberQueryRunner = new SceneQueryRunner({
+  const tokensByMemberQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'TokensByMember',
         expr: QUERIES.tokensByMember,
-        legendFormat: '{{user_account_uuid}}',
+        legendFormat: '{{user_email}}',
         instant: true,
       },
     ],
-  });
-
-  const tokensByMemberQuery = new SceneDataTransformer({
-    $data: tokensByMemberQueryRunner,
-    transformations: teamMemberTransforms,
   });
 
   return new EmbeddedScene({
