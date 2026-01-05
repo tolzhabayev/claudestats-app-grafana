@@ -8,6 +8,14 @@ Claude Stats is a Grafana app plugin that provides team visibility into Claude C
 
 ### Data Flow
 
+**Grafana Cloud (recommended):**
+```
+Claude Code → OTLP Export → Grafana Cloud (Mimir) → This App
+     ↓              ↓                ↓
+  Metrics      Cumulative       Grafana Scenes
+```
+
+**Self-hosted (requires collector):**
 ```
 Claude Code → OTLP Export → OTEL Collector → Prometheus → This App
      ↓              ↓              ↓              ↓
@@ -170,6 +178,8 @@ export OTEL_METRICS_EXPORTER=otlp
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-<region>.grafana.net/otlp"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64-encoded-instance:token>"
+# IMPORTANT: Use cumulative temporality for Grafana Cloud compatibility
+export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
 # Note: OTEL_LOGS_EXPORTER is intentionally not set (no logs)
 ```
 
@@ -183,6 +193,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64-encoded-instance:
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP protocol | `grpc`, `http/json`, `http/protobuf` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Collector endpoint | `http://localhost:4318` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers | `Authorization=Bearer token` |
+| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | Metrics temporality (required for Grafana Cloud) | `cumulative` |
 | `OTEL_METRIC_EXPORT_INTERVAL` | Export interval (ms) | `10000` (default: 60000) |
 
 **Cardinality Control:**

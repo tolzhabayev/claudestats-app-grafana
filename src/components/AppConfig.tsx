@@ -111,6 +111,9 @@ export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 export OTEL_EXPORTER_OTLP_ENDPOINT="${endpoint}"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic ${token}"
 
+# IMPORTANT: Use cumulative temporality for Grafana Cloud compatibility
+export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
+
 # Optional: Adjust export interval (in milliseconds, default: 60000)
 export OTEL_METRIC_EXPORT_INTERVAL=60000
 
@@ -223,7 +226,7 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                     <CodeEditor
                       value={generateEnvScript()}
                       language="shell"
-                      height={320}
+                      height={380}
                       readOnly
                       showMiniMap={false}
                       showLineNumbers
