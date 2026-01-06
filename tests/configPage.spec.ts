@@ -13,17 +13,11 @@ test.describe('Configuration Page', () => {
   test('should display configuration tabs', async ({ appConfigPage, page }) => {
     // Check all tabs are visible
     await expect(page.getByRole('tab', { name: 'Setup Guide' })).toBeVisible();
-    await expect(page.getByRole('tab', { name: 'Team Members' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Troubleshooting' })).toBeVisible();
   });
 
   test('should show Setup Guide content by default', async ({ appConfigPage, page }) => {
     await expect(page.getByText('Step 1: Get Grafana Cloud OTLP Credentials')).toBeVisible();
-  });
-
-  test('should navigate to Team Members tab', async ({ appConfigPage, page }) => {
-    await page.getByRole('tab', { name: 'Team Members' }).click();
-    await expect(page.getByText('UUID to Name Mappings')).toBeVisible();
   });
 
   test('should navigate to Troubleshooting tab', async ({ appConfigPage, page }) => {
@@ -39,17 +33,6 @@ test.describe('Configuration Page', () => {
   test('should have API Token input field', async ({ appConfigPage, page }) => {
     // Input field with placeholder
     await expect(page.getByPlaceholder('Your base64-encoded token')).toBeVisible();
-  });
-
-  test('should display team member mappings textarea', async ({ appConfigPage, page }) => {
-    await page.getByRole('tab', { name: 'Team Members' }).click();
-    // Use placeholder to find the textarea
-    await expect(page.getByPlaceholder(/Example mappings/)).toBeVisible();
-  });
-
-  test('should have Save Mappings button', async ({ appConfigPage, page }) => {
-    await page.getByRole('tab', { name: 'Team Members' }).click();
-    await expect(page.getByRole('button', { name: 'Save Mappings' })).toBeVisible();
   });
 
   test('should display metrics reference in troubleshooting', async ({ appConfigPage, page }) => {
