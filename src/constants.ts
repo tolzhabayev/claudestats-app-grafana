@@ -16,7 +16,7 @@ import { MetricFormat } from './types';
 // Prometheus format: metrics pass through Prometheus/OTEL Collector (adds _total, unit suffixes)
 // OTLP format: metrics sent directly via OTLP to Mimir/Grafana Cloud (original names)
 
-export type MetricNames = typeof METRICS_PROMETHEUS;
+export type MetricNames = typeof METRICS_PROMETHEUS | typeof METRICS_OTLP;
 
 const METRICS_PROMETHEUS = {
   SESSION_COUNT: 'claude_code_session_count_total',
