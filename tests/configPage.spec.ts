@@ -42,3 +42,33 @@ test.describe('Configuration Page', () => {
     await expect(page.getByText('claude_code_cost_usage_USD_total').first()).toBeVisible();
   });
 });
+
+test.describe('Metric Format Selector', () => {
+  test('should be visible when plugin is enabled', async ({ appConfigPage, page }) => {
+    await expect(page.getByText('Metric Format')).toBeVisible();
+    await expect(page.getByRole('radio', { name: 'Prometheus / OTEL Collector' })).toBeVisible();
+    await expect(page.getByRole('radio', { name: 'Direct OTLP' })).toBeVisible();
+  });
+
+  test('should default to Prometheus format when metricFormat is unset', async ({ appConfigPage, page }) => {
+    // The provisioned apps.yaml does not set metricFormat, so the default should be prometheus
+    await expect(page.getByRole('radio', { name: 'Prometheus / OTEL Collector' })).toBeChecked();
+  });
+
+  test('should save selected format and preserve existing jsonData on change', async ({ appConfigPage, page }) => {
+    // Intercept the settings POST to verify payload without causing a real reload
+    let savedBody: Record<string, unknown> | null = null;
+    await page.route('**/api/plugins/*/settings', async (route) => {
+      savedBody = route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) });
+    });
+
+    await page.getByRole('radio', { name: 'Direct OTLP' }).click();
+
+    expect(savedBody).not.toBeNull();
+    // metricFormat should be updated to 'otlp'
+    expect((savedBody as Record<string, unknown>).jsonData).toMatchObject({ metricFormat: 'otlp' });
+    // Existing jsonData keys (e.g. teamMembers from provisioning) must not be dropped
+    expect((savedBody as Record<string, unknown>).jsonData).toMatchObject({ teamMembers: expect.any(String) });
+  });
+});
