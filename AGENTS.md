@@ -74,6 +74,7 @@ src/
 
 All setup and configuration is consolidated in the plugin Configuration page (Administration > Plugins > Claude Stats > Configuration):
 
+- **Metric Format selector**: Toggle between "Prometheus / OTEL Collector" and "Direct OTLP" ingestion paths. This controls which metric naming convention all PromQL queries use. Setting is persisted in plugin `jsonData` and read at app startup in `SceneAppPage.tsx`.
 - **Setup Guide tab**: Step-by-step instructions for configuring Claude Code OpenTelemetry export with credential input and generated shell script
 - **Troubleshooting tab**: Common issues, metrics reference, documentation links
 
@@ -91,7 +92,11 @@ All setup and configuration is consolidated in the plugin Configuration page (Ad
 
 ## Claude Code Metrics Reference
 
-These metrics are exported by Claude Code when OTLP is enabled. Note that OTEL adds unit suffixes to metric names:
+Metric names differ depending on how they reach Grafana. The plugin supports both via the **Metric Format** setting in the Configuration page.
+
+### Prometheus / OTEL Collector format
+
+Used when metrics flow through an OTEL Collector that exports to Prometheus. The Prometheus scrape adds `_total` and unit suffixes.
 
 | Metric | Description |
 |--------|-------------|
@@ -103,6 +108,21 @@ These metrics are exported by Claude Code when OTLP is enabled. Note that OTEL a
 | `claude_code_pull_request_count_total` | Pull requests created |
 | `claude_code_active_time_seconds_total` | Active coding time in seconds |
 | `claude_code_code_edit_tool_decision_total` | Tool accept/reject decisions |
+
+### Direct OTLP format
+
+Used when metrics are sent directly via OTLP to Mimir or Grafana Cloud. Original metric names are preserved without unit suffixes.
+
+| Metric | Description |
+|--------|-------------|
+| `claude_code_session_count` | Number of Claude Code sessions |
+| `claude_code_cost_usage` | API costs in USD |
+| `claude_code_token_usage` | Token consumption by type |
+| `claude_code_lines_of_code_count` | Lines added/removed |
+| `claude_code_commit_count` | Git commits made |
+| `claude_code_pull_request_count` | Pull requests created |
+| `claude_code_active_time_total` | Active coding time in seconds |
+| `claude_code_code_edit_tool_decision` | Tool accept/reject decisions |
 
 ### Labels
 

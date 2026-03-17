@@ -16,19 +16,20 @@ import {
   LegendDisplayMode,
   StackingMode,
 } from '@grafana/schema';
-import { QUERIES } from '../queries';
-import { PANEL_HEIGHTS, LABELS, METRICS } from '../../constants';
+import { QUERIES, Queries } from '../queries';
+import { PANEL_HEIGHTS } from '../../constants';
 
 export function getTokensScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet
+  variables: SceneVariableSet,
+  queries: Queries = QUERIES
 ): EmbeddedScene {
   const totalTokensQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'TotalTokens',
-        expr: QUERIES.totalTokens,
+        expr: queries.totalTokens,
         instant: true,
       },
     ],
@@ -39,7 +40,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'InputTokens',
-        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="input"})`,
+        expr: queries.inputTokens,
         instant: true,
       },
     ],
@@ -50,7 +51,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'OutputTokens',
-        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="output"})`,
+        expr: queries.outputTokens,
         instant: true,
       },
     ],
@@ -61,7 +62,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'CacheReadTokens',
-        expr: `sum(${METRICS.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cache_read"})`,
+        expr: queries.cacheReadTokens,
         instant: true,
       },
     ],
@@ -72,7 +73,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'TokensByType',
-        expr: QUERIES.tokensByType,
+        expr: queries.tokensByType,
         legendFormat: '{{type}}',
         instant: true,
       },
@@ -84,7 +85,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'TokensOverTime',
-        expr: QUERIES.tokensOverTime,
+        expr: queries.tokensOverTime,
         legendFormat: '{{type}}',
       },
     ],
@@ -95,7 +96,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'TokensByModel',
-        expr: QUERIES.tokensByModel,
+        expr: queries.tokensByModel,
         legendFormat: '{{model}}',
         instant: true,
       },
@@ -107,7 +108,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'TokensByMember',
-        expr: QUERIES.tokensByMember,
+        expr: queries.tokensByMember,
         legendFormat: '{{user_email}}',
         instant: true,
       },

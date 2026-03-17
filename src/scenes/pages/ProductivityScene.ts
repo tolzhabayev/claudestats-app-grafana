@@ -20,19 +20,20 @@ import {
   BarGaugeValueMode,
   VizOrientation,
 } from '@grafana/schema';
-import { QUERIES } from '../queries';
+import { QUERIES, Queries } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getProductivityScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet
+  variables: SceneVariableSet,
+  queries: Queries = QUERIES
 ): EmbeddedScene {
   const totalLinesOfCodeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'TotalLinesOfCode',
-        expr: QUERIES.totalLinesOfCode,
+        expr: queries.totalLinesOfCode,
         instant: true,
       },
     ],
@@ -43,7 +44,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'TotalCommits',
-        expr: QUERIES.totalCommits,
+        expr: queries.totalCommits,
         instant: true,
       },
     ],
@@ -54,7 +55,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'TotalPullRequests',
-        expr: QUERIES.totalPullRequests,
+        expr: queries.totalPullRequests,
         instant: true,
       },
     ],
@@ -65,7 +66,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'TotalActiveTime',
-        expr: QUERIES.totalActiveTime,
+        expr: queries.totalActiveTime,
         instant: true,
       },
     ],
@@ -76,7 +77,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'LinesOfCodeByType',
-        expr: QUERIES.linesOfCodeByType,
+        expr: queries.linesOfCodeByType,
         legendFormat: '{{type}}',
         instant: true,
       },
@@ -88,7 +89,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'LinesOfCodeOverTime',
-        expr: QUERIES.linesOfCodeOverTime,
+        expr: queries.linesOfCodeOverTime,
         legendFormat: '{{type}}',
       },
     ],
@@ -99,7 +100,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'CommitsOverTime',
-        expr: QUERIES.commitsOverTime,
+        expr: queries.commitsOverTime,
       },
     ],
   });
@@ -109,7 +110,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'PullRequestsOverTime',
-        expr: QUERIES.pullRequestsOverTime,
+        expr: queries.pullRequestsOverTime,
       },
     ],
   });
@@ -119,7 +120,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'ActiveTimeByMember',
-        expr: QUERIES.activeTimeByMember,
+        expr: queries.activeTimeByMember,
         legendFormat: '{{user_email}}',
         instant: true,
       },

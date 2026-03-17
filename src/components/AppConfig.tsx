@@ -8,6 +8,7 @@ import {
   useStyles2,
   Field,
   Input,
+  RadioButtonGroup,
   Tab,
   TabsBar,
   TabContent,
@@ -20,7 +21,7 @@ import {
   Badge,
 } from '@grafana/ui';
 import { css } from '@emotion/css';
-import { ClaudeStatsSettings } from '../types';
+import { ClaudeStatsSettings, MetricFormat } from '../types';
 
 export interface AppConfigProps extends PluginConfigPageProps<AppPluginMeta<ClaudeStatsSettings>> {}
 
@@ -31,9 +32,12 @@ interface SetupConfig {
 
 export function AppConfig({ plugin }: AppConfigProps) {
   const styles = useStyles2(getStyles);
-  const { enabled } = plugin.meta;
+  const { enabled, jsonData } = plugin.meta;
   const [isEnabled] = useState(enabled);
   const [activeTab, setActiveTab] = useState('setup');
+  const [metricFormat, setMetricFormat] = useState<MetricFormat>(
+    (jsonData as ClaudeStatsSettings)?.metricFormat ?? 'prometheus'
+  );
   const [setupConfig, setSetupConfig] = useState<SetupConfig>({
     otlpEndpoint: '',
     otlpToken: '',
@@ -48,11 +52,20 @@ export function AppConfig({ plugin }: AppConfigProps) {
     }
   };
 
+  const onSaveMetricFormat = (format: MetricFormat) => {
+    setMetricFormat(format);
+    updatePluginAndReload(plugin.meta.id, {
+      enabled: true,
+      pinned: true,
+      jsonData: { metricFormat: format },
+    });
+  };
+
   const onEnable = () => {
     updatePluginAndReload(plugin.meta.id, {
       enabled: true,
       pinned: true,
-      jsonData: {},
+      jsonData: { metricFormat },
     });
   };
 
@@ -122,6 +135,32 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
           </>
         )}
       </FieldSet>
+
+      {isEnabled && (
+        <FieldSet label="Metric Format">
+          <Field
+            label="Ingestion path"
+            description="Choose how Claude Code metrics reach Grafana. This determines the metric naming convention used in queries."
+          >
+            <RadioButtonGroup
+              options={[
+                {
+                  label: 'Prometheus / OTEL Collector',
+                  value: 'prometheus' as MetricFormat,
+                  description: 'Via OTEL Collector → Prometheus (adds _total and unit suffixes)',
+                },
+                {
+                  label: 'Direct OTLP',
+                  value: 'otlp' as MetricFormat,
+                  description: 'Sent directly to Mimir / Grafana Cloud OTLP endpoint',
+                },
+              ]}
+              value={metricFormat}
+              onChange={onSaveMetricFormat}
+            />
+          </Field>
+        </FieldSet>
+      )}
 
       {isEnabled && (
         <>
@@ -263,11 +302,11 @@ claude`}
                         <p>Metrics are exported periodically (default: every 60 seconds). Have a conversation, edit some code, then wait 1-2 minutes.</p>
                       </li>
                       <li>
-                        <strong>Query metrics directly in Grafana Explore:</strong>
+                        <strong>Query metrics directly in Grafana Explore</strong> to confirm data is arriving. Use the name matching your ingestion path:
                         <CodeEditor
-                          value="claude_code_cost_usage_USD_total"
+                          value={`# Direct OTLP (Grafana Cloud / Mimir)\nclaude_code_cost_usage\n\n# Via OTEL Collector → Prometheus\nclaude_code_cost_usage_USD_total`}
                           language="promql"
-                          height={40}
+                          height={100}
                           readOnly
                           showMiniMap={false}
                         />
@@ -302,7 +341,26 @@ claude`}
                 <Card>
                   <Card.Heading>Metrics Reference</Card.Heading>
                   <Card.Description>
-                    <p>Claude Code exports these metrics (OTEL adds unit suffixes):</p>
+                    <p>
+                      Metric names depend on your ingestion path. Set the correct format in the{' '}
+                      <strong>Metric Format</strong> selector above.
+                    </p>
+                    <p><strong>Direct OTLP (Grafana Cloud / Mimir):</strong></p>
+                    <CodeEditor
+                      value={`claude_code_session_count
+claude_code_cost_usage
+claude_code_token_usage
+claude_code_lines_of_code_count
+claude_code_commit_count
+claude_code_pull_request_count
+claude_code_active_time_total
+claude_code_code_edit_tool_decision`}
+                      language="promql"
+                      height={180}
+                      readOnly
+                      showMiniMap={false}
+                    />
+                    <p><strong>Via OTEL Collector → Prometheus:</strong></p>
                     <CodeEditor
                       value={`claude_code_session_count_total
 claude_code_cost_usage_USD_total

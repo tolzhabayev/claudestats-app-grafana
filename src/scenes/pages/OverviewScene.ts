@@ -12,12 +12,13 @@ import {
   SceneRefreshPicker,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
-import { QUERIES } from '../queries';
+import { QUERIES, Queries } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getOverviewScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet
+  variables: SceneVariableSet,
+  queries: Queries = QUERIES
 ): EmbeddedScene {
   // Data queries
   const totalCostQuery = new SceneQueryRunner({
@@ -25,7 +26,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'TotalCost',
-        expr: QUERIES.totalCost,
+        expr: queries.totalCost,
         instant: true,
       },
     ],
@@ -36,7 +37,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'TotalTokens',
-        expr: QUERIES.totalTokens,
+        expr: queries.totalTokens,
         instant: true,
       },
     ],
@@ -47,7 +48,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'TotalSessions',
-        expr: QUERIES.totalSessions,
+        expr: queries.totalSessions,
         instant: true,
       },
     ],
@@ -58,7 +59,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'ActiveUsers',
-        expr: QUERIES.activeUsers,
+        expr: queries.activeUsers,
         instant: true,
       },
     ],
@@ -69,7 +70,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'CostOverTime',
-        expr: QUERIES.costOverTime,
+        expr: queries.costOverTime,
         legendFormat: '{{model}}',
       },
     ],
@@ -80,7 +81,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'CostByMember',
-        expr: QUERIES.costByMember,
+        expr: queries.costByMember,
         legendFormat: '{{user_email}}',
         instant: true,
       },
@@ -92,7 +93,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'TokensOverTime',
-        expr: QUERIES.tokensOverTime,
+        expr: queries.tokensOverTime,
         legendFormat: '{{type}}',
       },
     ],
@@ -103,7 +104,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'ActiveTimeOverTime',
-        expr: QUERIES.activeTimeOverTime,
+        expr: queries.activeTimeOverTime,
       },
     ],
   });
@@ -114,7 +115,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'UsageByOsType',
-        expr: QUERIES.usageByOsType,
+        expr: queries.usageByOsType,
         legendFormat: '{{os_type}}',
         instant: true,
       },
@@ -126,7 +127,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'UsageByHostArch',
-        expr: QUERIES.usageByHostArch,
+        expr: queries.usageByHostArch,
         legendFormat: '{{host_arch}}',
         instant: true,
       },
@@ -138,7 +139,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'UsageByTerminalType',
-        expr: QUERIES.usageByTerminalType,
+        expr: queries.usageByTerminalType,
         legendFormat: '{{terminal_type}}',
         instant: true,
       },
@@ -150,7 +151,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'UsageByServiceVersion',
-        expr: QUERIES.usageByServiceVersion,
+        expr: queries.usageByServiceVersion,
         legendFormat: '{{service_version}}',
         instant: true,
       },

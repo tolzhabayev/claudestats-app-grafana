@@ -19,19 +19,20 @@ import {
   BarGaugeValueMode,
   VizOrientation,
 } from '@grafana/schema';
-import { QUERIES } from '../queries';
-import { PANEL_HEIGHTS, LABELS, METRICS } from '../../constants';
+import { QUERIES, Queries } from '../queries';
+import { PANEL_HEIGHTS } from '../../constants';
 
 export function getToolsScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet
+  variables: SceneVariableSet,
+  queries: Queries = QUERIES
 ): EmbeddedScene {
   const toolDecisionsQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'ToolDecisions',
-        expr: QUERIES.toolDecisions,
+        expr: queries.toolDecisions,
         legendFormat: '{{decision}}',
         instant: true,
       },
@@ -43,7 +44,7 @@ export function getToolsScene(
     queries: [
       {
         refId: 'ToolDecisionsByTool',
-        expr: QUERIES.toolDecisionsByTool,
+        expr: queries.toolDecisionsByTool,
         legendFormat: '{{tool_name}}',
         instant: true,
       },
@@ -55,7 +56,7 @@ export function getToolsScene(
     queries: [
       {
         refId: 'ToolAcceptanceRate',
-        expr: QUERIES.toolAcceptanceRate,
+        expr: queries.toolAcceptanceRate,
         instant: true,
       },
     ],
@@ -66,7 +67,7 @@ export function getToolsScene(
     queries: [
       {
         refId: 'ToolDecisionsOverTime',
-        expr: `sum(increase(${METRICS.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval])) by (${LABELS.DECISION})`,
+        expr: queries.toolDecisionsOverTime,
         legendFormat: '{{decision}}',
       },
     ],

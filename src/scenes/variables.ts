@@ -3,7 +3,7 @@ import {
   DataSourceVariable,
   SceneVariableSet,
 } from '@grafana/scenes';
-import { METRICS, LABELS } from '../constants';
+import { METRICS, LABELS, MetricNames } from '../constants';
 
 /**
  * Creates a data source variable for Prometheus/Mimir
@@ -20,7 +20,7 @@ export function getPrometheusDataSourceVariable() {
 /**
  * Creates a team member filter variable using user_email
  */
-export function getTeamMemberVariable() {
+export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
   return new QueryVariable({
     name: 'member',
     label: 'Team Member',
@@ -29,7 +29,7 @@ export function getTeamMemberVariable() {
       uid: '${prometheus_ds}',
     },
     query: {
-      query: `label_values(${METRICS.COST_USAGE}, ${LABELS.USER_EMAIL})`,
+      query: `label_values(${metrics.COST_USAGE}, ${LABELS.USER_EMAIL})`,
       refId: 'MemberQuery',
     },
     includeAll: true,
@@ -41,7 +41,7 @@ export function getTeamMemberVariable() {
 /**
  * Creates a model filter variable (sonnet, opus, etc.)
  */
-export function getModelVariable() {
+export function getModelVariable(metrics: MetricNames = METRICS) {
   return new QueryVariable({
     name: 'model',
     label: 'Model',
@@ -50,7 +50,7 @@ export function getModelVariable() {
       uid: '${prometheus_ds}',
     },
     query: {
-      query: `label_values(${METRICS.COST_USAGE}, ${LABELS.MODEL})`,
+      query: `label_values(${metrics.COST_USAGE}, ${LABELS.MODEL})`,
       refId: 'ModelQuery',
     },
     includeAll: true,
@@ -62,12 +62,12 @@ export function getModelVariable() {
 /**
  * Creates the shared variable set used across all scenes
  */
-export function getSharedVariables() {
+export function getSharedVariables(metrics: MetricNames = METRICS) {
   return new SceneVariableSet({
     variables: [
       getPrometheusDataSourceVariable(),
-      getTeamMemberVariable(),
-      getModelVariable(),
+      getTeamMemberVariable(metrics),
+      getModelVariable(metrics),
     ],
   });
 }

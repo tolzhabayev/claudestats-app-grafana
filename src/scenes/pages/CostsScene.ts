@@ -12,19 +12,20 @@ import {
   SceneRefreshPicker,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
-import { QUERIES } from '../queries';
-import { PANEL_HEIGHTS, LABELS, METRICS } from '../../constants';
+import { QUERIES, Queries } from '../queries';
+import { PANEL_HEIGHTS } from '../../constants';
 
 export function getCostsScene(
   timeRange: SceneTimeRange,
-  variables: SceneVariableSet
+  variables: SceneVariableSet,
+  queries: Queries = QUERIES
 ): EmbeddedScene {
   const totalCostQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'TotalCost',
-        expr: QUERIES.totalCost,
+        expr: queries.totalCost,
         instant: true,
       },
     ],
@@ -35,7 +36,7 @@ export function getCostsScene(
     queries: [
       {
         refId: 'CostByModel',
-        expr: QUERIES.costByModel,
+        expr: queries.costByModel,
         legendFormat: '{{model}}',
         instant: true,
       },
@@ -47,7 +48,7 @@ export function getCostsScene(
     queries: [
       {
         refId: 'CostOverTime',
-        expr: QUERIES.costOverTime,
+        expr: queries.costOverTime,
         legendFormat: '{{model}}',
       },
     ],
@@ -58,7 +59,7 @@ export function getCostsScene(
     queries: [
       {
         refId: 'CostOverTimeByMember',
-        expr: QUERIES.costOverTimeByMember,
+        expr: queries.costOverTimeByMember,
         legendFormat: '{{user_email}}',
       },
     ],
@@ -69,20 +70,19 @@ export function getCostsScene(
     queries: [
       {
         refId: 'CostByMember',
-        expr: QUERIES.costByMember,
+        expr: queries.costByMember,
         legendFormat: '{{user_email}}',
         instant: true,
       },
     ],
   });
 
-  // Table query for detailed breakdown
   const costTableQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
       {
         refId: 'CostTable',
-        expr: `sum by (${LABELS.USER_EMAIL}, ${LABELS.MODEL}) (${METRICS.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"})`,
+        expr: queries.costTable,
         instant: true,
         format: 'table',
       },
