@@ -57,7 +57,7 @@ export function AppConfig({ plugin }: AppConfigProps) {
     updatePluginAndReload(plugin.meta.id, {
       enabled: true,
       pinned: true,
-      jsonData: { metricFormat: format },
+      jsonData: { ...((plugin.meta.jsonData as ClaudeStatsSettings) ?? {}), metricFormat: format },
     });
   };
 
@@ -65,7 +65,7 @@ export function AppConfig({ plugin }: AppConfigProps) {
     updatePluginAndReload(plugin.meta.id, {
       enabled: true,
       pinned: true,
-      jsonData: { metricFormat },
+      jsonData: { ...((plugin.meta.jsonData as ClaudeStatsSettings) ?? {}), metricFormat },
     });
   };
 

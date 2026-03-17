@@ -1,3 +1,5 @@
+import { MetricFormat } from './types';
+
 export const PLUGIN_ID = 'timurdigital-claudestats-app';
 export const PLUGIN_BASE_URL = `/a/${PLUGIN_ID}`;
 
@@ -9,8 +11,6 @@ export const ROUTES = {
   Tools: 'tools',
   Productivity: 'productivity',
 } as const;
-
-import { MetricFormat } from './types';
 
 // Claude Code OpenTelemetry metric names
 // Prometheus format: metrics pass through Prometheus/OTEL Collector (adds _total, unit suffixes)
