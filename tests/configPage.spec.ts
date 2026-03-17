@@ -56,19 +56,33 @@ test.describe('Metric Format Selector', () => {
   });
 
   test('should save selected format and preserve existing jsonData on change', async ({ appConfigPage, page }) => {
-    // Intercept the settings POST to verify payload without causing a real reload
-    let savedBody: Record<string, unknown> | null = null;
+    // Ensure the selector is rendered before setting up the intercept, so we don't accidentally
+    // block GET calls that the config page needs to determine its enabled/rendered state
+    await expect(page.getByRole('radio', { name: 'Direct OTLP' })).toBeVisible();
+
+    // Intercept only the POST (save) call; pass GET requests through so the page stays intact
     await page.route('**/api/plugins/*/settings', async (route) => {
-      savedBody = route.request().postDataJSON();
+      if (route.request().method() !== 'POST') {
+        await route.continue();
+        return;
+      }
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({}) });
     });
 
+    // waitForRequest resolves as soon as the request is dispatched, giving us the body before
+    // window.location.reload() fires and navigates the page away
+    const settingsPost = page.waitForRequest(
+      (req) => req.url().includes('/api/plugins/') && req.url().includes('/settings') && req.method() === 'POST'
+    );
+
     await page.getByRole('radio', { name: 'Direct OTLP' }).click();
 
-    expect(savedBody).not.toBeNull();
+    const request = await settingsPost;
+    const body = request.postDataJSON() as { jsonData: Record<string, unknown> };
+
     // metricFormat should be updated to 'otlp'
-    expect((savedBody as Record<string, unknown>).jsonData).toMatchObject({ metricFormat: 'otlp' });
+    expect(body.jsonData).toMatchObject({ metricFormat: 'otlp' });
     // Existing jsonData keys (e.g. teamMembers from provisioning) must not be dropped
-    expect((savedBody as Record<string, unknown>).jsonData).toMatchObject({ teamMembers: expect.any(String) });
+    expect(body.jsonData).toMatchObject({ teamMembers: expect.any(String) });
   });
 });
