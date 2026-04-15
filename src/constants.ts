@@ -16,7 +16,7 @@ export const ROUTES = {
 // Prometheus format: metrics pass through Prometheus/OTEL Collector (adds _total, unit suffixes)
 // OTLP format: metrics sent directly via OTLP to Mimir/Grafana Cloud (original names)
 
-export type MetricNames = typeof METRICS_PROMETHEUS | typeof METRICS_OTLP;
+export type MetricNames = { [K in keyof typeof METRICS_PROMETHEUS]: string };
 
 const METRICS_PROMETHEUS = {
   SESSION_COUNT: 'claude_code_session_count_total',
@@ -38,7 +38,7 @@ const METRICS_OTLP = {
   TOKEN_USAGE: 'claude_code_token_usage',
   TOOL_DECISION: 'claude_code_code_edit_tool_decision',
   ACTIVE_TIME: 'claude_code_active_time_total',
-} as const;
+} as const satisfies MetricNames;
 
 export function getMetrics(format: MetricFormat = 'prometheus'): MetricNames {
   return format === 'otlp' ? METRICS_OTLP : METRICS_PROMETHEUS;

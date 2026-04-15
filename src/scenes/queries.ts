@@ -116,7 +116,7 @@ function buildQueries(m: MetricNames) {
     toolDecisionsByTool: `sum by (${LABELS.TOOL}) (increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range]))`,
 
     /** Tool acceptance rate */
-    toolAcceptanceRate: `sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.DECISION}="accept"}[$__range])) / sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range])) * 100`,
+    toolAcceptanceRate: `sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.DECISION}="accept"}[$__range])) / clamp_min(sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range])), 1) * 100`,
 
     /** Tool decisions over time */
     toolDecisionsOverTime: `sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval])) by (${LABELS.DECISION})`,
