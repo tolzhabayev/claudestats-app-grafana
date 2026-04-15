@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+
+- **Metric Format setting** — toggle between Prometheus/OTEL Collector and Direct OTLP metric naming conventions in the Configuration page
+- End-to-end tests for Metric Format selector
+
+### Fixed
+
+- Stat panels (total cost, tokens, sessions, active users) no longer show "No Data" between sessions — instant counter queries now use `increase([$__range])`
+- Plugin loading error ("t() was called before i18n was initialized") resolved by initializing `@grafana/i18n` before scenes renders
+- `toolAcceptanceRate` query guarded against division by zero
+
+### Changed
+
+- Updated `@grafana/scenes` from 6.x to 7.x
+
 ## 1.0.2
 
 ### Changed
