@@ -247,8 +247,8 @@ function buildQueryResponse(body: DsQueryBody) {
     const builder = DATASET[query.refId];
     results[query.refId] = {
       status: 200,
-      // Unknown refIds resolve to an empty (but valid) frame so the panel shows
-      // "No data" rather than erroring - makes missing fixtures obvious.
+      // Unknown refIds resolve to a NaN scalar frame so missing fixtures are obvious
+      // while still returning a valid query response (avoids panel errors).
       frames: builder ? builder(query.refId, { from, to }) : scalarFrame(query.refId, NaN),
     };
   }
