@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { MODELS, MEMBERS } from './mocks/prometheus';
+import { MODELS, MEMBERS, QUERY_SOURCES, AGENTS, SKILLS, MCP_SERVERS } from './mocks/prometheus';
 
 test.describe('Costs scene', () => {
   test('renders the total cost stat', async ({ mockData, gotoPage, selectors }) => {
@@ -41,6 +41,23 @@ test.describe('Costs scene', () => {
     }
     for (const model of MODELS) {
       await expect(table.getByText(model, { exact: true }).first()).toBeVisible();
+    }
+  });
+
+  test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('costs');
+
+    for (const source of QUERY_SOURCES) {
+      await expect(legendItem(app, selectors, 'Cost by Query Source', source)).toBeVisible();
+    }
+    for (const agent of AGENTS) {
+      await expect(legendItem(app, selectors, 'Cost by Subagent', agent)).toBeVisible();
+    }
+    for (const skill of SKILLS) {
+      await expect(legendItem(app, selectors, 'Cost by Skill', skill)).toBeVisible();
+    }
+    for (const server of MCP_SERVERS) {
+      await expect(legendItem(app, selectors, 'Cost by MCP Server', server)).toBeVisible();
     }
   });
 });

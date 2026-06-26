@@ -24,6 +24,11 @@ export const OS_TYPES = ['darwin', 'linux'] as const;
 export const HOST_ARCHES = ['arm64', 'x64'] as const;
 export const TERMINAL_TYPES = ['iTerm.app', 'vscode'] as const;
 export const SERVICE_VERSIONS = ['1.0.0', '1.1.0'] as const;
+// Attribution dimensions (what is driving spend).
+export const QUERY_SOURCES = ['main', 'subagent', 'auxiliary'] as const;
+export const AGENTS = ['general-purpose', 'custom'] as const;
+export const SKILLS = ['code-review', 'third-party'] as const;
+export const MCP_SERVERS = ['github', 'filesystem'] as const;
 
 // Scalar values rendered by stat panels. Kept under 1000 (or SI-clean) so the
 // rendered text contains these digits regardless of Grafana's unit formatting.
@@ -184,6 +189,12 @@ const DATASET: Record<string, FrameBuilder> = {
       { user_email: MEMBERS[1], model: MODELS[1], value: 186.75 },
     ]),
 
+  // --- cost attribution (sorted bar gauges) ---
+  CostByQuerySource: (id) => instantSeriesFrames(id, 'query_source', seriesFromList(QUERY_SOURCES, 300, 90)),
+  CostByAgent: (id) => instantSeriesFrames(id, 'agent_name', seriesFromList(AGENTS, 200, 70)),
+  CostBySkill: (id) => instantSeriesFrames(id, 'skill_name', seriesFromList(SKILLS, 150, 50)),
+  CostByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', seriesFromList(MCP_SERVERS, 120, 40)),
+
   // --- tokens ---
   TokensByType: (id) => instantSeriesFrames(id, 'type', seriesFromList(TOKEN_TYPES, 400, 90)),
   TokensByModel: (id) => instantSeriesFrames(id, 'model', seriesFromList(MODELS, 500, 150)),
@@ -195,6 +206,12 @@ const DATASET: Record<string, FrameBuilder> = {
       TOKEN_TYPES.map((label) => ({ label, base: 20 })),
       r
     ),
+
+  // --- token attribution (sorted bar gauges) ---
+  TokensByQuerySource: (id) => instantSeriesFrames(id, 'query_source', seriesFromList(QUERY_SOURCES, 500, 150)),
+  TokensByAgent: (id) => instantSeriesFrames(id, 'agent_name', seriesFromList(AGENTS, 400, 120)),
+  TokensBySkill: (id) => instantSeriesFrames(id, 'skill_name', seriesFromList(SKILLS, 300, 90)),
+  TokensByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', seriesFromList(MCP_SERVERS, 250, 70)),
 
   // --- sessions / activity (overview) ---
   ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, null, [{ base: 30 }], r),

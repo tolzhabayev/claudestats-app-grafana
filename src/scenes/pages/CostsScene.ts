@@ -11,9 +11,43 @@ import {
   SceneTimePicker,
   SceneRefreshPicker,
 } from '@grafana/scenes';
-import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
+import {
+  BigValueGraphMode,
+  BarGaugeDisplayMode,
+  BarGaugeValueMode,
+  LegendDisplayMode,
+  StackingMode,
+  VizOrientation,
+} from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
+
+/**
+ * A horizontal bar gauge with one bar per attribution bucket, mirroring the
+ * "Usage by Tool" gauge on the Tools page. The query is a plain instant
+ * multi-series vector (`sort_desc(...)` in PromQL puts the biggest bucket
+ * first); `legendFormat` names each series after `labelKey`, and
+ * `${__series.name}` surfaces that name as the bar label.
+ */
+function attributionBarGauge(refId: string, expr: string, labelKey: string, title: string, unit: string) {
+  const data = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [{ refId, expr, legendFormat: `{{${labelKey}}}`, instant: true }],
+  });
+
+  return PanelBuilders.bargauge()
+    .setTitle(title)
+    .setUnit(unit)
+    .setData(data)
+    .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+    .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('valueMode', BarGaugeValueMode.Text)
+    .setOption('showUnfilled', true)
+    .setOption('minVizWidth', 150)
+    .setOption('minVizHeight', 25)
+    .setDisplayName('${__series.name}')
+    .build();
+}
 
 export function getCostsScene(
   timeRange: SceneTimeRange,
@@ -179,6 +213,36 @@ export function getCostsScene(
                   b.matchFieldsWithName('user_email').overrideDisplayName('Team Member')
                 )
                 .build(),
+            }),
+          ],
+        }),
+        // Row 4: Cost attribution by query source and subagent
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('CostByQuerySource', queries.costByQuerySource, 'query_source', 'Cost by Query Source', 'currencyUSD'),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('CostByAgent', queries.costByAgent, 'agent_name', 'Cost by Subagent', 'currencyUSD'),
+            }),
+          ],
+        }),
+        // Row 5: Cost attribution by skill and MCP server
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('CostBySkill', queries.costBySkill, 'skill_name', 'Cost by Skill', 'currencyUSD'),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('CostByMcpServer', queries.costByMcpServer, 'mcp_server_name', 'Cost by MCP Server', 'currencyUSD'),
             }),
           ],
         }),

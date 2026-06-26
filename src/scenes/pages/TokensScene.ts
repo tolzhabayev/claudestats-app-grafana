@@ -13,11 +13,41 @@ import {
 } from '@grafana/scenes';
 import {
   BigValueGraphMode,
+  BarGaugeDisplayMode,
+  BarGaugeValueMode,
   LegendDisplayMode,
   StackingMode,
+  VizOrientation,
 } from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
+
+/**
+ * A horizontal bar gauge with one bar per attribution bucket, mirroring the
+ * "Usage by Tool" gauge on the Tools page. The query is a plain instant
+ * multi-series vector (`sort_desc(...)` in PromQL puts the biggest bucket
+ * first); `legendFormat` names each series after `labelKey`, and
+ * `${__series.name}` surfaces that name as the bar label.
+ */
+function attributionBarGauge(refId: string, expr: string, labelKey: string, title: string, unit: string) {
+  const data = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [{ refId, expr, legendFormat: `{{${labelKey}}}`, instant: true }],
+  });
+
+  return PanelBuilders.bargauge()
+    .setTitle(title)
+    .setUnit(unit)
+    .setData(data)
+    .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+    .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('valueMode', BarGaugeValueMode.Text)
+    .setOption('showUnfilled', true)
+    .setOption('minVizWidth', 150)
+    .setOption('minVizHeight', 25)
+    .setDisplayName('${__series.name}')
+    .build();
+}
 
 export function getTokensScene(
   timeRange: SceneTimeRange,
@@ -219,6 +249,36 @@ export function getTokensScene(
                 .setData(tokensByMemberQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
                 .build(),
+            }),
+          ],
+        }),
+        // Row 4: Token attribution by query source and subagent
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('TokensByQuerySource', queries.tokensByQuerySource, 'query_source', 'Tokens by Query Source', 'short'),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('TokensByAgent', queries.tokensByAgent, 'agent_name', 'Tokens by Subagent', 'short'),
+            }),
+          ],
+        }),
+        // Row 5: Token attribution by skill and MCP server
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('TokensBySkill', queries.tokensBySkill, 'skill_name', 'Tokens by Skill', 'short'),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('TokensByMcpServer', queries.tokensByMcpServer, 'mcp_server_name', 'Tokens by MCP Server', 'short'),
             }),
           ],
         }),

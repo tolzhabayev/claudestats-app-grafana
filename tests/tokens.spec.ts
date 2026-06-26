@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { MODELS, MEMBERS, TOKEN_TYPES } from './mocks/prometheus';
+import { MODELS, MEMBERS, TOKEN_TYPES, QUERY_SOURCES, AGENTS, SKILLS, MCP_SERVERS } from './mocks/prometheus';
 
 test.describe('Tokens scene', () => {
   test('renders the token stat row', async ({ mockData, gotoPage, selectors }) => {
@@ -31,6 +31,23 @@ test.describe('Tokens scene', () => {
     }
     for (const member of MEMBERS) {
       await expect(legendItem(app, selectors, 'Tokens by Team Member', member)).toBeVisible();
+    }
+  });
+
+  test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('tokens');
+
+    for (const source of QUERY_SOURCES) {
+      await expect(legendItem(app, selectors, 'Tokens by Query Source', source)).toBeVisible();
+    }
+    for (const agent of AGENTS) {
+      await expect(legendItem(app, selectors, 'Tokens by Subagent', agent)).toBeVisible();
+    }
+    for (const skill of SKILLS) {
+      await expect(legendItem(app, selectors, 'Tokens by Skill', skill)).toBeVisible();
+    }
+    for (const server of MCP_SERVERS) {
+      await expect(legendItem(app, selectors, 'Tokens by MCP Server', server)).toBeVisible();
     }
   });
 });
