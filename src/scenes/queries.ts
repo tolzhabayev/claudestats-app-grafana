@@ -34,13 +34,13 @@ function buildQueries(m: MetricNames) {
     costByQuerySource: `sort_desc(sum by (${LABELS.QUERY_SOURCE}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range])))`,
 
     /** Cost by subagent (agent_name); only series that carry the label */
-    costByAgent: `sort_desc(sum by (${LABELS.AGENT_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.AGENT_NAME}!=""}[$__range])))`,
+    costByAgent: `sort_desc(sum by (${LABELS.AGENT_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.AGENT_NAME}=~".+"}[$__range])))`,
 
     /** Cost by skill; only series that carry the label */
-    costBySkill: `sort_desc(sum by (${LABELS.SKILL_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.SKILL_NAME}!=""}[$__range])))`,
+    costBySkill: `sort_desc(sum by (${LABELS.SKILL_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.SKILL_NAME}=~".+"}[$__range])))`,
 
     /** Cost by MCP server; only series that carry the label */
-    costByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}!=""}[$__range])))`,
+    costByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"}[$__range])))`,
 
     // ==================== TOKEN QUERIES ====================
 
@@ -75,13 +75,13 @@ function buildQueries(m: MetricNames) {
     tokensByQuerySource: `sort_desc(sum by (${LABELS.QUERY_SOURCE}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range])))`,
 
     /** Tokens by subagent (agent_name); only series that carry the label */
-    tokensByAgent: `sort_desc(sum by (${LABELS.AGENT_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.AGENT_NAME}!=""}[$__range])))`,
+    tokensByAgent: `sort_desc(sum by (${LABELS.AGENT_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.AGENT_NAME}=~".+"}[$__range])))`,
 
     /** Tokens by skill; only series that carry the label */
-    tokensBySkill: `sort_desc(sum by (${LABELS.SKILL_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.SKILL_NAME}!=""}[$__range])))`,
+    tokensBySkill: `sort_desc(sum by (${LABELS.SKILL_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.SKILL_NAME}=~".+"}[$__range])))`,
 
     /** Tokens by MCP server; only series that carry the label */
-    tokensByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}!=""}[$__range])))`,
+    tokensByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"}[$__range])))`,
 
     // ==================== SESSION QUERIES ====================
 
