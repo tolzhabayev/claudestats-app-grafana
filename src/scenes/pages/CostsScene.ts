@@ -246,6 +246,21 @@ export function getCostsScene(
             }),
           ],
         }),
+        // Row 6: Cost attribution by speed (fast mode) and effort
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('CostBySpeed', queries.costBySpeed, 'speed', 'Cost by Speed (Fast Mode)', 'currencyUSD'),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('CostByEffort', queries.costByEffort, 'effort', 'Cost by Effort', 'currencyUSD'),
+            }),
+          ],
+        }),
       ],
     }),
   });

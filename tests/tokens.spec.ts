@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { MODELS, MEMBERS, TOKEN_TYPES, QUERY_SOURCES, AGENTS, SKILLS, MCP_SERVERS } from './mocks/prometheus';
+import { MODELS, MEMBERS, TOKEN_TYPES, QUERY_SOURCES, AGENTS, SKILLS, MCP_SERVERS, SPEEDS, EFFORTS } from './mocks/prometheus';
 
 test.describe('Tokens scene', () => {
   test('renders the token stat row', async ({ mockData, gotoPage, selectors }) => {
@@ -48,6 +48,17 @@ test.describe('Tokens scene', () => {
     }
     for (const server of MCP_SERVERS) {
       await expect(legendItem(app, selectors, 'Tokens by MCP Server', server)).toBeVisible();
+    }
+  });
+
+  test('renders the speed and effort attribution bar gauges', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('tokens');
+
+    for (const speed of SPEEDS) {
+      await expect(legendItem(app, selectors, 'Tokens by Speed (Fast Mode)', speed)).toBeVisible();
+    }
+    for (const effort of EFFORTS) {
+      await expect(legendItem(app, selectors, 'Tokens by Effort', effort)).toBeVisible();
     }
   });
 });

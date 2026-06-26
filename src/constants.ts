@@ -61,6 +61,8 @@ export const LABELS = {
   AGENT_NAME: 'agent_name', // subagent; user-defined collapse to "custom"
   SKILL_NAME: 'skill_name', // third-party skills collapse to "third-party"
   MCP_SERVER_NAME: 'mcp_server_name',
+  SPEED: 'speed', // "fast" when fast mode is active; absent on normal requests
+  EFFORT: 'effort', // low, medium, high, xhigh, max; absent on models without effort
   // Environment labels
   OS_TYPE: 'os_type',
   OS_VERSION: 'os_version',

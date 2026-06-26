@@ -282,6 +282,21 @@ export function getTokensScene(
             }),
           ],
         }),
+        // Row 6: Token attribution by speed (fast mode) and effort
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('TokensBySpeed', queries.tokensBySpeed, 'speed', 'Tokens by Speed (Fast Mode)', 'short'),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge('TokensByEffort', queries.tokensByEffort, 'effort', 'Tokens by Effort', 'short'),
+            }),
+          ],
+        }),
       ],
     }),
   });

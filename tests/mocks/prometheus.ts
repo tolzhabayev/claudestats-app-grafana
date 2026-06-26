@@ -29,6 +29,9 @@ export const QUERY_SOURCES = ['main', 'subagent', 'auxiliary'] as const;
 export const AGENTS = ['general-purpose', 'custom'] as const;
 export const SKILLS = ['code-review', 'third-party'] as const;
 export const MCP_SERVERS = ['github', 'filesystem'] as const;
+// `normal` and `default` are the buckets the queries fold absent labels into.
+export const SPEEDS = ['normal', 'fast'] as const;
+export const EFFORTS = ['high', 'medium', 'default'] as const;
 
 // Scalar values rendered by stat panels. Kept under 1000 (or SI-clean) so the
 // rendered text contains these digits regardless of Grafana's unit formatting.
@@ -194,6 +197,8 @@ const DATASET: Record<string, FrameBuilder> = {
   CostByAgent: (id) => instantSeriesFrames(id, 'agent_name', seriesFromList(AGENTS, 200, 70)),
   CostBySkill: (id) => instantSeriesFrames(id, 'skill_name', seriesFromList(SKILLS, 150, 50)),
   CostByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', seriesFromList(MCP_SERVERS, 120, 40)),
+  CostBySpeed: (id) => instantSeriesFrames(id, 'speed', seriesFromList(SPEEDS, 200, 60)),
+  CostByEffort: (id) => instantSeriesFrames(id, 'effort', seriesFromList(EFFORTS, 180, 50)),
 
   // --- tokens ---
   TokensByType: (id) => instantSeriesFrames(id, 'type', seriesFromList(TOKEN_TYPES, 400, 90)),
@@ -212,6 +217,8 @@ const DATASET: Record<string, FrameBuilder> = {
   TokensByAgent: (id) => instantSeriesFrames(id, 'agent_name', seriesFromList(AGENTS, 400, 120)),
   TokensBySkill: (id) => instantSeriesFrames(id, 'skill_name', seriesFromList(SKILLS, 300, 90)),
   TokensByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', seriesFromList(MCP_SERVERS, 250, 70)),
+  TokensBySpeed: (id) => instantSeriesFrames(id, 'speed', seriesFromList(SPEEDS, 400, 120)),
+  TokensByEffort: (id) => instantSeriesFrames(id, 'effort', seriesFromList(EFFORTS, 350, 100)),
 
   // --- sessions / activity (overview) ---
   ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, null, [{ base: 30 }], r),
