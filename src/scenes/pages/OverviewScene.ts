@@ -109,6 +109,18 @@ export function getOverviewScene(
     ],
   });
 
+  const sessionsByStartTypeQuery = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [
+      {
+        refId: 'SessionsByStartType',
+        expr: queries.sessionsByStartType,
+        legendFormat: '{{start_type}}',
+        instant: true,
+      },
+    ],
+  });
+
   // Environment queries
   const usageByOsTypeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
@@ -241,7 +253,7 @@ export function getOverviewScene(
           height: PANEL_HEIGHTS.LARGE,
           children: [
             new SceneFlexItem({
-              width: '50%',
+              width: '40%',
               body: PanelBuilders.timeseries()
                 .setTitle('Token Usage Over Time')
                 .setUnit('short')
@@ -251,12 +263,22 @@ export function getOverviewScene(
                 .build(),
             }),
             new SceneFlexItem({
-              width: '50%',
+              width: '35%',
               body: PanelBuilders.timeseries()
                 .setTitle('Active Time Over Time')
                 .setUnit('s')
                 .setData(activeTimeOverTimeQuery)
                 .setCustomFieldConfig('fillOpacity', 20)
+                .build(),
+            }),
+            new SceneFlexItem({
+              width: '25%',
+              body: PanelBuilders.piechart()
+                .setTitle('Sessions by Start Type')
+                .setUnit('short')
+                .setData(sessionsByStartTypeQuery)
+                .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
+                .setOption('pieType', 'donut' as never)
                 .build(),
             }),
           ],

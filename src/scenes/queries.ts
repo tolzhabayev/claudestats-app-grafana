@@ -96,12 +96,23 @@ function buildQueries(m: MetricNames) {
     tokensByEffort: `sort_desc(sum by (${LABELS.EFFORT}) (label_replace(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.EFFORT}", "default", "${LABELS.EFFORT}", "^$")))`,
 
     // ==================== SESSION QUERIES ====================
+    // Claude Code emits a real session.count metric carrying a start_type label
+    // (fresh, resume, continue, agents_view). agents_view is the local `claude agents`
+    // dashboard process, not a conversational session, so it is excluded from the
+    // headline counts to avoid inflating them.
+    //
+    // The metric is emitted once per session (a single sample per unique session_id),
+    // so increase()/rate() yield nothing - they need >=2 samples. Instead we count the
+    // distinct session_id series present in the range via max_over_time.
 
-    /** Total sessions - count unique session_id labels */
-    totalSessions: `count(count by (${LABELS.SESSION_ID}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"}[$__range])))`,
+    /** Total sessions (excludes agents_view dashboard launches) */
+    totalSessions: `count(count by (${LABELS.SESSION_ID}) (max_over_time(${m.SESSION_COUNT}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.START_TYPE}!="agents_view"}[$__range])))`,
 
-    /** Sessions by member */
-    sessionsByMember: `count by (${LABELS.USER_EMAIL}) (count by (${LABELS.SESSION_ID}, ${LABELS.USER_EMAIL}) (increase(${m.COST_USAGE}[$__range])))`,
+    /** Sessions by start type (fresh, resume, continue, agents_view) */
+    sessionsByStartType: `sort_desc(count by (${LABELS.START_TYPE}) (count by (${LABELS.SESSION_ID}, ${LABELS.START_TYPE}) (max_over_time(${m.SESSION_COUNT}{${LABELS.USER_EMAIL}=~"$member"}[$__range]))))`,
+
+    /** Sessions by member (excludes agents_view dashboard launches) */
+    sessionsByMember: `count by (${LABELS.USER_EMAIL}) (count by (${LABELS.SESSION_ID}, ${LABELS.USER_EMAIL}) (max_over_time(${m.SESSION_COUNT}{${LABELS.START_TYPE}!="agents_view"}[$__range])))`,
 
     /** Active users - count unique user_email labels */
     activeUsers: `count(count by (${LABELS.USER_EMAIL}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member"}[$__range])))`,

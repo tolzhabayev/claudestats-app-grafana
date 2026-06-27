@@ -24,6 +24,8 @@ export const OS_TYPES = ['darwin', 'linux'] as const;
 export const HOST_ARCHES = ['arm64', 'x64'] as const;
 export const TERMINAL_TYPES = ['iTerm.app', 'vscode'] as const;
 export const SERVICE_VERSIONS = ['1.0.0', '1.1.0'] as const;
+// Session start types emitted on claude_code_session_count_total.
+export const START_TYPES = ['fresh', 'resume', 'continue', 'agents_view'] as const;
 // Attribution dimensions (what is driving spend).
 export const QUERY_SOURCES = ['main', 'subagent', 'auxiliary'] as const;
 export const AGENTS = ['general-purpose', 'custom'] as const;
@@ -222,6 +224,7 @@ const DATASET: Record<string, FrameBuilder> = {
 
   // --- sessions / activity (overview) ---
   ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, null, [{ base: 30 }], r),
+  SessionsByStartType: (id) => instantSeriesFrames(id, 'start_type', seriesFromList(START_TYPES, 40, 10)),
 
   // --- environment (overview) ---
   UsageByOsType: (id) => instantSeriesFrames(id, 'os_type', seriesFromList(OS_TYPES, 200, 80)),

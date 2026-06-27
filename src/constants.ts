@@ -54,6 +54,7 @@ export const LABELS = {
   TOKEN_TYPE: 'type', // input, output, cache_read, cache_creation
   LOC_TYPE: 'type', // added, removed
   SESSION_ID: 'session_id',
+  START_TYPE: 'start_type', // fresh, resume, continue, agents_view
   TOOL: 'tool_name',
   DECISION: 'decision',
   // Attribution labels (what is driving spend)

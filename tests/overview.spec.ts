@@ -8,6 +8,7 @@ import {
   HOST_ARCHES,
   TERMINAL_TYPES,
   SERVICE_VERSIONS,
+  START_TYPES,
 } from './mocks/prometheus';
 
 test.describe('Overview scene', () => {
@@ -36,6 +37,14 @@ test.describe('Overview scene', () => {
 
     for (const type of TOKEN_TYPES.slice(0, 3)) {
       await expect(legendItem(app, selectors, 'Token Usage Over Time', type)).toBeVisible();
+    }
+  });
+
+  test('renders sessions broken down by start type', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage();
+
+    for (const startType of START_TYPES) {
+      await expect(legendItem(app, selectors, 'Sessions by Start Type', startType)).toBeVisible();
     }
   });
 
