@@ -43,10 +43,10 @@ function buildQueries(m: MetricNames) {
     costByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"}[$__range])))`,
 
     /** Cost by speed; absent label (normal requests) folds into the "normal" bucket */
-    costBySpeed: `sort_desc(sum by (${LABELS.SPEED}) (label_replace(increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.SPEED}", "normal", "${LABELS.SPEED}", "")))`,
+    costBySpeed: `sort_desc(sum by (${LABELS.SPEED}) (label_replace(increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.SPEED}", "normal", "${LABELS.SPEED}", "^$")))`,
 
     /** Cost by effort; absent label (models without effort) folds into the "default" bucket */
-    costByEffort: `sort_desc(sum by (${LABELS.EFFORT}) (label_replace(increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.EFFORT}", "default", "${LABELS.EFFORT}", "")))`,
+    costByEffort: `sort_desc(sum by (${LABELS.EFFORT}) (label_replace(increase(${m.COST_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.EFFORT}", "default", "${LABELS.EFFORT}", "^$")))`,
 
     // ==================== TOKEN QUERIES ====================
 
@@ -90,10 +90,10 @@ function buildQueries(m: MetricNames) {
     tokensByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"}[$__range])))`,
 
     /** Tokens by speed; absent label (normal requests) folds into the "normal" bucket */
-    tokensBySpeed: `sort_desc(sum by (${LABELS.SPEED}) (label_replace(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.SPEED}", "normal", "${LABELS.SPEED}", "")))`,
+    tokensBySpeed: `sort_desc(sum by (${LABELS.SPEED}) (label_replace(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.SPEED}", "normal", "${LABELS.SPEED}", "^$")))`,
 
     /** Tokens by effort; absent label (models without effort) folds into the "default" bucket */
-    tokensByEffort: `sort_desc(sum by (${LABELS.EFFORT}) (label_replace(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.EFFORT}", "default", "${LABELS.EFFORT}", "")))`,
+    tokensByEffort: `sort_desc(sum by (${LABELS.EFFORT}) (label_replace(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]), "${LABELS.EFFORT}", "default", "${LABELS.EFFORT}", "^$")))`,
 
     // ==================== SESSION QUERIES ====================
 
