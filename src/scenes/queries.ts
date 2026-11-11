@@ -166,9 +166,11 @@ function buildQueries(m: MetricNames) {
 
     /**
      * Active users: distinct members (email, else enduser.id, else user.id) with spend in the range.
-     * Usage with no identity at all is not a person, so the Unattributed bucket is left out.
+     * Usage with no identity at all is not a person, so it is left out: it has no `member`
+     * label, which `unless on (member) vector(1)` drops (vector(1) has an empty `member` too).
+     * Checking presence, not the "Unattributed" display name, keeps a real member of that name.
      */
-    activeUsers: `count(count by (${LABELS.MEMBER}) (${withMember(scoped('increase', m.COST_USAGE, '$__range'))}) unless on (${LABELS.MEMBER}) label_replace(vector(1), "${LABELS.MEMBER}", "${UNATTRIBUTED}", "", ""))`,
+    activeUsers: `count(count by (${LABELS.MEMBER}) (${resolveMember(scoped('increase', m.COST_USAGE, '$__range'))}) unless on (${LABELS.MEMBER}) vector(1))`,
 
     // ==================== PRODUCTIVITY QUERIES ====================
 

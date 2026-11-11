@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures';
-import { MEMBERS, MODELS } from './mocks/prometheus';
+import { MEMBERS, MODELS, QUOTED_MEMBER } from './mocks/prometheus';
 
 /**
  * Opens a template variable's value dropdown by its label and waits until the
@@ -25,9 +25,10 @@ test.describe('Template variables', () => {
     page,
   }) => {
     await gotoPage();
-    await openVariable(page, 'Team Member', MEMBERS);
+    // Identities containing quotes or braces are kept whole.
+    await openVariable(page, 'Team Member', [...MEMBERS, QUOTED_MEMBER]);
     // Usage with no identity label has nothing to filter on, so it is not an option.
-    await expect(page.getByRole('option')).toHaveCount(MEMBERS.length + 1); // + "All"
+    await expect(page.getByRole('option')).toHaveCount(MEMBERS.length + 2); // + quoted member + "All"
   });
 
   test('populates the Model options from label_values', async ({ mockData, gotoPage, page }) => {

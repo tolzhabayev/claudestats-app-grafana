@@ -32,7 +32,10 @@ export function getTeamMemberVariable(metrics: MetricNames = getMetrics()) {
       query: memberValuesQuery(metrics),
       refId: 'MemberQuery',
     },
-    regex: `/${LABELS.MEMBER}="([^"]+)"/`,
+    // Grafana renders each result as `{member="<value>"} <value> <ts>` without escaping the
+    // value, and `member` is the only label, so match greedily up to the closing `"}` to keep
+    // identities that contain quotes or braces intact.
+    regex: `/${LABELS.MEMBER}="(.+)"}/`,
     sort: 1,
     refresh: VariableRefresh.onTimeRangeChanged,
     includeAll: true,

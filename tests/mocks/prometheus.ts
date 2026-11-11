@@ -16,6 +16,9 @@ import type { Page, Route } from '@playwright/test';
 
 export const MODELS = ['claude-sonnet-4-5', 'claude-opus-4-1'] as const;
 export const MEMBERS = ['timur@example.com', 'alex@example.com', 'sam@example.com'] as const;
+// An `enduser.id` with quotes and braces, offered only by the Team Member variable, to check
+// the option keeps the whole identity.
+export const QUOTED_MEMBER = 'Jane "JJ" {Doe}';
 export const TOKEN_TYPES = ['input', 'output', 'cacheRead', 'cacheCreation'] as const;
 export const LOC_TYPES = ['added', 'removed'] as const;
 // `type` label on the active-time metric, and how the panels display it.
@@ -400,7 +403,7 @@ export async function mockClaudeData(page: Page): Promise<void> {
           data: {
             resultType: 'vector',
             result: [
-              ...MEMBERS.map((member) => ({ metric: { member }, value: [0, '1'] })),
+              ...[...MEMBERS, QUOTED_MEMBER].map((member) => ({ metric: { member }, value: [0, '1'] })),
               { metric: {}, value: [0, '1'] },
             ],
           },
