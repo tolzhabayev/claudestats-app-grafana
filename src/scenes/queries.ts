@@ -125,6 +125,12 @@ function buildQueries(m: MetricNames) {
     /** Lines of code by type (added, removed) */
     linesOfCodeByType: `sum by (${LABELS.LOC_TYPE}) (increase(${m.LINES_OF_CODE}{${LABELS.USER_EMAIL}=~"$member"}[$__range]))`,
 
+    /**
+     * Lines of code by model. The `model` label only exists from Claude Code v2.1.172;
+     * series from older clients fold into an "unknown" bucket so the split still adds up to the total.
+     */
+    linesOfCodeByModel: `sort_desc(sum by (${LABELS.MODEL}) (label_replace(increase(${m.LINES_OF_CODE}{${LABELS.USER_EMAIL}=~"$member"}[$__range]), "${LABELS.MODEL}", "unknown", "${LABELS.MODEL}", "^$")))`,
+
     /** Lines of code by member */
     linesOfCodeByMember: `sum by (${LABELS.USER_EMAIL}) (increase(${m.LINES_OF_CODE}[$__range]))`,
 

@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { ACTIVE_TIME_TYPES, DISPLAY, MEMBERS, LOC_TYPES } from './mocks/prometheus';
+import { ACTIVE_TIME_TYPES, DISPLAY, MEMBERS, MODELS, LOC_TYPES } from './mocks/prometheus';
 
 test.describe('Productivity scene', () => {
   test('renders the productivity stat row', async ({ mockData, gotoPage, selectors }) => {
@@ -18,6 +18,18 @@ test.describe('Productivity scene', () => {
     for (const type of LOC_TYPES) {
       await expect(legendItem(app, selectors, 'Lines Added vs Removed', type)).toBeVisible();
       await expect(legendItem(app, selectors, 'Lines of Code Over Time', type)).toBeVisible();
+    }
+  });
+
+  test('attributes lines of code to models, with unknown for older clients', async ({
+    mockData,
+    gotoPage,
+    selectors,
+  }) => {
+    const app = await gotoPage('productivity');
+
+    for (const model of [...MODELS, 'unknown']) {
+      await expect(legendItem(app, selectors, 'Lines of Code by Model', model)).toBeVisible();
     }
   });
 

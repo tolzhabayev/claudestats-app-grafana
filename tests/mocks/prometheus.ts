@@ -94,6 +94,8 @@ const SESSIONS_BY_START_TYPE = { fresh: 34, resume: 15, continue: 9, agents_view
 const DECISIONS_BY_TYPE = { accept: 438, reject: 146 };
 const DECISIONS_BY_TOOL = { Edit: 402, Write: 151, NotebookEdit: 31 };
 const LINES_BY_TYPE = { added: 4820, removed: 1960 };
+// Same total by model; `unknown` is lines from clients too old to send the label.
+const LINES_BY_MODEL = { [MODELS[0]]: 4310, [MODELS[1]]: 2140, unknown: 330 };
 // Active time in seconds (20 hours across the team).
 const ACTIVE_TIME_BY_MEMBER = { [MEMBERS[0]]: 30600, [MEMBERS[1]]: 25200, [MEMBERS[2]]: 16200 };
 // The same 20 hours split into interaction (user) and processing (cli) time.
@@ -308,6 +310,7 @@ const DATASET: Record<string, FrameBuilder> = {
 
   // --- productivity ---
   LinesOfCodeByType: (id) => instantSeriesFrames(id, 'type', LINES_BY_TYPE),
+  LinesOfCodeByModel: (id) => instantSeriesFrames(id, 'model', LINES_BY_MODEL),
   LinesOfCodeOverTime: (id, r) => rangeSeriesFrames(id, 'type', LINES_BY_TYPE, r),
   CommitsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalCommits }, r),
   PullRequestsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalPullRequests }, r),

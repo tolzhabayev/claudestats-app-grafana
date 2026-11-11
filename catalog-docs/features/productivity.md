@@ -14,17 +14,20 @@ The **Productivity** tab shows the output of your team's Claude Code sessions an
 
 ## Track output
 
-| Panel                       | What it shows                                        |
-| --------------------------- | ---------------------------------------------------- |
-| **Lines of Code**           | Lines Claude Code added plus lines it removed.       |
-| **Commits**                 | Git commits Claude Code created.                     |
-| **Pull Requests**           | Pull requests or merge requests Claude Code created. |
-| **Lines Added vs Removed**  | The split between added and removed lines.           |
-| **Lines of Code Over Time** | Added and removed lines per interval.                |
-| **Commits Over Time**       | Commits per interval.                                |
-| **Pull Requests Over Time** | Pull requests per interval.                          |
+| Panel                       | What it shows                                                 |
+| --------------------------- | ------------------------------------------------------------- |
+| **Lines of Code**           | Lines Claude Code added plus lines it removed.                |
+| **Commits**                 | Git commits Claude Code created.                              |
+| **Pull Requests**           | Pull requests or merge requests Claude Code created.          |
+| **Lines Added vs Removed**  | The split between added and removed lines.                    |
+| **Lines of Code by Model**  | Lines added plus removed, split by the model that wrote them. |
+| **Lines of Code Over Time** | Added and removed lines per interval.                         |
+| **Commits Over Time**       | Commits per interval.                                         |
+| **Pull Requests Over Time** | Pull requests per interval.                                   |
 
 Panels show no data when nothing happened in the period, such as no commits.
+
+Claude Code records the model for lines of code from version 2.1.172. Lines from older versions show as `unknown` in **Lines of Code by Model**.
 
 ## Track active time
 
@@ -38,4 +41,4 @@ Claude Code records active time in two parts: **User** is time spent interacting
 
 ## Filters on this tab
 
-**Team Member** applies to every panel except **Active Time by Team Member**, which always shows every member. The tab has no **Model** filter, because commits, pull requests and active time aren't recorded per model.
+**Team Member** applies to every panel except **Active Time by Team Member**, which always shows every member. The tab has no **Model** filter, because commits, pull requests and active time aren't recorded per model. **Lines of Code by Model** always shows every model.
