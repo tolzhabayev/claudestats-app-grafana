@@ -1,75 +1,27 @@
 # Claude Code Stats
 
-Team usage analytics for Claude Code powered by OpenTelemetry.
+Team usage analytics for Claude Code, powered by OpenTelemetry.
+
+Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into a ready-made Grafana app. See what your team spends, which models and features drive it, and what Claude Code produces, without building dashboards yourself.
+
+## Features
+
+- **Overview:** Total cost, tokens, sessions and active users, with trends and an environment breakdown.
+- **Costs:** Spend by model and team member, and what drives it: subagents, skills, MCP servers, fast mode and effort level.
+- **Tokens:** Token volume by type, including prompt cache reads and writes, by model and team member.
+- **Tools:** How often team members accept the file edits Claude Code proposes.
+- **Productivity:** Lines of code, commits, pull requests and active time.
+
+Filter every tab by team member and time range, and the cost and token views by model.
 
 ## Requirements
 
 - Grafana 13.2.0 or later
-- A Prometheus-compatible data source (Grafana Cloud includes this by default)
-- Claude Code with telemetry enabled
+- A Prometheus-compatible data source. Grafana Cloud includes one by default.
+- Claude Code with telemetry enabled, exporting metrics to Grafana Cloud or through an OpenTelemetry Collector to Prometheus
 
-## Installation
+## Get started
 
-Install the plugin through the Grafana UI:
-https://grafana.com/docs/grafana/latest/administration/plugin-management/plugin-install/#install-a-plugin-through-the-grafana-ui
+Setup, configuration and a guide to each tab are on the **Documentation** tab of this plugin's page.
 
-## Configuration
-
-### Step 1: Get Grafana Cloud OTLP Credentials
-
-1. Go to your [Grafana Cloud Portal](https://grafana.com/profile/org)
-2. Select your stack and click **Configure** in the OpenTelemetry tile
-3. Click **Generate API Token**
-4. Copy the OTLP endpoint and token
-
-### Step 2: Configure Environment Variables
-
-Add these to your shell profile (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
-
-```bash
-# Enable Claude Code telemetry
-export CLAUDE_CODE_ENABLE_TELEMETRY=1
-
-# Configure OpenTelemetry metrics exporter
-export OTEL_METRICS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
-
-# Grafana Cloud OTLP endpoint
-export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-<region>.grafana.net/otlp"
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <your-base64-encoded-token>"
-
-# IMPORTANT: Use cumulative temporality for Grafana Cloud compatibility
-export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
-
-# Optional: Adjust export interval (in milliseconds, default: 60000)
-export OTEL_METRIC_EXPORT_INTERVAL=60000
-```
-
-Replace `<region>` with your Grafana Cloud region and `<your-base64-encoded-token>` with your API token.
-
-### Step 3: Restart Claude Code
-
-```bash
-# Reload your shell config
-source ~/.zshrc  # or ~/.bashrc
-
-# Start Claude Code - telemetry will now be enabled
-claude
-```
-
-## Features
-
-- **Overview**: Total cost, tokens, sessions, and active users
-- **Costs**: Cost breakdown by model, team member, and time
-- **Tokens**: Token usage by type (input, output, cache)
-- **Tools**: Tool acceptance rates and usage
-- **Productivity**: Lines of code, commits, and active time
-- **Environment**: OS, architecture, and Claude Code version distribution
-
-## Team Members
-
-Team members are automatically identified by their email address from the `user_email` label in the metrics.
-
-## Documentation
-
-For full telemetry documentation, see the [Claude Code Monitoring Usage Guide](https://docs.anthropic.com/en/docs/claude-code/monitoring-usage).
+For every Claude Code telemetry setting, refer to [Monitoring usage](https://code.claude.com/docs/en/monitoring-usage) in the Claude Code docs.
