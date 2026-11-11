@@ -1,11 +1,21 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { MODELS, MEMBERS, QUERY_SOURCES, AGENTS, SKILLS, MCP_SERVERS, SPEEDS, EFFORTS } from './mocks/prometheus';
+import {
+  DISPLAY,
+  MODELS,
+  MEMBERS,
+  QUERY_SOURCES,
+  AGENTS,
+  SKILLS,
+  MCP_SERVERS,
+  SPEEDS,
+  EFFORTS,
+} from './mocks/prometheus';
 
 test.describe('Costs scene', () => {
   test('renders the total cost stat', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage('costs');
-    await expect(panelByTitle(app, selectors, 'Total Cost')).toContainText('487');
+    await expect(panelByTitle(app, selectors, 'Total Cost')).toContainText(DISPLAY.TotalCost);
   });
 
   test('renders cost-by-model and cost-by-member pies', async ({ mockData, gotoPage, selectors }) => {

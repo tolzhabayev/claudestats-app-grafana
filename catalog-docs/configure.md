@@ -1,0 +1,98 @@
+---
+title: Configure
+description: 'Change the Claude Code Stats settings in Grafana or provision them as code.'
+keywords:
+  - 'Claude Code Stats'
+  - app
+  - configuration
+  - provisioning
+sidebar_position: 2
+---
+
+This document explains how to configure Claude Code Stats after you enable it.
+
+## Before you begin
+
+Before you configure the app, ensure you have:
+
+- **Grafana permissions:** The `Organization administrator` role. Only organization administrators can configure apps.
+- **The app enabled:** Follow [Enable the app](./index.md#enable-the-app).
+
+## Open the configuration page
+
+<!-- snippet:open-app-config -->
+
+To open the Claude Code Stats configuration page:
+
+1. Click **Administration** > **Plugins and data** > **Plugins** in the left-side menu.
+1. Enter `Claude Code Stats` in the search bar.
+1. Select **Claude Code Stats**.
+
+<!-- /snippet:open-app-config -->
+
+Then click the **Configuration** tab.
+
+## Configure settings
+
+The configuration page has one setting, the metric format, plus a status section and two help tabs. The **Metric Format** section and the tabs appear only while the app is enabled.
+
+### Plugin status
+
+The **Plugin Status** section shows whether the app is enabled:
+
+| Button             | Description                                                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Enable Plugin**  | Shown while the app is disabled. Enables the app, pins it to the navigation and saves the current metric format. |
+| **Disable Plugin** | Shown while the app is enabled. Disables the app and unpins it.                                                  |
+
+Both buttons save immediately and reload the page.
+
+### Metric format
+
+The **Metric Format** section sets how the app names metrics in its queries. Pick the option that matches how Claude Code metrics reach your data source:
+
+![The Ingestion path setting with the Prometheus / OTEL Collector and Direct OTLP options](img/configure.webp)
+
+| Setting            | Description                                                                                                                                                                                                                                                                                                                                      | Required |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| **Ingestion path** | **Prometheus / OTEL Collector** (default): metrics pass through an OpenTelemetry Collector into Prometheus, which adds `_total` and unit suffixes, such as `claude_code_cost_usage_USD_total`. **Direct OTLP**: metrics go straight to the Grafana Cloud or Mimir OTLP endpoint and keep their original names, such as `claude_code_cost_usage`. | Yes      |
+
+Picking an option saves the setting and reloads the page. If the format doesn't match your ingestion path, every panel shows no data.
+
+### Setup Guide
+
+The **Setup Guide** tab builds the Claude Code environment variables for sending metrics directly to Grafana Cloud:
+
+| Setting                | Description                                                                                                                                                                            | Required |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **OTLP Endpoint**      | Your Grafana Cloud OTLP endpoint, such as `https://otlp-gateway-prod-us-east-0.grafana.net/otlp`.                                                                                      | No       |
+| **API Token (Base64)** | The Base64 encoding of `<instance-id>:<token>`: the value after `Basic` in the `OTEL_EXPORTER_OTLP_HEADERS` the Grafana Cloud portal generates. The token alone fails to authenticate. | No       |
+
+These fields only fill in the script shown below them. The app doesn't save them. Click **Copy Script** to copy the script, add it to your shell profile and restart Claude Code. When you use this path, set **Ingestion path** to **Direct OTLP**.
+
+### Troubleshooting
+
+The **Troubleshooting** tab lists checks for missing data, authentication errors and a missing data source, and the metric names for each ingestion path. The same checks are in [Troubleshooting](./troubleshooting.md).
+
+## Provision the app
+
+You can provision Claude Code Stats as code with a Grafana provisioning file. For more information, refer to [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/#plugins).
+
+```yaml
+apiVersion: 1
+
+apps:
+  - type: timurdigital-claudestats-app
+    org_id: 1
+    disabled: false
+    jsonData:
+      metricFormat: otlp
+```
+
+| Key                     | What it sets                                                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `org_id`                | The organization to enable the app in.                                                                                                                    |
+| `disabled`              | Set to `false` to enable the app.                                                                                                                         |
+| `jsonData.metricFormat` | The **Ingestion path**: `prometheus` for **Prometheus / OTEL Collector** or `otlp` for **Direct OTLP**. When you leave it out, the app uses `prometheus`. |
+
+The app has no secure settings, so it doesn't use `secureJsonData`.

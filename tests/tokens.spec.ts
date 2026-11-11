@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
 import {
+  DISPLAY,
   MODELS,
   MEMBERS,
   TOKEN_TYPES,
@@ -16,10 +17,10 @@ test.describe('Tokens scene', () => {
   test('renders the token stat row', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage('tokens');
 
-    await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText('842');
-    await expect(panelByTitle(app, selectors, 'Input Tokens')).toContainText('420');
-    await expect(panelByTitle(app, selectors, 'Output Tokens')).toContainText('330');
-    await expect(panelByTitle(app, selectors, 'Cache Read')).toContainText('92');
+    await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText(DISPLAY.TotalTokens);
+    await expect(panelByTitle(app, selectors, 'Input Tokens')).toContainText(DISPLAY.InputTokens);
+    await expect(panelByTitle(app, selectors, 'Output Tokens')).toContainText(DISPLAY.OutputTokens);
+    await expect(panelByTitle(app, selectors, 'Cache Read')).toContainText(DISPLAY.CacheReadTokens);
   });
 
   test('queries cache reads with the token type label Claude Code emits', async ({ mockData, gotoPage }) => {
