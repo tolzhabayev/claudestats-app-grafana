@@ -157,8 +157,11 @@ function buildQueries(m: MetricNames) {
     /** Active time by member */
     activeTimeByMember: `sum by (${LABELS.USER_EMAIL}) (increase(${m.ACTIVE_TIME}[$__range]))`,
 
-    /** Active time over time */
-    activeTimeOverTime: `sum(increase(${m.ACTIVE_TIME}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval]))`,
+    /** Active time split by type: user (interaction) vs cli (processing) */
+    activeTimeByType: `sum by (${LABELS.ACTIVE_TIME_TYPE}) (increase(${m.ACTIVE_TIME}{${LABELS.USER_EMAIL}=~"$member"}[$__range]))`,
+
+    /** Active time over time, split by type: user (interaction) vs cli (processing) */
+    activeTimeOverTime: `sum(increase(${m.ACTIVE_TIME}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval])) by (${LABELS.ACTIVE_TIME_TYPE})`,
 
     // ==================== TOOL QUERIES ====================
 
@@ -191,6 +194,15 @@ function buildQueries(m: MetricNames) {
 }
 
 export type Queries = ReturnType<typeof buildQueries>;
+
+/**
+ * Display names for the `type` label values of the active-time metric.
+ * `user` is keyboard interaction, `cli` is tool execution and response generation.
+ */
+export const ACTIVE_TIME_TYPE_NAMES = {
+  user: 'User (interaction)',
+  cli: 'CLI (processing)',
+} as const;
 
 /** Build queries for a specific metric format */
 export { buildQueries };

@@ -18,6 +18,8 @@ export const MODELS = ['claude-sonnet-4-5', 'claude-opus-4-1'] as const;
 export const MEMBERS = ['timur@example.com', 'alex@example.com', 'sam@example.com'] as const;
 export const TOKEN_TYPES = ['input', 'output', 'cacheRead', 'cacheCreation'] as const;
 export const LOC_TYPES = ['added', 'removed'] as const;
+// `type` label on the active-time metric, and how the panels display it.
+export const ACTIVE_TIME_TYPES = { user: 'User (interaction)', cli: 'CLI (processing)' } as const;
 export const DECISIONS = ['accept', 'reject'] as const;
 // The code-edit decision metric only covers these tools.
 export const TOOLS = ['Edit', 'Write', 'NotebookEdit'] as const;
@@ -94,6 +96,8 @@ const DECISIONS_BY_TOOL = { Edit: 402, Write: 151, NotebookEdit: 31 };
 const LINES_BY_TYPE = { added: 4820, removed: 1960 };
 // Active time in seconds (20 hours across the team).
 const ACTIVE_TIME_BY_MEMBER = { [MEMBERS[0]]: 30600, [MEMBERS[1]]: 25200, [MEMBERS[2]]: 16200 };
+// The same 20 hours split into interaction (user) and processing (cli) time.
+const ACTIVE_TIME_BY_TYPE = { user: 27000, cli: 45000 };
 
 // Scalar values rendered by stat panels.
 export const SCALARS = {
@@ -288,7 +292,7 @@ const DATASET: Record<string, FrameBuilder> = {
   TokensByEffort: (id) => instantSeriesFrames(id, 'effort', TOKENS.byEffort),
 
   // --- sessions / activity (overview) ---
-  ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalActiveTime }, r),
+  ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, 'type', ACTIVE_TIME_BY_TYPE, r),
   SessionsByStartType: (id) => instantSeriesFrames(id, 'start_type', SESSIONS_BY_START_TYPE),
 
   // --- environment (overview, weighted by cost) ---
@@ -307,6 +311,7 @@ const DATASET: Record<string, FrameBuilder> = {
   LinesOfCodeOverTime: (id, r) => rangeSeriesFrames(id, 'type', LINES_BY_TYPE, r),
   CommitsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalCommits }, r),
   PullRequestsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalPullRequests }, r),
+  ActiveTimeByType: (id) => instantSeriesFrames(id, 'type', ACTIVE_TIME_BY_TYPE),
   ActiveTimeByMember: (id) => instantSeriesFrames(id, 'user_email', ACTIVE_TIME_BY_MEMBER),
 };
 
