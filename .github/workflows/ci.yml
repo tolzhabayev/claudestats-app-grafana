@@ -142,7 +142,7 @@ jobs:
         id: resolve-versions
         uses: grafana/plugin-actions/e2e-version@e2e-version/v3.0.2
         with:
-          skip-grafana-react-19-preview-image: false
+          skip-grafana-nightly-image: true
 
   playwright-tests:
     needs: [resolve-versions, build]
