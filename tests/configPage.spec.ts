@@ -32,7 +32,7 @@ test.describe('Configuration Page', () => {
 
   test('should have API Token input field', async ({ appConfigPage, page }) => {
     // Input field with placeholder
-    await expect(page.getByPlaceholder('Your base64-encoded token')).toBeVisible();
+    await expect(page.getByPlaceholder('Base64 of instanceID:token')).toBeVisible();
   });
 
   test('should display metrics reference in troubleshooting', async ({ appConfigPage, page }) => {
