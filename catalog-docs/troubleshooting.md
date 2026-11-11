@@ -67,11 +67,11 @@ These issues occur when Claude Code can't deliver metrics to Grafana Cloud.
 
 **Possible causes and solutions:**
 
-| Cause                               | Solution                                                                                                 |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| The token isn't encoded correctly.  | Make sure the value after `Authorization=Basic` in `OTEL_EXPORTER_OTLP_HEADERS` is Base64-encoded.       |
-| The token can't write OTLP data.    | Generate a token with OTLP write permission from the **OpenTelemetry** tile in the Grafana Cloud portal. |
-| The endpoint is for another region. | Copy the endpoint from your stack's **OpenTelemetry** tile.                                              |
+| Cause                                   | Solution                                                                                                                                                                                                        |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The credential isn't encoded correctly. | The value after `Authorization=Basic` in `OTEL_EXPORTER_OTLP_HEADERS` must be the Base64 encoding of `<instance-id>:<token>`, not the token alone. Copy it from the headers the Grafana Cloud portal generates. |
+| The token can't write OTLP data.        | Generate a token with OTLP write permission from the **OpenTelemetry** tile in the Grafana Cloud portal.                                                                                                        |
+| The endpoint is for another region.     | Copy the endpoint from your stack's **OpenTelemetry** tile.                                                                                                                                                     |
 
 ## Get more detail about an error
 

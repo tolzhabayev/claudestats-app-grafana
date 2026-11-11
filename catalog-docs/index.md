@@ -43,7 +43,7 @@ Claude Code exports usage metrics over OpenTelemetry (OTLP). Choose the path tha
 To send metrics straight to the Grafana Cloud OTLP endpoint:
 
 1. Open your [Grafana Cloud portal](https://grafana.com/profile/org), select your stack and click **Configure** in the **OpenTelemetry** tile.
-1. Click **Generate API Token** and copy the OTLP endpoint and the token.
+1. Click **Generate API Token** and copy the OTLP endpoint and the generated `OTEL_EXPORTER_OTLP_HEADERS` value. The part after `Basic` is the Base64 encoding of your instance ID and token, `<instance-id>:<token>`, not the token alone.
 1. Add these variables to each team member's shell profile, such as `~/.zshrc` or `~/.bashrc`:
 
    ```bash
@@ -51,7 +51,7 @@ To send metrics straight to the Grafana Cloud OTLP endpoint:
    export OTEL_METRICS_EXPORTER=otlp
    export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
    export OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-<region>.grafana.net/otlp"
-   export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <your-base64-encoded-token>"
+   export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64-of-instance-id:token>"
    # Grafana Cloud (Mimir) needs cumulative temporality
    export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
    ```

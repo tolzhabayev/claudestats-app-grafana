@@ -77,7 +77,7 @@ export function AppConfig({ plugin }: AppConfigProps) {
 
   const generateEnvScript = () => {
     const endpoint = setupConfig.otlpEndpoint || 'https://otlp-gateway-prod-<region>.grafana.net/otlp';
-    const token = setupConfig.otlpToken || '<your-base64-encoded-token>';
+    const token = setupConfig.otlpToken || '<base64-of-instance-id:token>';
 
     return `# Add these to your shell profile (~/.zshrc, ~/.bashrc, or ~/.bash_profile)
 
@@ -199,7 +199,7 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                       <li>
                         Click <strong>Generate API Token</strong>
                       </li>
-                      <li>Copy the OTLP endpoint and token</li>
+                      <li>Copy the OTLP endpoint and the generated OTEL_EXPORTER_OTLP_HEADERS value</li>
                     </ol>
                   </Card.Description>
                 </Card>
@@ -215,10 +215,13 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                           onChange={(e) => setSetupConfig({ ...setupConfig, otlpEndpoint: e.currentTarget.value })}
                         />
                       </Field>
-                      <Field label="API Token (Base64)" description="Your Grafana Cloud API token">
+                      <Field
+                        label="API Token (Base64)"
+                        description="Base64 of instanceID:token: the value after Basic in the OTEL_EXPORTER_OTLP_HEADERS the portal generates"
+                      >
                         <Input
                           type="password"
-                          placeholder="Your base64-encoded token"
+                          placeholder="Base64 of instanceID:token"
                           value={setupConfig.otlpToken}
                           onChange={(e) => setSetupConfig({ ...setupConfig, otlpToken: e.currentTarget.value })}
                         />
@@ -333,7 +336,9 @@ claude`}
                   <Card.Heading>Authentication Errors</Card.Heading>
                   <Card.Description>
                     <ul className={styles.list}>
-                      <li>Ensure the token is Base64-encoded correctly</li>
+                      <li>
+                        Ensure the value after Basic is the Base64 encoding of instanceID:token, not the token alone
+                      </li>
                       <li>Check the token has OTLP write permissions</li>
                       <li>Verify the endpoint matches your Grafana Cloud region</li>
                     </ul>

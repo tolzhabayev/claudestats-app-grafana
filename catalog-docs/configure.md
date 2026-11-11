@@ -63,10 +63,10 @@ Picking an option saves the setting and reloads the page. If the format doesn't 
 
 The **Setup Guide** tab builds the Claude Code environment variables for sending metrics directly to Grafana Cloud:
 
-| Setting                | Description                                                                                       | Required |
-| ---------------------- | ------------------------------------------------------------------------------------------------- | -------- |
-| **OTLP Endpoint**      | Your Grafana Cloud OTLP endpoint, such as `https://otlp-gateway-prod-us-east-0.grafana.net/otlp`. | No       |
-| **API Token (Base64)** | Your Grafana Cloud API token, Base64-encoded.                                                     | No       |
+| Setting                | Description                                                                                                                                                                            | Required |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **OTLP Endpoint**      | Your Grafana Cloud OTLP endpoint, such as `https://otlp-gateway-prod-us-east-0.grafana.net/otlp`.                                                                                      | No       |
+| **API Token (Base64)** | The Base64 encoding of `<instance-id>:<token>`: the value after `Basic` in the `OTEL_EXPORTER_OTLP_HEADERS` the Grafana Cloud portal generates. The token alone fails to authenticate. | No       |
 
 These fields only fill in the script shown below them. The app doesn't save them. Click **Copy Script** to copy the script, add it to your shell profile and restart Claude Code. When you use this path, set **Ingestion path** to **Direct OTLP**.
 
