@@ -50,4 +50,22 @@ test.describe('Template variables', () => {
 
     await scopedQuery;
   });
+
+  test('shows the Model picker only on pages whose metrics carry a model label', async ({
+    mockData,
+    gotoPage,
+    page,
+  }) => {
+    const variable = (label: string) => page.getByTestId('data-testid template variable').filter({ hasText: label });
+
+    await gotoPage('costs');
+    await expect(variable('Team Member')).toBeVisible();
+    await expect(variable('Model')).toBeVisible();
+
+    for (const path of ['tools', 'productivity']) {
+      await gotoPage(path);
+      await expect(variable('Team Member')).toBeVisible();
+      await expect(variable('Model')).toHaveCount(0);
+    }
+  });
 });

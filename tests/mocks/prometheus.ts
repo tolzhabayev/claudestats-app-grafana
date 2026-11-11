@@ -16,7 +16,7 @@ import type { Page, Route } from '@playwright/test';
 
 export const MODELS = ['claude-sonnet-4-5', 'claude-opus-4-1'] as const;
 export const MEMBERS = ['timur@example.com', 'alex@example.com'] as const;
-export const TOKEN_TYPES = ['input', 'output', 'cache_read', 'cache_creation'] as const;
+export const TOKEN_TYPES = ['input', 'output', 'cacheRead', 'cacheCreation'] as const;
 export const LOC_TYPES = ['added', 'removed'] as const;
 export const DECISIONS = ['accept', 'reject'] as const;
 export const TOOLS = ['Edit', 'Write', 'Bash'] as const;

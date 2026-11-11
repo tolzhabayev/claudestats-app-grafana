@@ -51,7 +51,7 @@ export const METRICS = METRICS_PROMETHEUS;
 export const LABELS = {
   USER_EMAIL: 'user_email',
   MODEL: 'model',
-  TOKEN_TYPE: 'type', // input, output, cache_read, cache_creation
+  TOKEN_TYPE: 'type', // input, output, cacheRead, cacheCreation
   LOC_TYPE: 'type', // added, removed
   SESSION_ID: 'session_id',
   START_TYPE: 'start_type', // fresh, resume, continue, agents_view

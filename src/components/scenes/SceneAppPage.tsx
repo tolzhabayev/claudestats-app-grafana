@@ -1,7 +1,7 @@
 import React from 'react';
 import { SceneApp, SceneAppPage, SceneTimeRange, useSceneApp } from '@grafana/scenes';
 import { AppPluginMeta } from '@grafana/data';
-import { PLUGIN_BASE_URL, ROUTES, getMetrics } from '../../constants';
+import { PLUGIN_BASE_URL, ROUTES, TIME_RANGES, getMetrics } from '../../constants';
 import { getSharedVariables } from '../../scenes/variables';
 import { buildQueries } from '../../scenes/queries';
 import { getOverviewScene } from '../../scenes/pages/OverviewScene';
@@ -22,7 +22,7 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
   const queries = buildQueries(metrics);
   const variables = getSharedVariables(metrics);
 
-  const timeRange = new SceneTimeRange({ from: 'now-3h', to: 'now' });
+  const timeRange = new SceneTimeRange({ from: TIME_RANGES.LAST_7D, to: 'now' });
 
   return new SceneApp({
     pages: [
