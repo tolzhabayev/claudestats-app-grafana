@@ -10,6 +10,8 @@ sidebar_position: 40
 
 The **Tools** tab shows the permission decisions team members make on the file-editing tools: `Edit`, `Write` and `NotebookEdit`. Other tools, such as Bash, don't appear here.
 
+![The Tools tab with the acceptance rate and edit decisions](../img/tools.webp)
+
 ## Check the acceptance rate
 
 | Panel                        | What it shows                                       |

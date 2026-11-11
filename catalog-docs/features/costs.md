@@ -10,6 +10,8 @@ sidebar_position: 20
 
 The **Costs** tab breaks down the estimated cost Claude Code reports after each API request. Use it to find which models, team members and features drive spend.
 
+![The Costs tab with spend by model and team member and attribution bar gauges](../img/costs.webp)
+
 ## See spend by model and team member
 
 | Panel                             | What it shows                                                  |

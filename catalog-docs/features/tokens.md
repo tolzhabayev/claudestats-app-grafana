@@ -10,6 +10,8 @@ sidebar_position: 30
 
 The **Tokens** tab shows how many tokens your team's Claude Code requests use and where they go.
 
+![The Tokens tab with token totals, distribution by type and attribution bar gauges](../img/tokens.webp)
+
 ## See token volume
 
 | Panel                          | What it shows                                                               |

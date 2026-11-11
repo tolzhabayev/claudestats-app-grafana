@@ -10,6 +10,8 @@ sidebar_position: 50
 
 The **Productivity** tab shows the output of your team's Claude Code sessions and how much time they spend in them.
 
+![The Productivity tab with lines of code, commits, pull requests and active time](../img/productivity.webp)
+
 ## Track output
 
 | Panel                       | What it shows                                        |

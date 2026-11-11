@@ -9,6 +9,8 @@ sidebar_position: 10
 
 The **Overview** tab is the landing page of Claude Code Stats. It summarizes your team's Claude Code usage for the selected time range and filters.
 
+![The Overview tab with totals, cost and token trends and environment breakdowns](../img/overview.webp)
+
 ## Check usage at a glance
 
 The top row shows four totals:

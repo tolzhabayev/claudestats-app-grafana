@@ -51,6 +51,8 @@ Both buttons save immediately and reload the page.
 
 The **Metric Format** section sets how the app names metrics in its queries. Pick the option that matches how Claude Code metrics reach your data source:
 
+![The Ingestion path setting with the Prometheus / OTEL Collector and Direct OTLP options](img/configure.webp)
+
 | Setting            | Description                                                                                                                                                                                                                                                                                                                                      | Required |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
 | **Ingestion path** | **Prometheus / OTEL Collector** (default): metrics pass through an OpenTelemetry Collector into Prometheus, which adds `_total` and unit suffixes, such as `claude_code_cost_usage_USD_total`. **Direct OTLP**: metrics go straight to the Grafana Cloud or Mimir OTLP endpoint and keep their original names, such as `claude_code_cost_usage`. | Yes      |
