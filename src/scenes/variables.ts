@@ -1,6 +1,6 @@
 import { VariableRefresh } from '@grafana/schema';
 import { QueryVariable, DataSourceVariable, SceneVariableSet, VariableValueControl } from '@grafana/scenes';
-import { METRICS, LABELS, MetricNames } from '../constants';
+import { getMetrics, LABELS, MetricNames } from '../constants';
 import { memberValuesQuery } from './queries';
 
 /**
@@ -20,7 +20,7 @@ export function getPrometheusDataSourceVariable() {
  * `user_email`, else `enduser_id`, else the anonymous `user_id`, so API-key and
  * cloud-provider users can be picked too (see `scoped` in queries.ts).
  */
-export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
+export function getTeamMemberVariable(metrics: MetricNames = getMetrics()) {
   return new QueryVariable({
     name: 'member',
     label: 'Team Member',
@@ -44,7 +44,7 @@ export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
 /**
  * Creates a model filter variable (sonnet, opus, etc.)
  */
-export function getModelVariable(metrics: MetricNames = METRICS) {
+export function getModelVariable(metrics: MetricNames = getMetrics()) {
   return new QueryVariable({
     name: 'model',
     label: 'Model',
@@ -65,7 +65,7 @@ export function getModelVariable(metrics: MetricNames = METRICS) {
 /**
  * Creates the shared variable set used across all scenes
  */
-export function getSharedVariables(metrics: MetricNames = METRICS) {
+export function getSharedVariables(metrics: MetricNames = getMetrics()) {
   return new SceneVariableSet({
     variables: [getPrometheusDataSourceVariable(), getTeamMemberVariable(metrics), getModelVariable(metrics)],
   });

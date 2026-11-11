@@ -1,4 +1,4 @@
-import { METRICS, LABELS, MetricNames } from '../constants';
+import { getMetrics, LABELS, MetricNames } from '../constants';
 
 /** Member value for usage that carries none of the identity labels. */
 export const UNATTRIBUTED = 'Unattributed';
@@ -303,4 +303,4 @@ export const DECISION_SOURCE_COLORS: Record<keyof typeof DECISION_SOURCE_NAMES, 
 export { buildQueries };
 
 /** Default queries using Prometheus metric names (backward compatible) */
-export const QUERIES = buildQueries(METRICS);
+export const QUERIES = buildQueries(getMetrics());
