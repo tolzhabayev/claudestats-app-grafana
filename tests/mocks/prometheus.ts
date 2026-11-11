@@ -23,6 +23,16 @@ export const ACTIVE_TIME_TYPES = { user: 'User (interaction)', cli: 'CLI (proces
 export const DECISIONS = ['accept', 'reject'] as const;
 // The code-edit decision metric only covers these tools.
 export const TOOLS = ['Edit', 'Write', 'NotebookEdit'] as const;
+export const LANGUAGES = ['TypeScript', 'Python', 'Markdown'] as const;
+// `source` label on the decision metric, and how the Decisions by Source panel displays it.
+export const DECISION_SOURCES = {
+  config: 'Config rule (auto)',
+  hook: 'Hook (auto)',
+  user_permanent: 'User: always allow',
+  user_temporary: 'User: allow once',
+  user_reject: 'User: reject',
+  user_abort: 'User: cancel',
+} as const;
 export const OS_TYPES = ['darwin', 'linux'] as const;
 export const HOST_ARCHES = ['arm64', 'x64'] as const;
 export const TERMINAL_TYPES = ['vscode', 'iTerm.app'] as const;
@@ -93,6 +103,18 @@ const TOKENS = {
 const SESSIONS_BY_START_TYPE = { fresh: 34, resume: 15, continue: 9, agents_view: 4 };
 const DECISIONS_BY_TYPE = { accept: 438, reject: 146 };
 const DECISIONS_BY_TOOL = { Edit: 402, Write: 151, NotebookEdit: 31 };
+// Same 584 decisions by who made them: accepts (438) are config/hook/user allows,
+// rejects (146) are user rejects and aborts.
+const DECISIONS_BY_SOURCE = {
+  config: 162,
+  hook: 24,
+  user_permanent: 97,
+  user_temporary: 155,
+  user_reject: 118,
+  user_abort: 28,
+};
+// Acceptance rate (%) per file language.
+const ACCEPTANCE_RATE_BY_LANGUAGE = { TypeScript: 81.2, Python: 74.5, Markdown: 58.3 };
 const LINES_BY_TYPE = { added: 4820, removed: 1960 };
 // Same total by model; `unknown` is lines from clients too old to send the label.
 const LINES_BY_MODEL = { [MODELS[0]]: 4310, [MODELS[1]]: 2140, unknown: 330 };
@@ -307,6 +329,8 @@ const DATASET: Record<string, FrameBuilder> = {
   ToolDecisions: (id) => instantSeriesFrames(id, 'decision', DECISIONS_BY_TYPE),
   ToolDecisionsByTool: (id) => instantSeriesFrames(id, 'tool_name', DECISIONS_BY_TOOL),
   ToolDecisionsOverTime: (id, r) => rangeSeriesFrames(id, 'decision', DECISIONS_BY_TYPE, r),
+  ToolDecisionsBySource: (id) => instantSeriesFrames(id, 'source', DECISIONS_BY_SOURCE),
+  ToolAcceptanceRateByLanguage: (id) => instantSeriesFrames(id, 'language', ACCEPTANCE_RATE_BY_LANGUAGE),
 
   // --- productivity ---
   LinesOfCodeByType: (id) => instantSeriesFrames(id, 'type', LINES_BY_TYPE),

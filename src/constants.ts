@@ -58,6 +58,8 @@ export const LABELS = {
   START_TYPE: 'start_type', // fresh, resume, continue, agents_view
   TOOL: 'tool_name',
   DECISION: 'decision',
+  LANGUAGE: 'language', // file language of a code-edit decision (TypeScript, Python, Markdown, ...)
+  DECISION_SOURCE: 'source', // config, hook, user_permanent, user_temporary, user_abort, user_reject
   // Attribution labels (what is driving spend)
   QUERY_SOURCE: 'query_source', // main, subagent, auxiliary
   AGENT_NAME: 'agent_name', // subagent; user-defined collapse to "custom"

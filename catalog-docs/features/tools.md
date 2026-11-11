@@ -23,6 +23,26 @@ The **Tools** tab shows the permission decisions team members make on the file-e
 
 A decision counts whether a team member made it or a configuration rule or hook made it automatically.
 
+## Break down decisions by language and source
+
+| Panel                           | What it shows                                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Acceptance Rate by Language** | The acceptance rate for each language of the edited file, such as TypeScript or Markdown, highest first. |
+| **Decisions by Source**         | Who made each decision, with the count and share of each.                                                |
+
+**Decisions by Source** shows these sources:
+
+| Source                 | Meaning                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| **Config rule (auto)** | A permission rule in the Claude Code settings decided automatically. |
+| **Hook (auto)**        | A hook made the decision.                                            |
+| **User: always allow** | The team member allowed the edit and similar edits from then on.     |
+| **User: allow once**   | The team member allowed this edit only.                              |
+| **User: reject**       | The team member rejected the edit.                                   |
+| **User: cancel**       | The team member cancelled the prompt without answering.              |
+
+A language with only a few decisions can swing between 0% and 100%, so compare it with **Decisions by Source** and **Usage by Tool** before drawing conclusions.
+
 ## Filters on this tab
 
 **Team Member** applies to every panel. The tab has no **Model** filter, because edit decisions aren't recorded per model.
