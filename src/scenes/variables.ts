@@ -1,4 +1,4 @@
-import { QueryVariable, DataSourceVariable, SceneVariableSet } from '@grafana/scenes';
+import { QueryVariable, DataSourceVariable, SceneVariableSet, VariableValueControl } from '@grafana/scenes';
 import { METRICS, LABELS, MetricNames } from '../constants';
 
 /**
@@ -62,4 +62,16 @@ export function getSharedVariables(metrics: MetricNames = METRICS) {
   return new SceneVariableSet({
     variables: [getPrometheusDataSourceVariable(), getTeamMemberVariable(metrics), getModelVariable(metrics)],
   });
+}
+
+/**
+ * Variable controls without the Model picker, for pages whose metrics carry no
+ * `model` label (commits, pull requests, active time, tool decisions). Showing
+ * the picker there suggested a filter that silently did nothing.
+ */
+export function getControlsWithoutModel() {
+  return [
+    new VariableValueControl({ variableName: 'prometheus_ds' }),
+    new VariableValueControl({ variableName: 'member' }),
+  ];
 }

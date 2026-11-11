@@ -22,6 +22,19 @@ test.describe('Tokens scene', () => {
     await expect(panelByTitle(app, selectors, 'Cache Read')).toContainText('92');
   });
 
+  test('queries cache reads with the token type label Claude Code emits', async ({ mockData, gotoPage }) => {
+    // Claude Code labels token types `cacheRead` / `cacheCreation` (camelCase).
+    // The mocks answer by refId, so assert on the PromQL itself.
+    const app = await gotoPage('tokens');
+    const request = await app.waitForQueryDataRequest((req) => {
+      const body = req.postDataJSON() as { queries?: Array<{ refId?: string }> };
+      return (body.queries ?? []).some((q) => q.refId === 'CacheReadTokens');
+    });
+    const body = request.postDataJSON() as { queries: Array<{ refId: string; expr: string }> };
+    const expr = body.queries.find((q) => q.refId === 'CacheReadTokens')!.expr;
+    expect(expr).toContain('type="cacheRead"');
+  });
+
   test('renders token distribution and usage over time by type', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage('tokens');
 

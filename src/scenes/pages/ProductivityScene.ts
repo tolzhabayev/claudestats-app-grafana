@@ -6,7 +6,6 @@ import {
   SceneTimeRange,
   SceneVariableSet,
   PanelBuilders,
-  VariableValueSelectors,
   SceneControlsSpacer,
   SceneTimePicker,
   SceneRefreshPicker,
@@ -21,6 +20,7 @@ import {
   VizOrientation,
 } from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
+import { getControlsWithoutModel } from '../variables';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getProductivityScene(
@@ -101,6 +101,7 @@ export function getProductivityScene(
       {
         refId: 'CommitsOverTime',
         expr: queries.commitsOverTime,
+        legendFormat: 'Commits',
       },
     ],
   });
@@ -111,6 +112,7 @@ export function getProductivityScene(
       {
         refId: 'PullRequestsOverTime',
         expr: queries.pullRequestsOverTime,
+        legendFormat: 'Pull requests',
       },
     ],
   });
@@ -131,7 +133,7 @@ export function getProductivityScene(
     $timeRange: timeRange,
     $variables: variables,
     controls: [
-      new VariableValueSelectors({}),
+      ...getControlsWithoutModel(),
       new SceneControlsSpacer(),
       new SceneTimePicker({ isOnCanvas: true }),
       new SceneRefreshPicker({ intervals: ['30s', '1m', '5m', '15m', '30m'] }),

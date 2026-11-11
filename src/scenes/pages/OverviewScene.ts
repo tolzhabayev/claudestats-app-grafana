@@ -105,6 +105,7 @@ export function getOverviewScene(
       {
         refId: 'ActiveTimeOverTime',
         expr: queries.activeTimeOverTime,
+        legendFormat: 'Active time',
       },
     ],
   });

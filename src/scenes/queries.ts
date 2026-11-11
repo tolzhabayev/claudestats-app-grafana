@@ -60,9 +60,9 @@ function buildQueries(m: MetricNames) {
     outputTokens: `sum(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="output"}[$__range]))`,
 
     /** Cache read tokens */
-    cacheReadTokens: `sum(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cache_read"}[$__range]))`,
+    cacheReadTokens: `sum(increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cacheRead"}[$__range]))`,
 
-    /** Tokens by type (input, output, cache_read, cache_creation) */
+    /** Tokens by type (input, output, cacheRead, cacheCreation) */
     tokensByType: `sum by (${LABELS.TOKEN_TYPE}) (increase(${m.TOKEN_USAGE}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.MODEL}=~"$model"}[$__range]))`,
 
     /** Tokens by model */
