@@ -19,9 +19,15 @@ async function openVariable(page: import('@playwright/test').Page, label: string
 }
 
 test.describe('Template variables', () => {
-  test('populates the Team Member options from label_values', async ({ mockData, gotoPage, page }) => {
+  test('populates the Team Member options from the resolved member identities', async ({
+    mockData,
+    gotoPage,
+    page,
+  }) => {
     await gotoPage();
     await openVariable(page, 'Team Member', MEMBERS);
+    // Usage with no identity label has nothing to filter on, so it is not an option.
+    await expect(page.getByRole('option')).toHaveCount(MEMBERS.length + 1); // + "All"
   });
 
   test('populates the Model options from label_values', async ({ mockData, gotoPage, page }) => {
@@ -36,7 +42,8 @@ test.describe('Template variables', () => {
     await openVariable(page, 'Team Member', [member]);
 
     // Grafana regex-escapes dots inside `=~` matchers, so the email is embedded
-    // as `user_email=~"timur@example\\.com"`. Match the prefix up to the first
+    // as `user_email=~"timur@example\\.com"` (and the same for `enduser_id` and
+    // `user_id`, the fallback identities). Match the prefix up to the first
     // dot, which still uniquely identifies the selected member.
     const prefix = member.split('.')[0];
     const scopedQuery = app.waitForQueryDataRequest((request) => {

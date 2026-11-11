@@ -139,7 +139,7 @@ export function getTokensScene(
       {
         refId: 'TokensByMember',
         expr: queries.tokensByMember,
-        legendFormat: '{{user_email}}',
+        legendFormat: '{{member}}',
         instant: true,
       },
     ],

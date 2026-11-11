@@ -1,5 +1,7 @@
+import { VariableRefresh } from '@grafana/schema';
 import { QueryVariable, DataSourceVariable, SceneVariableSet, VariableValueControl } from '@grafana/scenes';
 import { METRICS, LABELS, MetricNames } from '../constants';
+import { memberValuesQuery } from './queries';
 
 /**
  * Creates a data source variable for Prometheus/Mimir
@@ -14,7 +16,9 @@ export function getPrometheusDataSourceVariable() {
 }
 
 /**
- * Creates a team member filter variable using user_email
+ * Creates the team member filter variable. Members are identified by
+ * `user_email`, else `enduser_id`, else the anonymous `user_id`, so API-key and
+ * cloud-provider users can be picked too (see `scoped` in queries.ts).
  */
 export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
   return new QueryVariable({
@@ -25,9 +29,12 @@ export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
       uid: '${prometheus_ds}',
     },
     query: {
-      query: `label_values(${metrics.COST_USAGE}, ${LABELS.USER_EMAIL})`,
+      query: memberValuesQuery(metrics),
       refId: 'MemberQuery',
     },
+    regex: `/${LABELS.MEMBER}="([^"]+)"/`,
+    sort: 1,
+    refresh: VariableRefresh.onTimeRangeChanged,
     includeAll: true,
     defaultToAll: true,
     allValue: '.*',

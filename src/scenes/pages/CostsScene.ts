@@ -94,7 +94,7 @@ export function getCostsScene(
       {
         refId: 'CostOverTimeByMember',
         expr: queries.costOverTimeByMember,
-        legendFormat: '{{user_email}}',
+        legendFormat: '{{member}}',
       },
     ],
   });
@@ -105,7 +105,7 @@ export function getCostsScene(
       {
         refId: 'CostByMember',
         expr: queries.costByMember,
-        legendFormat: '{{user_email}}',
+        legendFormat: '{{member}}',
         instant: true,
       },
     ],
@@ -217,7 +217,7 @@ export function getCostsScene(
                 .setTitle('Cost Breakdown')
                 .setData(costTableQuery)
                 .setOption('sortBy', [{ displayName: 'Value', desc: true }])
-                .setOverrides((b) => b.matchFieldsWithName('user_email').overrideDisplayName('Team Member'))
+                .setOverrides((b) => b.matchFieldsWithName('member').overrideDisplayName('Team Member'))
                 .build(),
             }),
           ],

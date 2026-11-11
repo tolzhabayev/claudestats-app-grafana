@@ -82,7 +82,7 @@ export function getOverviewScene(
       {
         refId: 'CostByMember',
         expr: queries.costByMember,
-        legendFormat: '{{user_email}}',
+        legendFormat: '{{member}}',
         instant: true,
       },
     ],

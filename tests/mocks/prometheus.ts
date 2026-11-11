@@ -6,7 +6,7 @@ import type { Page, Route } from '@playwright/test';
  * The plugin never talks to Prometheus directly - every panel issues a
  * `POST /api/ds/query` through the Grafana datasource proxy, and the template
  * variables resolve their options through the datasource `resources` endpoint
- * (`label_values(...)`). We intercept both at the network layer and return
+ * (`label_values(...)`, `query_result(...)`). We intercept both at the network layer and return
  * deterministic dataframes, so tests can assert on concrete rendered values
  * without needing real metrics in Prometheus.
  */
@@ -268,7 +268,7 @@ function tableFrame(
       {
         name: 'Value',
         type: 'number',
-        labels: { user_email: row.user_email, model: row.model },
+        labels: { member: row.user_email, model: row.model },
         values: [row.value],
       },
     ])
@@ -287,9 +287,9 @@ const DATASET: Record<string, FrameBuilder> = {
 
   // --- cost ---
   CostByModel: (id) => instantSeriesFrames(id, 'model', COST.byModel),
-  CostByMember: (id) => instantSeriesFrames(id, 'user_email', COST.byMember),
+  CostByMember: (id) => instantSeriesFrames(id, 'member', COST.byMember),
   CostOverTime: (id, r) => rangeSeriesFrames(id, 'model', COST.byModel, r),
-  CostOverTimeByMember: (id, r) => rangeSeriesFrames(id, 'user_email', COST.byMember, r),
+  CostOverTimeByMember: (id, r) => rangeSeriesFrames(id, 'member', COST.byMember, r),
   CostTable: (id, r) => tableFrame(id, r, COST_TABLE),
 
   // --- cost attribution (sorted bar gauges) ---
@@ -303,7 +303,7 @@ const DATASET: Record<string, FrameBuilder> = {
   // --- tokens ---
   TokensByType: (id) => instantSeriesFrames(id, 'type', TOKENS.byType),
   TokensByModel: (id) => instantSeriesFrames(id, 'model', TOKENS.byModel),
-  TokensByMember: (id) => instantSeriesFrames(id, 'user_email', TOKENS.byMember),
+  TokensByMember: (id) => instantSeriesFrames(id, 'member', TOKENS.byMember),
   // tokensOverTime uses rate(), so its points are tokens per second.
   TokensOverTime: (id, r) => rangeSeriesFrames(id, 'type', TOKENS.byType, r, true),
 
@@ -339,7 +339,7 @@ const DATASET: Record<string, FrameBuilder> = {
   CommitsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalCommits }, r),
   PullRequestsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalPullRequests }, r),
   ActiveTimeByType: (id) => instantSeriesFrames(id, 'type', ACTIVE_TIME_BY_TYPE),
-  ActiveTimeByMember: (id) => instantSeriesFrames(id, 'user_email', ACTIVE_TIME_BY_MEMBER),
+  ActiveTimeByMember: (id) => instantSeriesFrames(id, 'member', ACTIVE_TIME_BY_MEMBER),
 };
 
 // ==================== Route handlers ====================
@@ -369,9 +369,6 @@ function buildQueryResponse(body: DsQueryBody) {
 }
 
 function labelValuesResponse(url: string): string[] {
-  if (url.includes('/label/user_email/values')) {
-    return [...MEMBERS];
-  }
   if (url.includes('/label/model/values')) {
     return [...MODELS];
   }
@@ -392,6 +389,25 @@ export async function mockClaudeData(page: Page): Promise<void> {
   // Template variable options (label_values) and any other resource calls.
   await page.route('**/api/datasources/**/resources/**', async (route: Route) => {
     const url = route.request().url();
+
+    // Team Member variable: `query_result(count by (member) (...))`, run as an
+    // instant query. The `{}` group is usage with no identity label, which the
+    // variable's regex must leave out.
+    if (url.endsWith('/api/v1/query')) {
+      await route.fulfill({
+        json: {
+          status: 'success',
+          data: {
+            resultType: 'vector',
+            result: [
+              ...MEMBERS.map((member) => ({ metric: { member }, value: [0, '1'] })),
+              { metric: {}, value: [0, '1'] },
+            ],
+          },
+        },
+      });
+      return;
+    }
 
     if (url.includes('/label/') && url.includes('/values')) {
       await route.fulfill({ json: { status: 'success', data: labelValuesResponse(url) } });
