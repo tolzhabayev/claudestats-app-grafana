@@ -360,6 +360,10 @@ claude`}
                           readOnly
                           showMiniMap={false}
                         />
+                        <p>
+                          <code>OTEL_EXPORTER_OTLP_PROTOCOL</code> has no default: if it isn&apos;t set, Claude Code
+                          exports nothing.
+                        </p>
                       </li>
                       <li>
                         <strong>Use Claude Code for a few minutes:</strong>

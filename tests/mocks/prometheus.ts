@@ -395,12 +395,16 @@ interface DsQueryBody {
   to?: string;
 }
 
-function buildQueryResponse(body: DsQueryBody) {
+function buildQueryResponse(body: DsQueryBody, emptyRefIds: readonly string[] = []) {
   const from = Number(body.from) || 0;
   const to = Number(body.to) || from + 3 * 60 * 60 * 1000;
   const results: Record<string, { status: number; frames: object[] }> = {};
 
   for (const query of body.queries ?? []) {
+    if (emptyRefIds.includes(query.refId)) {
+      results[query.refId] = { status: 200, frames: [] };
+      continue;
+    }
     const builder = DATASET[query.refId];
     results[query.refId] = {
       status: 200,
@@ -421,6 +425,17 @@ function labelValuesResponse(url: string): string[] {
     return [...REPOSITORIES];
   }
   return [];
+}
+
+/**
+ * Makes the given panels return no data, as when Claude Code doesn't send the
+ * labels they need. Call after `mockData`; this route takes precedence.
+ */
+export async function mockEmptyPanels(page: Page, refIds: readonly string[]): Promise<void> {
+  await page.route('**/api/ds/query*', async (route: Route) => {
+    const body = (route.request().postDataJSON() ?? {}) as DsQueryBody;
+    await route.fulfill({ json: buildQueryResponse(body, refIds) });
+  });
 }
 
 /**
