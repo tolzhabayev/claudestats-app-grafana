@@ -5,6 +5,9 @@ import { memberValuesQuery } from './queries';
 import { FilterDimension, getFilterDimensions } from './dimensions';
 import { OptionalVariableControl } from './OptionalVariableControl';
 
+/** Matches the name of every Claude Code metric, Prometheus or OTLP format. */
+const CLAUDE_CODE_METRICS = 'claude_code_.+';
+
 /**
  * Creates a data source variable for Prometheus/Mimir
  */
@@ -72,7 +75,7 @@ export function getModelVariable(metrics: MetricNames = getMetrics()) {
  * A dimension with `hideWhenEmpty` stays hidden until its label has values, so
  * teams that don't send repository attributes don't see an empty picker.
  */
-export function getDimensionVariable(dimension: FilterDimension, metrics: MetricNames = getMetrics()) {
+export function getDimensionVariable(dimension: FilterDimension) {
   const variable = new QueryVariable({
     name: dimension.variable,
     label: dimension.title,
@@ -81,7 +84,9 @@ export function getDimensionVariable(dimension: FilterDimension, metrics: Metric
       uid: '${prometheus_ds}',
     },
     query: {
-      query: `label_values(${metrics.COST_USAGE}, ${dimension.label})`,
+      // Every Claude Code metric in either naming format, not just cost: the filter applies to
+      // sessions, tools and productivity too. Other apps' metrics with the same label stay out.
+      query: `label_values({__name__=~"${CLAUDE_CODE_METRICS}"}, ${dimension.label})`,
       refId: `${dimension.variable}Query`,
     },
     sort: 1,
@@ -116,7 +121,7 @@ export function getSharedVariables(
       getPrometheusDataSourceVariable(),
       getTeamMemberVariable(metrics),
       getModelVariable(metrics),
-      ...dimensions.map((d) => getDimensionVariable(d, metrics)),
+      ...dimensions.map(getDimensionVariable),
     ],
   });
 }
