@@ -84,6 +84,18 @@ export function getProductivityScene(
     ],
   });
 
+  const linesOfCodeByModelQuery = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [
+      {
+        refId: 'LinesOfCodeByModel',
+        expr: queries.linesOfCodeByModel,
+        legendFormat: '{{model}}',
+        instant: true,
+      },
+    ],
+  });
+
   const linesOfCodeOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
@@ -202,7 +214,7 @@ export function getProductivityScene(
           height: PANEL_HEIGHTS.LARGE,
           children: [
             new SceneFlexItem({
-              width: '35%',
+              width: '30%',
               body: PanelBuilders.piechart()
                 .setTitle('Lines Added vs Removed')
                 .setUnit('short')
@@ -216,7 +228,23 @@ export function getProductivityScene(
                 .build(),
             }),
             new SceneFlexItem({
-              width: '65%',
+              width: '35%',
+              body: PanelBuilders.piechart()
+                .setTitle('Lines of Code by Model')
+                .setDescription(
+                  'Lines added plus removed, by the model that wrote them. Lines from Claude Code versions before 2.1.172 have no model and show as unknown.'
+                )
+                .setUnit('short')
+                .setData(linesOfCodeByModelQuery)
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
+                .build(),
+            }),
+            new SceneFlexItem({
+              width: '35%',
               body: PanelBuilders.timeseries()
                 .setTitle('Lines of Code Over Time')
                 .setUnit('short')

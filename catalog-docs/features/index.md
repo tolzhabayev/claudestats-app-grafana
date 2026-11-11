@@ -32,4 +32,4 @@ Every tab has the same controls above the panels:
 
 Your choices carry over when you switch tabs and are saved in the URL, so you can share a filtered view by copying the link.
 
-A few comparison panels skip their own filter so you can compare: **Cost by Team Member**, **Cost Distribution by Member**, **Tokens by Team Member** and **Active Time by Team Member** always show every member, and **Cost by Model** and **Tokens by Model** always show every model. Other panels, including the **Over Time** charts, follow both filters. Each tab's page lists exactly which filters apply.
+A few comparison panels skip their own filter so you can compare: **Cost by Team Member**, **Cost Distribution by Member**, **Tokens by Team Member** and **Active Time by Team Member** always show every member, and **Cost by Model**, **Tokens by Model** and **Lines of Code by Model** always show every model. Other panels, including the **Over Time** charts, follow both filters. Each tab's page lists exactly which filters apply.
