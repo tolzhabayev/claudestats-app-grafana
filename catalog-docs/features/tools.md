@@ -45,4 +45,4 @@ A language with only a few decisions can swing between 0% and 100%, so compare i
 
 ## Filters on this tab
 
-**Team Member** applies to every panel. The tab has no **Model** filter, because edit decisions aren't recorded per model.
+**Team Member** applies to every panel. The tab has no **Model** filter, because edit decisions aren't recorded per model. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.

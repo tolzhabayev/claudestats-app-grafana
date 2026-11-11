@@ -380,6 +380,23 @@ export function getTokensScene(
             }),
           ],
         }),
+        // Row 8: Token attribution by repository
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '100%',
+              body: attributionBarGauge(
+                'TokensByRepository',
+                queries.tokensByRepository,
+                'vcs_repository_name',
+                'Tokens by Repository',
+                'short'
+              ),
+            }),
+          ],
+        }),
       ],
     }),
   });

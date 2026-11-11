@@ -1,4 +1,5 @@
 import { getMetrics, LABELS, MetricNames } from '../constants';
+import { FilterDimension, getFilterDimensions } from './dimensions';
 
 /** Member value for usage that carries none of the identity labels. */
 export const UNATTRIBUTED = 'Unattributed';
@@ -14,7 +15,7 @@ const MEMBER_LABELS = [LABELS.USER_EMAIL, LABELS.ENDUSER_ID, LABELS.USER_ID] as 
  * email is never matched on its `user_id`, and the branches are disjoint, so `or`
  * just unions them. With "All" (`.*`) the first branch alone matches everything.
  */
-function scoped(fn: string, metric: string, range: string, matchers = ''): string {
+function scopedToMembers(fn: string, metric: string, range: string, matchers = ''): string {
   const extra = matchers ? `, ${matchers}` : '';
   const branches = MEMBER_LABELS.map((label, i) => {
     const higher = MEMBER_LABELS.slice(0, i).map((l) => `${l}=""`);
@@ -51,11 +52,23 @@ export function memberValuesQuery(m: MetricNames): string {
 }
 
 /**
- * PromQL query builders for Claude Code metrics
- * All queries support filtering by team member ($member) and model ($model)
+ * PromQL query builders for Claude Code metrics.
+ *
+ * Every query is filtered by the filter dimensions (Repository and any labels
+ * configured on the configuration page), and all but the "by member"
+ * comparisons by team member ($member). Cost and token queries also filter by
+ * model ($model).
  */
+function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterDimensions()) {
+  // `vcs_repository_name=~"$repository", project=~"$label_project", ...`
+  const dims = dimensions.map((d) => `${d.label}=~"$${d.variable}"`).join(', ');
+  const join = (...matchers: string[]) => matchers.filter(Boolean).join(', ');
+  /** `fn(metric{matchers}[range])` for the selected members and filter dimensions */
+  const scoped = (fn: string, metric: string, range: string, matchers = '') =>
+    scopedToMembers(fn, metric, range, join(matchers, dims));
+  /** Selector for the "by member" comparisons, which skip the member filter but keep the dimensions */
+  const sel = (metric: string, matchers = '') => `${metric}{${join(matchers, dims)}}`;
 
-function buildQueries(m: MetricNames) {
   return {
     // ==================== COST QUERIES ====================
 
@@ -66,7 +79,7 @@ function buildQueries(m: MetricNames) {
     costByModel: `sum by (${LABELS.MODEL}) (${scoped('increase', m.COST_USAGE, '$__range')})`,
 
     /** Cost breakdown by team member */
-    costByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${m.COST_USAGE}{${LABELS.MODEL}=~"$model"}[$__range])`)})`,
+    costByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.COST_USAGE, `${LABELS.MODEL}=~"$model"`)}[$__range])`)})`,
 
     /** Cost over time (rate) */
     costOverTime: `sum(${scoped('increase', m.COST_USAGE, '$__rate_interval', `${LABELS.MODEL}=~"$model"`)}) by (${LABELS.MODEL})`,
@@ -91,6 +104,9 @@ function buildQueries(m: MetricNames) {
 
     /** Cost by MCP server; only series that carry the label */
     costByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"`)}))`,
+
+    /** Cost by repository (needs OTEL_METRICS_INCLUDE_REPOSITORY=true) */
+    costByRepository: `sort_desc(sum by (${LABELS.REPOSITORY}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.REPOSITORY}=~".+"`)}))`,
 
     /** Cost by MCP tool, per server (only requests that consumed an MCP tool result) */
     costByMcpTool: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}, ${LABELS.MCP_TOOL_NAME}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_TOOL_NAME}=~".+"`)}))`,
@@ -128,7 +144,7 @@ function buildQueries(m: MetricNames) {
     tokensOverTime: `sum(${scoped('rate', m.TOKEN_USAGE, '$__rate_interval', `${LABELS.MODEL}=~"$model"`)}) by (${LABELS.TOKEN_TYPE})`,
 
     /** Tokens by member */
-    tokensByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${m.TOKEN_USAGE}{${LABELS.MODEL}=~"$model"}[$__range])`)})`,
+    tokensByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.TOKEN_USAGE, `${LABELS.MODEL}=~"$model"`)}[$__range])`)})`,
 
     // ---- Token attribution (what is driving usage) ----
     // sort_desc so the bar gauges render biggest consumer first.
@@ -144,6 +160,9 @@ function buildQueries(m: MetricNames) {
 
     /** Tokens by MCP server; only series that carry the label */
     tokensByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"`)}))`,
+
+    /** Tokens by repository (needs OTEL_METRICS_INCLUDE_REPOSITORY=true) */
+    tokensByRepository: `sort_desc(sum by (${LABELS.REPOSITORY}) (${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.REPOSITORY}=~".+"`)}))`,
 
     /** Tokens by MCP tool, per server (only requests that consumed an MCP tool result) */
     tokensByMcpTool: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}, ${LABELS.MCP_TOOL_NAME}) (${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_TOOL_NAME}=~".+"`)}))`,
@@ -174,7 +193,7 @@ function buildQueries(m: MetricNames) {
     sessionsByStartType: `sort_desc(count by (${LABELS.START_TYPE}) (count by (${LABELS.SESSION_ID}, ${LABELS.START_TYPE}) (${scoped('max_over_time', m.SESSION_COUNT, '$__range')})))`,
 
     /** Sessions by member (excludes agents_view dashboard launches) */
-    sessionsByMember: `count by (${LABELS.MEMBER}) (count by (${LABELS.SESSION_ID}, ${LABELS.MEMBER}) (${withMember(`max_over_time(${m.SESSION_COUNT}{${LABELS.START_TYPE}!="agents_view"}[$__range])`)}))`,
+    sessionsByMember: `count by (${LABELS.MEMBER}) (count by (${LABELS.SESSION_ID}, ${LABELS.MEMBER}) (${withMember(`max_over_time(${sel(m.SESSION_COUNT, `${LABELS.START_TYPE}!="agents_view"`)}[$__range])`)}))`,
 
     /**
      * Active users: distinct members (email, else enduser.id, else user.id) with spend in the range.
@@ -199,7 +218,7 @@ function buildQueries(m: MetricNames) {
     linesOfCodeByModel: `sort_desc(sum by (${LABELS.MODEL}) (label_replace(${scoped('increase', m.LINES_OF_CODE, '$__range')}, "${LABELS.MODEL}", "unknown", "${LABELS.MODEL}", "^$")))`,
 
     /** Lines of code by member */
-    linesOfCodeByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${m.LINES_OF_CODE}[$__range])`)})`,
+    linesOfCodeByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.LINES_OF_CODE)}[$__range])`)})`,
 
     /** Lines of code over time */
     linesOfCodeOverTime: `sum(${scoped('increase', m.LINES_OF_CODE, '$__rate_interval')}) by (${LABELS.LOC_TYPE})`,
@@ -208,7 +227,7 @@ function buildQueries(m: MetricNames) {
     totalCommits: `sum(${scoped('increase', m.COMMITS, '$__range')})`,
 
     /** Commits by member */
-    commitsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${m.COMMITS}[$__range])`)})`,
+    commitsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.COMMITS)}[$__range])`)})`,
 
     /** Commits over time */
     commitsOverTime: `sum(${scoped('increase', m.COMMITS, '$__rate_interval')})`,
@@ -217,7 +236,7 @@ function buildQueries(m: MetricNames) {
     totalPullRequests: `sum(${scoped('increase', m.PULL_REQUESTS, '$__range')})`,
 
     /** Pull requests by member */
-    pullRequestsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${m.PULL_REQUESTS}[$__range])`)})`,
+    pullRequestsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.PULL_REQUESTS)}[$__range])`)})`,
 
     /** Pull requests over time */
     pullRequestsOverTime: `sum(${scoped('increase', m.PULL_REQUESTS, '$__rate_interval')})`,
@@ -228,7 +247,7 @@ function buildQueries(m: MetricNames) {
     totalActiveTime: `sum(${scoped('increase', m.ACTIVE_TIME, '$__range')})`,
 
     /** Active time by member */
-    activeTimeByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${m.ACTIVE_TIME}[$__range])`)})`,
+    activeTimeByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.ACTIVE_TIME)}[$__range])`)})`,
 
     /** Active time split by type: user (interaction) vs cli (processing) */
     activeTimeByType: `sum by (${LABELS.ACTIVE_TIME_TYPE}) (${scoped('increase', m.ACTIVE_TIME, '$__range')})`,

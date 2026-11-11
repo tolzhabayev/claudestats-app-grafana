@@ -29,8 +29,8 @@ A high share of `cacheRead` is normal. Claude Code reuses the prompt cache acros
 
 ## Find what drives token usage
 
-The bar gauges attribute tokens the same way the [Costs](./costs.md#find-what-drives-spend) tab attributes cost: **Tokens by Query Source**, **Tokens by Subagent**, **Tokens by Skill**, **Tokens by MCP Server**, **Tokens by Plugin**, **Tokens by MCP Tool**, **Tokens by Speed (Fast Mode)** and **Tokens by Effort**.
+The bar gauges attribute tokens the same way the [Costs](./costs.md#find-what-drives-spend) tab attributes cost: **Tokens by Query Source**, **Tokens by Subagent**, **Tokens by Skill**, **Tokens by MCP Server**, **Tokens by Plugin**, **Tokens by MCP Tool**, **Tokens by Repository**, **Tokens by Speed (Fast Mode)** and **Tokens by Effort**.
 
 ## Filters on this tab
 
-**Team Member** and **Model** apply to every panel, except that **Tokens by Model** ignores **Model** and **Tokens by Team Member** ignores **Team Member**, so you can compare.
+**Team Member** and **Model** apply to every panel, except that **Tokens by Model** ignores **Model** and **Tokens by Team Member** ignores **Team Member**, so you can compare. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.

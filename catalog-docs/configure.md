@@ -34,7 +34,7 @@ Then click the **Configuration** tab.
 
 ## Configure settings
 
-The configuration page has one setting, the metric format, plus a status section and two help tabs. The **Metric Format** section and the tabs appear only while the app is enabled.
+The configuration page has two settings, the metric format and the filter labels, plus a status section and two help tabs. The **Metric Format** and **Filters** sections and the tabs appear only while the app is enabled.
 
 ### Plugin status
 
@@ -58,6 +58,16 @@ The **Metric Format** section sets how the app names metrics in its queries. Pic
 | **Ingestion path** | **Prometheus / OTEL Collector** (default): metrics pass through an OpenTelemetry Collector into Prometheus, which adds `_total` and unit suffixes, such as `claude_code_cost_usage_USD_total`. **Direct OTLP**: metrics go straight to the Grafana Cloud or Mimir OTLP endpoint and keep their original names, such as `claude_code_cost_usage`. | Yes      |
 
 Picking an option saves the setting and reloads the page. If the format doesn't match your ingestion path, every panel shows no data.
+
+### Filters
+
+The **Filters** section adds a filter above the panels for each label you list, so you can slice every tab by a team, cost center or any other attribute your team members send:
+
+| Setting           | Description                                                                                                                                                                                                                                                                              | Required |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **Filter labels** | Attribute names, such as `team.id`, or the Prometheus labels they become, such as `team_id`. Type a name and press Enter. Labels the app already filters by, such as `model` and `user_email`, and names with other characters than letters, digits, dots and underscores can't be used. | No       |
+
+Click **Save filters** to save the list and reload the page. Each filter's picker is named after the label as you entered it, applies to every panel and defaults to **All**. A repository filter is built in and doesn't need to be listed. For how team members set attributes, refer to [Filter by your own attributes](./index.md#filter-by-your-own-attributes).
 
 ### Setup Guide
 
@@ -87,6 +97,8 @@ apps:
     disabled: false
     jsonData:
       metricFormat: otlp
+      customLabels:
+        - team.id
 ```
 
 | Key                     | What it sets                                                                                                                                              |
@@ -94,5 +106,6 @@ apps:
 | `org_id`                | The organization to enable the app in.                                                                                                                    |
 | `disabled`              | Set to `false` to enable the app.                                                                                                                         |
 | `jsonData.metricFormat` | The **Ingestion path**: `prometheus` for **Prometheus / OTEL Collector** or `otlp` for **Direct OTLP**. When you leave it out, the app uses `prometheus`. |
+| `jsonData.customLabels` | The **Filter labels**, as a list.                                                                                                                         |
 
 The app has no secure settings, so it doesn't use `secureJsonData`.

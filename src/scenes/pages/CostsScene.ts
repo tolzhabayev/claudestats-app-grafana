@@ -338,6 +338,23 @@ export function getCostsScene(
             }),
           ],
         }),
+        // Row 8: Cost attribution by repository
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '100%',
+              body: attributionBarGauge(
+                'CostByRepository',
+                queries.costByRepository,
+                'vcs_repository_name',
+                'Cost by Repository',
+                'currencyUSD'
+              ),
+            }),
+          ],
+        }),
       ],
     }),
   });

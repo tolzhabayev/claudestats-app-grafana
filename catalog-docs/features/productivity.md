@@ -41,4 +41,4 @@ Claude Code records active time in two parts: **User** is time spent interacting
 
 ## Filters on this tab
 
-**Team Member** applies to every panel except **Active Time by Team Member**, which always shows every member. The tab has no **Model** filter, because commits, pull requests and active time aren't recorded per model. **Lines of Code by Model** always shows every model.
+**Team Member** applies to every panel except **Active Time by Team Member**, which always shows every member. The tab has no **Model** filter, because commits, pull requests and active time aren't recorded per model. **Lines of Code by Model** always shows every model. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.

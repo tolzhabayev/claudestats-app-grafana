@@ -40,4 +40,4 @@ The bottom row shows how usage splits across environments, weighted by cost: **O
 
 ## Filters on this tab
 
-**Team Member** applies to every panel except **Cost by Team Member**. **Model** applies to the cost and token panels only: **Total Cost**, **Total Tokens**, **Cost Over Time**, **Cost by Team Member** and **Token Usage Over Time**.
+**Team Member** applies to every panel except **Cost by Team Member**. **Model** applies to the cost and token panels only: **Total Cost**, **Total Tokens**, **Cost Over Time**, **Cost by Team Member** and **Token Usage Over Time**. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.

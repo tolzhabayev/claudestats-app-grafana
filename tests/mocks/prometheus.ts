@@ -48,6 +48,8 @@ export const AGENTS = ['general-purpose', 'custom'] as const;
 export const SKILLS = ['code-review', 'third-party'] as const;
 export const MCP_SERVERS = ['github', 'filesystem'] as const;
 export const PLUGINS = ['code-review', 'third-party'] as const;
+// `vcs_repository_name` values (OTEL_METRICS_INCLUDE_REPOSITORY=true).
+export const REPOSITORIES = ['claudestats-app-grafana', 'payments-api', 'docs-site'] as const;
 // MCP tool bars are labelled `<server> / <tool>`.
 export const MCP_TOOLS = [
   { server: 'github', tool: 'create_pull_request' },
@@ -92,6 +94,7 @@ const COST = {
   // Same MCP spend split per tool (github 52.4, filesystem 19.85).
   byMcpTool: [31.6, 20.8, 19.85],
   byPlugin: { 'code-review': 58.7, 'third-party': 21.4 },
+  byRepository: { 'claudestats-app-grafana': 241.3, 'payments-api': 156.45, 'docs-site': 89.5 },
   bySpeed: { normal: 431.0, fast: 56.25 },
   byEffort: { high: 289.5, medium: 151.25, default: 46.5 },
   byOsType: { darwin: 381.25, linux: 106.0 },
@@ -111,6 +114,7 @@ const TOKENS = {
   byMcpServer: { github: 19.7 * M, filesystem: 7.45 * M },
   byMcpTool: [11.9 * M, 7.8 * M, 7.45 * M],
   byPlugin: { 'code-review': 22.1 * M, 'third-party': 8.3 * M },
+  byRepository: { 'claudestats-app-grafana': 92.4 * M, 'payments-api': 60.1 * M, 'docs-site': 33.92 * M },
   bySpeed: { normal: 165.02 * M, fast: 21.4 * M },
   byEffort: { high: 110.8 * M, medium: 57.82 * M, default: 17.8 * M },
 };
@@ -334,6 +338,7 @@ const DATASET: Record<string, FrameBuilder> = {
   CostByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', COST.byMcpServer),
   CostByMcpTool: (id) => mcpToolFrames(id, COST.byMcpTool),
   CostByPlugin: (id) => instantSeriesFrames(id, 'plugin_name', COST.byPlugin),
+  CostByRepository: (id) => instantSeriesFrames(id, 'vcs_repository_name', COST.byRepository),
   CostBySpeed: (id) => instantSeriesFrames(id, 'speed', COST.bySpeed),
   CostByEffort: (id) => instantSeriesFrames(id, 'effort', COST.byEffort),
 
@@ -351,6 +356,7 @@ const DATASET: Record<string, FrameBuilder> = {
   TokensByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', TOKENS.byMcpServer),
   TokensByMcpTool: (id) => mcpToolFrames(id, TOKENS.byMcpTool),
   TokensByPlugin: (id) => instantSeriesFrames(id, 'plugin_name', TOKENS.byPlugin),
+  TokensByRepository: (id) => instantSeriesFrames(id, 'vcs_repository_name', TOKENS.byRepository),
   TokensBySpeed: (id) => instantSeriesFrames(id, 'speed', TOKENS.bySpeed),
   TokensByEffort: (id) => instantSeriesFrames(id, 'effort', TOKENS.byEffort),
 
@@ -410,6 +416,9 @@ function buildQueryResponse(body: DsQueryBody) {
 function labelValuesResponse(url: string): string[] {
   if (url.includes('/label/model/values')) {
     return [...MODELS];
+  }
+  if (url.includes('/label/vcs_repository_name/values')) {
+    return [...REPOSITORIES];
   }
   return [];
 }

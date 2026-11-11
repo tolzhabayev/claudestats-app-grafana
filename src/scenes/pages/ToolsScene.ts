@@ -101,7 +101,7 @@ export function getToolsScene(
     $timeRange: timeRange,
     $variables: variables,
     controls: [
-      ...getControlsWithoutModel(),
+      ...getControlsWithoutModel(variables),
       new SceneControlsSpacer(),
       new SceneTimePicker({ isOnCanvas: true }),
       new SceneRefreshPicker({ intervals: ['30s', '1m', '5m', '15m', '30m'] }),

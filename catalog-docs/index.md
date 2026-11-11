@@ -97,6 +97,14 @@ The attribution panels need an extra Claude Code setting to show real names:
 | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server**, **Cost by Plugin**, **Cost by MCP Tool** and their token equivalents | `OTEL_LOG_TOOL_DETAILS=1` shows the real names of user-defined subagents, third-party skills and plugins, and user-configured MCP servers and their tools. Without it, those appear as `custom` or `third-party`. |
 
+#### Filter by repository
+
+Set `OTEL_METRICS_INCLUDE_REPOSITORY=true` (Claude Code v2.1.269 and later) to tag metrics with the Git repository Claude Code works in, taken from its `origin` remote. The app then shows a **Repository** filter and the **Cost by Repository** and **Tokens by Repository** panels.
+
+#### Filter by your own attributes
+
+Attributes in `OTEL_RESOURCE_ATTRIBUTES`, such as `team.id=platform` or `cost_center=eng-42`, reach Prometheus as labels on every metric, with dots turned into underscores. To filter by one, add it under [Filters](./configure.md#filters) on the configuration page.
+
 #### Name team members who don't sign in with a Claude account
 
 The app names each team member by the email address of their Claude account. Sessions that use an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry don't send an email, so the app falls back to the anonymous ID Claude Code generates for each machine, a long random string. To show a readable name instead, set `enduser.id` in each team member's shell profile:

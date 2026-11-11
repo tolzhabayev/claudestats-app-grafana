@@ -4,6 +4,7 @@ import { AppPluginMeta } from '@grafana/data';
 import { PLUGIN_BASE_URL, ROUTES, TIME_RANGES, getMetrics } from '../../constants';
 import { getSharedVariables } from '../../scenes/variables';
 import { buildQueries } from '../../scenes/queries';
+import { getFilterDimensions } from '../../scenes/dimensions';
 import { getOverviewScene } from '../../scenes/pages/OverviewScene';
 import { getCostsScene } from '../../scenes/pages/CostsScene';
 import { getTokensScene } from '../../scenes/pages/TokensScene';
@@ -19,8 +20,9 @@ function prefixRoute(route: string): string {
 function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
   const settings = (meta?.jsonData ?? {}) as ClaudeStatsSettings;
   const metrics = getMetrics(settings.metricFormat);
-  const queries = buildQueries(metrics);
-  const variables = getSharedVariables(metrics);
+  const dimensions = getFilterDimensions(settings.customLabels);
+  const queries = buildQueries(metrics, dimensions);
+  const variables = getSharedVariables(metrics, dimensions);
 
   const timeRange = new SceneTimeRange({ from: TIME_RANGES.LAST_7D, to: 'now' });
 

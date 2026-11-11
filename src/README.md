@@ -12,7 +12,7 @@ Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into 
 - **Tools:** How often team members accept the file edits Claude Code proposes.
 - **Productivity:** Lines of code, commits, pull requests and active time.
 
-Filter every tab by team member and time range, and the cost and token views by model.
+Filter every tab by team member, repository, your own labels such as team or cost center, and time range, and the cost and token views by model.
 
 ## Requirements
 
