@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { DISPLAY, DECISIONS, TOOLS } from './mocks/prometheus';
+import { DISPLAY, DECISIONS, DECISION_SOURCES, LANGUAGES, TOOLS } from './mocks/prometheus';
 
 test.describe('Tools scene', () => {
   test('renders the acceptance rate stat', async ({ mockData, gotoPage, selectors }) => {
@@ -23,6 +23,23 @@ test.describe('Tools scene', () => {
 
     for (const tool of TOOLS) {
       await expect(panel.getByText(tool, { exact: true }).first()).toBeVisible();
+    }
+  });
+
+  test('renders acceptance rate by language', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('tools');
+    const panel = panelByTitle(app, selectors, 'Acceptance Rate by Language');
+
+    for (const language of LANGUAGES) {
+      await expect(panel.getByText(language, { exact: true }).first()).toBeVisible();
+    }
+  });
+
+  test('renders decisions by source with readable names', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('tools');
+
+    for (const name of Object.values(DECISION_SOURCES)) {
+      await expect(legendItem(app, selectors, 'Decisions by Source', name)).toBeVisible();
     }
   });
 });

@@ -180,6 +180,16 @@ function buildQueries(m: MetricNames) {
     /** Tool acceptance rate */
     toolAcceptanceRate: `sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.DECISION}="accept"}[$__range])) / clamp_min(sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range])), 1) * 100`,
 
+    /**
+     * Acceptance rate per file language, highest first. Languages with no
+     * accepts are kept at 0% via the `or ... * 0` fallback (otherwise the
+     * numerator has no series for them and they'd drop out).
+     */
+    toolAcceptanceRateByLanguage: `sort_desc((sum by (${LABELS.LANGUAGE}) (increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member", ${LABELS.DECISION}="accept"}[$__range])) or sum by (${LABELS.LANGUAGE}) (increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range])) * 0) / clamp_min(sum by (${LABELS.LANGUAGE}) (increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range])), 1) * 100)`,
+
+    /** Tool decisions by who made them: config rule, hook, or the user (allow once/always, reject, abort) */
+    toolDecisionsBySource: `sort_desc(sum by (${LABELS.DECISION_SOURCE}) (increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__range])))`,
+
     /** Tool decisions over time */
     toolDecisionsOverTime: `sum(increase(${m.TOOL_DECISION}{${LABELS.USER_EMAIL}=~"$member"}[$__rate_interval])) by (${LABELS.DECISION})`,
 
@@ -209,6 +219,32 @@ export const ACTIVE_TIME_TYPE_NAMES = {
   user: 'User (interaction)',
   cli: 'CLI (processing)',
 } as const;
+
+/**
+ * Display names for the `source` label values of the code-edit decision metric.
+ * `config` and `hook` are automatic; the `user_*` values are explicit choices.
+ */
+export const DECISION_SOURCE_NAMES = {
+  config: 'Config rule (auto)',
+  hook: 'Hook (auto)',
+  user_permanent: 'User: always allow',
+  user_temporary: 'User: allow once',
+  user_reject: 'User: reject',
+  user_abort: 'User: cancel',
+} as const;
+
+/**
+ * Fixed colors for the decision sources: greens for automatic, blues for user
+ * allows, red/orange for user rejections, so the pie reads at a glance.
+ */
+export const DECISION_SOURCE_COLORS: Record<keyof typeof DECISION_SOURCE_NAMES, string> = {
+  config: 'green',
+  hook: 'super-light-green',
+  user_permanent: 'blue',
+  user_temporary: 'super-light-blue',
+  user_reject: 'red',
+  user_abort: 'orange',
+};
 
 /** Build queries for a specific metric format */
 export { buildQueries };

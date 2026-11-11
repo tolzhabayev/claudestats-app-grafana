@@ -18,7 +18,7 @@ import {
   BarGaugeValueMode,
   VizOrientation,
 } from '@grafana/schema';
-import { QUERIES, Queries } from '../queries';
+import { DECISION_SOURCE_COLORS, DECISION_SOURCE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
 import { PANEL_HEIGHTS } from '../../constants';
 
@@ -69,6 +69,30 @@ export function getToolsScene(
         refId: 'ToolDecisionsOverTime',
         expr: queries.toolDecisionsOverTime,
         legendFormat: '{{decision}}',
+      },
+    ],
+  });
+
+  const toolAcceptanceRateByLanguageQuery = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [
+      {
+        refId: 'ToolAcceptanceRateByLanguage',
+        expr: queries.toolAcceptanceRateByLanguage,
+        legendFormat: '{{language}}',
+        instant: true,
+      },
+    ],
+  });
+
+  const toolDecisionsBySourceQuery = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [
+      {
+        refId: 'ToolDecisionsBySource',
+        expr: queries.toolDecisionsBySource,
+        legendFormat: '{{source}}',
+        instant: true,
       },
     ],
   });
@@ -148,6 +172,67 @@ export function getToolsScene(
                 .setOption('minVizWidth', 150)
                 .setOption('minVizHeight', 25)
                 .setDisplayName('${__series.name}')
+                .build(),
+            }),
+          ],
+        }),
+        // Row 3: Acceptance by language and who decides
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '55%',
+              body: PanelBuilders.bargauge()
+                .setTitle('Acceptance Rate by Language')
+                .setDescription(
+                  'Share of edit decisions that were accepts, per file language. A language with only a few decisions can swing between 0% and 100%.'
+                )
+                .setUnit('percent')
+                .setMin(0)
+                .setMax(100)
+                .setData(toolAcceptanceRateByLanguageQuery)
+                .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+                .setOption('orientation', VizOrientation.Horizontal)
+                .setOption('valueMode', BarGaugeValueMode.Text)
+                .setOption('showUnfilled', true)
+                .setOption('minVizWidth', 150)
+                .setOption('minVizHeight', 25)
+                .setDisplayName('${__series.name}')
+                .setThresholds({
+                  mode: 'absolute',
+                  steps: [
+                    { color: 'red', value: 0 },
+                    { color: 'yellow', value: 50 },
+                    { color: 'green', value: 80 },
+                  ],
+                } as never)
+                .build(),
+            }),
+            new SceneFlexItem({
+              width: '45%',
+              body: PanelBuilders.piechart()
+                .setTitle('Decisions by Source')
+                .setDescription(
+                  'Who made each edit decision: a config rule or hook (automatic), or the user at the permission prompt.'
+                )
+                .setUnit('short')
+                .setData(toolDecisionsBySourceQuery)
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
+                .setOverrides((b) => {
+                  for (const [source, name] of Object.entries(DECISION_SOURCE_NAMES)) {
+                    b.matchFieldsWithName(source)
+                      .overrideDisplayName(name)
+                      .overrideColor({
+                        mode: 'fixed',
+                        fixedColor: DECISION_SOURCE_COLORS[source as keyof typeof DECISION_SOURCE_NAMES],
+                      });
+                  }
+                })
                 .build(),
             }),
           ],
