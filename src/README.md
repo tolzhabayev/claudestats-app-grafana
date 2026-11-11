@@ -4,7 +4,7 @@ Team usage analytics for Claude Code powered by OpenTelemetry.
 
 ## Requirements
 
-- Grafana 12.3.0 or later
+- Grafana 13.2.0 or later
 - A Prometheus-compatible data source (Grafana Cloud includes this by default)
 - Claude Code with telemetry enabled
 

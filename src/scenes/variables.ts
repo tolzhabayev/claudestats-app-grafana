@@ -1,8 +1,4 @@
-import {
-  QueryVariable,
-  DataSourceVariable,
-  SceneVariableSet,
-} from '@grafana/scenes';
+import { QueryVariable, DataSourceVariable, SceneVariableSet } from '@grafana/scenes';
 import { METRICS, LABELS, MetricNames } from '../constants';
 
 /**
@@ -64,10 +60,6 @@ export function getModelVariable(metrics: MetricNames = METRICS) {
  */
 export function getSharedVariables(metrics: MetricNames = METRICS) {
   return new SceneVariableSet({
-    variables: [
-      getPrometheusDataSourceVariable(),
-      getTeamMemberVariable(metrics),
-      getModelVariable(metrics),
-    ],
+    variables: [getPrometheusDataSourceVariable(), getTeamMemberVariable(metrics), getModelVariable(metrics)],
   });
 }

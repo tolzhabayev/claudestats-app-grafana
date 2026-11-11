@@ -193,7 +193,11 @@ export function getProductivityScene(
                 .setTitle('Lines Added vs Removed')
                 .setUnit('short')
                 .setData(linesOfCodeByTypeQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .setOption('pieType', 'donut' as never)
                 .build(),
             }),
