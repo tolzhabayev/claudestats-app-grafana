@@ -35,7 +35,15 @@ function attributionBarGauge(
   labelKey: string,
   title: string,
   unit: string,
-  legendFormat = `{{${labelKey}}}`
+  {
+    legendFormat = `{{${labelKey}}}`,
+    noValue,
+  }: {
+    /** Series name, when it's built from more than `labelKey`. */
+    legendFormat?: string;
+    /** Shown instead of "No data", to say what the panel needs. */
+    noValue?: string;
+  } = {}
 ) {
   const data = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
@@ -53,8 +61,12 @@ function attributionBarGauge(
     .setOption('minVizWidth', 150)
     .setOption('minVizHeight', 25)
     .setDisplayName('${__series.name}')
+    .setNoValue(noValue)
     .build();
 }
+
+// Repository attributes are off by default, so an empty panel usually means they aren't sent.
+const REPOSITORY_HINT = 'No data. Needs OTEL_METRICS_INCLUDE_REPOSITORY=true';
 
 export function getCostsScene(
   timeRange: SceneTimeRange,
@@ -306,7 +318,7 @@ export function getCostsScene(
                 'mcp_tool_name',
                 'Cost by MCP Tool',
                 'currencyUSD',
-                '{{mcp_server_name}} / {{mcp_tool_name}}'
+                { legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}' }
               ),
             }),
           ],
@@ -350,7 +362,8 @@ export function getCostsScene(
                 queries.costByRepository,
                 'vcs_repository_name',
                 'Cost by Repository',
-                'currencyUSD'
+                'currencyUSD',
+                { noValue: REPOSITORY_HINT }
               ),
             }),
           ],

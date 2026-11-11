@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 import { legendItem } from './mocks/panels';
-import { REPOSITORIES } from './mocks/prometheus';
+import { mockEmptyPanels, REPOSITORIES } from './mocks/prometheus';
+import { panelByTitle } from './mocks/panels';
 
 const picker = (page: Page, label: string) =>
   page.getByTestId('data-testid template variable').filter({ hasText: label });
@@ -87,6 +88,17 @@ test.describe('Filter dimensions', () => {
     expect(exprs.length).toBeGreaterThan(0);
     for (const expr of exprs) {
       expect(expr).toContain('vcs_repository_name=~');
+    }
+  });
+
+  test('empty repository panels say which setting they need', async ({ mockData, gotoPage, page, selectors }) => {
+    await mockEmptyPanels(page, ['CostByRepository', 'TokensByRepository']);
+    for (const [path, title] of [
+      ['costs', 'Cost by Repository'],
+      ['tokens', 'Tokens by Repository'],
+    ]) {
+      const app = await gotoPage(path);
+      await expect(panelByTitle(app, selectors, title)).toContainText('OTEL_METRICS_INCLUDE_REPOSITORY=true');
     }
   });
 
