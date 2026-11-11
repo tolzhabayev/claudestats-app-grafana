@@ -18,9 +18,11 @@ import {
   ClipboardButton,
   Icon,
   Badge,
+  TagsInput,
 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { ClaudeStatsSettings, MetricFormat } from '../types';
+import { isUsableCustomLabel, toLabelName } from '../scenes/dimensions';
 
 export interface AppConfigProps extends PluginConfigPageProps<AppPluginMeta<ClaudeStatsSettings>> {}
 
@@ -37,6 +39,10 @@ export function AppConfig({ plugin }: AppConfigProps) {
   const [metricFormat, setMetricFormat] = useState<MetricFormat>(
     (jsonData as ClaudeStatsSettings)?.metricFormat ?? 'prometheus'
   );
+  const savedCustomLabels = (jsonData as ClaudeStatsSettings)?.customLabels ?? [];
+  const [customLabels, setCustomLabels] = useState<string[]>(savedCustomLabels);
+  const invalidLabels = customLabels.filter((l) => !isUsableCustomLabel(l));
+  const customLabelsChanged = customLabels.join('\n') !== savedCustomLabels.join('\n');
   const [setupConfig, setSetupConfig] = useState<SetupConfig>({
     otlpEndpoint: '',
     otlpToken: '',
@@ -57,6 +63,14 @@ export function AppConfig({ plugin }: AppConfigProps) {
       enabled: true,
       pinned: true,
       jsonData: { ...((plugin.meta.jsonData as ClaudeStatsSettings) ?? {}), metricFormat: format },
+    });
+  };
+
+  const onSaveCustomLabels = () => {
+    updatePluginAndReload(plugin.meta.id, {
+      enabled: true,
+      pinned: true,
+      jsonData: { ...((plugin.meta.jsonData as ClaudeStatsSettings) ?? {}), customLabels },
     });
   };
 
@@ -159,6 +173,41 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
               onChange={onSaveMetricFormat}
             />
           </Field>
+        </FieldSet>
+      )}
+
+      {isEnabled && (
+        <FieldSet label="Filters">
+          <Field
+            label="Filter labels"
+            description="Extra labels to filter every panel by, such as attributes set with OTEL_RESOURCE_ATTRIBUTES. Enter the attribute name (team.id) or the Prometheus label (team_id); each gets its own picker. The Repository filter is built in."
+            invalid={invalidLabels.length > 0}
+            error={
+              invalidLabels.length > 0
+                ? `Not usable as a filter: ${invalidLabels.join(', ')}. Use letters, digits, dots and underscores, and not a label the app already filters by.`
+                : undefined
+            }
+          >
+            <TagsInput
+              tags={customLabels}
+              onChange={setCustomLabels}
+              placeholder="team.id, then Enter"
+              aria-label="Filter labels"
+            />
+          </Field>
+          {customLabels.some((l) => toLabelName(l) !== l && isUsableCustomLabel(l)) && (
+            <Alert title="Label names" severity="info">
+              Filters on{' '}
+              {customLabels
+                .filter((l) => toLabelName(l) !== l && isUsableCustomLabel(l))
+                .map((l) => `${l} → ${toLabelName(l)}`)
+                .join(', ')}
+              , the names these attributes get in Prometheus.
+            </Alert>
+          )}
+          <Button onClick={onSaveCustomLabels} disabled={!customLabelsChanged || invalidLabels.length > 0}>
+            Save filters
+          </Button>
         </FieldSet>
       )}
 

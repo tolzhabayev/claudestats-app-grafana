@@ -10,4 +10,9 @@ export type MetricFormat = 'prometheus' | 'otlp';
  */
 export interface ClaudeStatsSettings {
   metricFormat?: MetricFormat;
+  /**
+   * Extra labels to filter every panel by, as OTel attribute names (`team.id`)
+   * or Prometheus label names (`team_id`). Each gets its own picker.
+   */
+  customLabels?: string[];
 }

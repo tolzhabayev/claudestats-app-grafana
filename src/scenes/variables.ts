@@ -1,7 +1,12 @@
-import { VariableRefresh } from '@grafana/schema';
+import { VariableHide, VariableRefresh } from '@grafana/schema';
 import { QueryVariable, DataSourceVariable, SceneVariableSet, VariableValueControl } from '@grafana/scenes';
 import { getMetrics, LABELS, MetricNames } from '../constants';
 import { memberValuesQuery } from './queries';
+import { FilterDimension, getFilterDimensions } from './dimensions';
+import { OptionalVariableControl } from './OptionalVariableControl';
+
+/** Matches the name of every Claude Code metric, Prometheus or OTLP format. */
+const CLAUDE_CODE_METRICS = 'claude_code_.+';
 
 /**
  * Creates a data source variable for Prometheus/Mimir
@@ -66,22 +71,74 @@ export function getModelVariable(metrics: MetricNames = getMetrics()) {
 }
 
 /**
+ * Creates the picker for a filter dimension (Repository or a configured label).
+ * A dimension with `hideWhenEmpty` stays hidden until its label has values, so
+ * teams that don't send repository attributes don't see an empty picker.
+ */
+export function getDimensionVariable(dimension: FilterDimension) {
+  const variable = new QueryVariable({
+    name: dimension.variable,
+    label: dimension.title,
+    datasource: {
+      type: 'prometheus',
+      uid: '${prometheus_ds}',
+    },
+    query: {
+      // Every Claude Code metric in either naming format, not just cost: the filter applies to
+      // sessions, tools and productivity too. Other apps' metrics with the same label stay out.
+      query: `label_values({__name__=~"${CLAUDE_CODE_METRICS}"}, ${dimension.label})`,
+      refId: `${dimension.variable}Query`,
+    },
+    sort: 1,
+    refresh: VariableRefresh.onTimeRangeChanged,
+    includeAll: true,
+    defaultToAll: true,
+    allValue: '.*',
+    hide: dimension.hideWhenEmpty ? VariableHide.hideVariable : VariableHide.dontHide,
+  });
+
+  if (dimension.hideWhenEmpty) {
+    variable.subscribeToState((state) => {
+      const hide = state.options.length > 0 ? VariableHide.dontHide : VariableHide.hideVariable;
+      if (state.hide !== hide) {
+        variable.setState({ hide });
+      }
+    });
+  }
+
+  return variable;
+}
+
+/**
  * Creates the shared variable set used across all scenes
  */
-export function getSharedVariables(metrics: MetricNames = getMetrics()) {
+export function getSharedVariables(
+  metrics: MetricNames = getMetrics(),
+  dimensions: FilterDimension[] = getFilterDimensions()
+) {
   return new SceneVariableSet({
-    variables: [getPrometheusDataSourceVariable(), getTeamMemberVariable(metrics), getModelVariable(metrics)],
+    variables: [
+      getPrometheusDataSourceVariable(),
+      getTeamMemberVariable(metrics),
+      getModelVariable(metrics),
+      ...dimensions.map(getDimensionVariable),
+    ],
   });
 }
 
 /**
  * Variable controls without the Model picker, for pages whose metrics carry no
  * `model` label (commits, pull requests, active time, tool decisions). Showing
- * the picker there suggested a filter that silently did nothing.
+ * the picker there suggested a filter that silently did nothing. The filter
+ * dimension pickers follow, hidden while their variable is hidden.
  */
-export function getControlsWithoutModel() {
+export function getControlsWithoutModel(variables: SceneVariableSet) {
+  const dimensionNames = variables.state.variables
+    .map((v) => v.state.name)
+    .filter((name) => !['prometheus_ds', 'member', 'model'].includes(name));
   return [
     new VariableValueControl({ variableName: 'prometheus_ds' }),
     new VariableValueControl({ variableName: 'member' }),
+    ...dimensionNames.map((variableName) => new OptionalVariableControl({ variableName })),
   ];
 }
