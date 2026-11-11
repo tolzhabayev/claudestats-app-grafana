@@ -92,6 +92,12 @@ function buildQueries(m: MetricNames) {
     /** Cost by MCP server; only series that carry the label */
     costByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"`)}))`,
 
+    /** Cost by MCP tool, per server (only requests that consumed an MCP tool result) */
+    costByMcpTool: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}, ${LABELS.MCP_TOOL_NAME}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_TOOL_NAME}=~".+"`)}))`,
+
+    /** Cost by plugin that owns the active skill or subagent (third-party plugins collapse to "third-party") */
+    costByPlugin: `sort_desc(sum by (${LABELS.PLUGIN_NAME}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.PLUGIN_NAME}=~".+"`)}))`,
+
     /** Cost by speed; absent label (normal requests) folds into the "normal" bucket */
     costBySpeed: `sort_desc(sum by (${LABELS.SPEED}) (label_replace(${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model"`)}, "${LABELS.SPEED}", "normal", "${LABELS.SPEED}", "^$")))`,
 
@@ -138,6 +144,12 @@ function buildQueries(m: MetricNames) {
 
     /** Tokens by MCP server; only series that carry the label */
     tokensByMcpServer: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}) (${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_SERVER_NAME}=~".+"`)}))`,
+
+    /** Tokens by MCP tool, per server (only requests that consumed an MCP tool result) */
+    tokensByMcpTool: `sort_desc(sum by (${LABELS.MCP_SERVER_NAME}, ${LABELS.MCP_TOOL_NAME}) (${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.MCP_TOOL_NAME}=~".+"`)}))`,
+
+    /** Tokens by plugin that owns the active skill or subagent (third-party plugins collapse to "third-party") */
+    tokensByPlugin: `sort_desc(sum by (${LABELS.PLUGIN_NAME}) (${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.PLUGIN_NAME}=~".+"`)}))`,
 
     /** Tokens by speed; absent label (normal requests) folds into the "normal" bucket */
     tokensBySpeed: `sort_desc(sum by (${LABELS.SPEED}) (label_replace(${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model"`)}, "${LABELS.SPEED}", "normal", "${LABELS.SPEED}", "^$")))`,

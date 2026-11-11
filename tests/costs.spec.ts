@@ -8,6 +8,9 @@ import {
   AGENTS,
   SKILLS,
   MCP_SERVERS,
+  MCP_TOOLS,
+  PLUGINS,
+  mcpToolLabel,
   SPEEDS,
   EFFORTS,
 } from './mocks/prometheus';
@@ -72,6 +75,17 @@ test.describe('Costs scene', () => {
     }
     for (const server of MCP_SERVERS) {
       await expect(legendItem(app, selectors, 'Cost by MCP Server', server)).toBeVisible();
+    }
+  });
+
+  test('renders the plugin and MCP tool attribution bar gauges', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('costs');
+
+    for (const plugin of PLUGINS) {
+      await expect(legendItem(app, selectors, 'Cost by Plugin', plugin)).toBeVisible();
+    }
+    for (const tool of MCP_TOOLS) {
+      await expect(legendItem(app, selectors, 'Cost by MCP Tool', mcpToolLabel(tool))).toBeVisible();
     }
   });
 

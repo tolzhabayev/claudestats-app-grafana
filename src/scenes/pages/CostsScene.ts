@@ -29,10 +29,17 @@ import { PANEL_HEIGHTS } from '../../constants';
  * first); `legendFormat` names each series after `labelKey`, and
  * `${__series.name}` surfaces that name as the bar label.
  */
-function attributionBarGauge(refId: string, expr: string, labelKey: string, title: string, unit: string) {
+function attributionBarGauge(
+  refId: string,
+  expr: string,
+  labelKey: string,
+  title: string,
+  unit: string,
+  legendFormat = `{{${labelKey}}}`
+) {
   const data = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
-    queries: [{ refId, expr, legendFormat: `{{${labelKey}}}`, instant: true }],
+    queries: [{ refId, expr, legendFormat, instant: true }],
   });
 
   return PanelBuilders.bargauge()
@@ -276,7 +283,35 @@ export function getCostsScene(
             }),
           ],
         }),
-        // Row 6: Cost attribution by speed (fast mode) and effort
+        // Row 6: Cost attribution by plugin and MCP tool
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge(
+                'CostByPlugin',
+                queries.costByPlugin,
+                'plugin_name',
+                'Cost by Plugin',
+                'currencyUSD'
+              ),
+            }),
+            new SceneFlexItem({
+              width: '50%',
+              body: attributionBarGauge(
+                'CostByMcpTool',
+                queries.costByMcpTool,
+                'mcp_tool_name',
+                'Cost by MCP Tool',
+                'currencyUSD',
+                '{{mcp_server_name}} / {{mcp_tool_name}}'
+              ),
+            }),
+          ],
+        }),
+        // Row 7: Cost attribution by speed (fast mode) and effort
         new SceneFlexLayout({
           direction: 'row',
           height: PANEL_HEIGHTS.LARGE,

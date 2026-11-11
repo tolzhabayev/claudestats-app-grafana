@@ -44,10 +44,10 @@ These issues occur when the app loads but panels show **No data**.
 
 **Possible causes and solutions:**
 
-| Cause                                                                                                        | Solution                                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Nothing in the period used that feature, such as no subagents, skills, MCP tools, commits or edit decisions. | No action needed. The panel fills in when the feature is used.                                                                               |
-| Claude Code redacts user-defined subagent, third-party skill and user-configured MCP server names.           | Set `OTEL_LOG_TOOL_DETAILS=1` for team members. For details, refer to [Optional telemetry settings](./index.md#optional-telemetry-settings). |
+| Cause                                                                                                                   | Solution                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nothing in the period used that feature, such as no subagents, skills, MCP tools, commits or edit decisions.            | No action needed. The panel fills in when the feature is used.                                                                               |
+| Claude Code redacts user-defined subagent, third-party skill and plugin, and user-configured MCP server and tool names. | Set `OTEL_LOG_TOOL_DETAILS=1` for team members. For details, refer to [Optional telemetry settings](./index.md#optional-telemetry-settings). |
 
 ### A team member shows as a random ID
 

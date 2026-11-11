@@ -10,13 +10,13 @@ sidebar_position: 3
 
 Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has five tabs. Each one answers a different question about how your team uses Claude Code:
 
-| Tab                               | Read it to                                                                    |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| [Overview](./overview.md)         | Check spend, tokens, sessions and active users at a glance.                   |
-| [Costs](./costs.md)               | See where cost goes: models, team members, subagents, skills and MCP servers. |
-| [Tokens](./tokens.md)             | See token volume by type, model and team member, and what drives it.          |
-| [Tools](./tools.md)               | Check how often team members accept Claude's file edits.                      |
-| [Productivity](./productivity.md) | Track lines of code, commits, pull requests and active time.                  |
+| Tab                               | Read it to                                                                             |
+| --------------------------------- | -------------------------------------------------------------------------------------- |
+| [Overview](./overview.md)         | Check spend, tokens, sessions and active users at a glance.                            |
+| [Costs](./costs.md)               | See where cost goes: models, team members, subagents, skills, plugins and MCP servers. |
+| [Tokens](./tokens.md)             | See token volume by type, model and team member, and what drives it.                   |
+| [Tools](./tools.md)               | Check how often team members accept Claude's file edits.                               |
+| [Productivity](./productivity.md) | Track lines of code, commits, pull requests and active time.                           |
 
 ## Filter the data
 

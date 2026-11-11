@@ -72,6 +72,8 @@ export const LABELS = {
   AGENT_NAME: 'agent_name', // subagent; user-defined collapse to "custom"
   SKILL_NAME: 'skill_name', // third-party skills collapse to "third-party"
   MCP_SERVER_NAME: 'mcp_server_name',
+  MCP_TOOL_NAME: 'mcp_tool_name', // user-configured servers' tools collapse to "custom"
+  PLUGIN_NAME: 'plugin_name', // plugin owning the active skill/subagent; third-party → "third-party"
   SPEED: 'speed', // "fast" when fast mode is active; absent on normal requests
   EFFORT: 'effort', // low, medium, high, xhigh, max; absent on models without effort
   // Environment labels
