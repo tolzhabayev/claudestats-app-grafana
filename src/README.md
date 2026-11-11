@@ -7,7 +7,7 @@ Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into 
 ## Features
 
 - **Overview:** Total cost, tokens, sessions and active users, with trends and an environment breakdown.
-- **Costs:** Spend by model and team member, and what drives it: subagents, skills, MCP servers, fast mode and effort level.
+- **Costs:** Spend by model and team member, and what drives it: subagents, skills, plugins, MCP servers and tools, fast mode and effort level.
 - **Tokens:** Token volume by type, including prompt cache reads and writes, by model and team member.
 - **Tools:** How often team members accept the file edits Claude Code proposes.
 - **Productivity:** Lines of code, commits, pull requests and active time.

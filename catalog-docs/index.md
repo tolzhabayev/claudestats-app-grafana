@@ -93,9 +93,9 @@ When the query returns series, open the app. If it returns nothing, refer to [Tr
 
 The attribution panels need an extra Claude Code setting to show real names:
 
-| Panel                                                                                       | Claude Code setting                                                                                                                                                                  |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server** and their token equivalents | `OTEL_LOG_TOOL_DETAILS=1` shows the real names of user-defined subagents, third-party skills and user-configured MCP servers. Without it, those appear as `custom` or `third-party`. |
+| Panel                                                                                                                                 | Claude Code setting                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server**, **Cost by Plugin**, **Cost by MCP Tool** and their token equivalents | `OTEL_LOG_TOOL_DETAILS=1` shows the real names of user-defined subagents, third-party skills and plugins, and user-configured MCP servers and their tools. Without it, those appear as `custom` or `third-party`. |
 
 #### Name team members who don't sign in with a Claude account
 

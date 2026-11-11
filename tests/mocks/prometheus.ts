@@ -47,6 +47,14 @@ export const QUERY_SOURCES = ['main', 'subagent', 'auxiliary'] as const;
 export const AGENTS = ['general-purpose', 'custom'] as const;
 export const SKILLS = ['code-review', 'third-party'] as const;
 export const MCP_SERVERS = ['github', 'filesystem'] as const;
+export const PLUGINS = ['code-review', 'third-party'] as const;
+// MCP tool bars are labelled `<server> / <tool>`.
+export const MCP_TOOLS = [
+  { server: 'github', tool: 'create_pull_request' },
+  { server: 'github', tool: 'search_code' },
+  { server: 'filesystem', tool: 'read_file' },
+] as const;
+export const mcpToolLabel = (t: { server: string; tool: string }) => `${t.server} / ${t.tool}`;
 // `normal` and `default` are the buckets the queries fold absent labels into.
 export const SPEEDS = ['normal', 'fast'] as const;
 export const EFFORTS = ['high', 'medium', 'default'] as const;
@@ -81,6 +89,9 @@ const COST = {
   byAgent: { 'general-purpose': 61.2, custom: 36.25 },
   bySkill: { 'code-review': 74.3, 'third-party': 28.1 },
   byMcpServer: { github: 52.4, filesystem: 19.85 },
+  // Same MCP spend split per tool (github 52.4, filesystem 19.85).
+  byMcpTool: [31.6, 20.8, 19.85],
+  byPlugin: { 'code-review': 58.7, 'third-party': 21.4 },
   bySpeed: { normal: 431.0, fast: 56.25 },
   byEffort: { high: 289.5, medium: 151.25, default: 46.5 },
   byOsType: { darwin: 381.25, linux: 106.0 },
@@ -98,6 +109,8 @@ const TOKENS = {
   byAgent: { 'general-purpose': 23.4 * M, custom: 13.88 * M },
   bySkill: { 'code-review': 28.6 * M, 'third-party': 10.9 * M },
   byMcpServer: { github: 19.7 * M, filesystem: 7.45 * M },
+  byMcpTool: [11.9 * M, 7.8 * M, 7.45 * M],
+  byPlugin: { 'code-review': 22.1 * M, 'third-party': 8.3 * M },
   bySpeed: { normal: 165.02 * M, fast: 21.4 * M },
   byEffort: { high: 110.8 * M, medium: 57.82 * M, default: 17.8 * M },
 };
@@ -166,6 +179,8 @@ interface FieldSpec {
   name: string;
   type: FieldType;
   labels?: Record<string, string>;
+  // Series name the Prometheus backend sets from a multi-label `legendFormat`.
+  displayNameFromDS?: string;
   values: Array<number | string>;
 }
 
@@ -185,6 +200,7 @@ function makeFrame(refId: string, fields: FieldSpec[], meta?: Record<string, unk
         type: f.type,
         typeInfo: TYPE_INFO[f.type],
         ...(f.labels ? { labels: f.labels } : {}),
+        ...(f.displayNameFromDS ? { config: { displayNameFromDS: f.displayNameFromDS } } : {}),
       })),
     },
     data: { values: fields.map((f) => f.values) },
@@ -257,6 +273,22 @@ function rangeSeriesFrames(
   );
 }
 
+// One instant value per MCP tool, labelled with its server and tool name.
+function mcpToolFrames(refId: string, values: readonly number[]) {
+  return MCP_TOOLS.map((t, i) =>
+    makeFrame(refId, [
+      { name: 'Time', type: 'time', values: [0] },
+      {
+        name: 'Value',
+        type: 'number',
+        labels: { mcp_server_name: t.server, mcp_tool_name: t.tool },
+        displayNameFromDS: mcpToolLabel(t),
+        values: [values[i]],
+      },
+    ])
+  );
+}
+
 // Prometheus "table" format: the frontend transform expands the Value field's
 // `labels` into columns, so each row must be its own single-value frame with
 // the labels attached (NOT separate string columns).
@@ -300,6 +332,8 @@ const DATASET: Record<string, FrameBuilder> = {
   CostByAgent: (id) => instantSeriesFrames(id, 'agent_name', COST.byAgent),
   CostBySkill: (id) => instantSeriesFrames(id, 'skill_name', COST.bySkill),
   CostByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', COST.byMcpServer),
+  CostByMcpTool: (id) => mcpToolFrames(id, COST.byMcpTool),
+  CostByPlugin: (id) => instantSeriesFrames(id, 'plugin_name', COST.byPlugin),
   CostBySpeed: (id) => instantSeriesFrames(id, 'speed', COST.bySpeed),
   CostByEffort: (id) => instantSeriesFrames(id, 'effort', COST.byEffort),
 
@@ -315,6 +349,8 @@ const DATASET: Record<string, FrameBuilder> = {
   TokensByAgent: (id) => instantSeriesFrames(id, 'agent_name', TOKENS.byAgent),
   TokensBySkill: (id) => instantSeriesFrames(id, 'skill_name', TOKENS.bySkill),
   TokensByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', TOKENS.byMcpServer),
+  TokensByMcpTool: (id) => mcpToolFrames(id, TOKENS.byMcpTool),
+  TokensByPlugin: (id) => instantSeriesFrames(id, 'plugin_name', TOKENS.byPlugin),
   TokensBySpeed: (id) => instantSeriesFrames(id, 'speed', TOKENS.bySpeed),
   TokensByEffort: (id) => instantSeriesFrames(id, 'effort', TOKENS.byEffort),
 

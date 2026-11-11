@@ -33,10 +33,12 @@ The bar gauges attribute cost to what issued each request, largest first:
 | **Cost by Subagent**          | Which subagent type issued the request.                        |
 | **Cost by Skill**             | Which skill was active.                                        |
 | **Cost by MCP Server**        | Which MCP server's tool result the request used.               |
+| **Cost by Plugin**            | Which plugin owns the active skill or subagent.                |
+| **Cost by MCP Tool**          | Which MCP tool's result the request used, as `server / tool`.  |
 | **Cost by Speed (Fast Mode)** | `fast` for fast mode, `normal` otherwise.                      |
 | **Cost by Effort**            | The effort level, or `default` when the model doesn't use one. |
 
-**Cost by Subagent**, **Cost by Skill** and **Cost by MCP Server** show no data when no request in the period used one. User-defined subagents, third-party skills and user-configured MCP servers show as `custom` or `third-party` unless team members set `OTEL_LOG_TOOL_DETAILS=1`. For details, refer to [Optional telemetry settings](../index.md#optional-telemetry-settings).
+**Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server**, **Cost by Plugin** and **Cost by MCP Tool** show no data when no request in the period used one. User-defined subagents, third-party skills and plugins, and user-configured MCP servers and their tools show as `custom` or `third-party` unless team members set `OTEL_LOG_TOOL_DETAILS=1`. For details, refer to [Optional telemetry settings](../index.md#optional-telemetry-settings).
 
 ## Filters on this tab
 
