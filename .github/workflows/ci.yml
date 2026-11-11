@@ -215,6 +215,29 @@ jobs:
       - name: Stop grafana docker
         run: docker compose down
 
+  # Single, stable status check for branch protection. The matrix job names
+  # above change as the resolved Grafana versions move, so the ruleset on main
+  # requires this job instead. It fails unless every e2e matrix job succeeded.
+  e2e-gate:
+    name: E2E tests
+    needs: [build, resolve-versions, playwright-tests]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    timeout-minutes: 2
+    steps:
+      - name: Check e2e results
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          RESOLVE_RESULT: ${{ needs.resolve-versions.result }}
+          E2E_RESULT: ${{ needs.playwright-tests.result }}
+        run: |
+          echo "build=$BUILD_RESULT resolve-versions=$RESOLVE_RESULT playwright-tests=$E2E_RESULT"
+          if [ "$E2E_RESULT" != "success" ]; then
+            echo "::error::E2E tests did not pass (result: $E2E_RESULT)"
+            exit 1
+          fi
+
       # Uncomment this step to upload the server log to Github artifacts. Remember Github artifacts are public on the Internet if the repository is public.
       # - name: Upload server log
       #   uses: actions/upload-artifact@v4
