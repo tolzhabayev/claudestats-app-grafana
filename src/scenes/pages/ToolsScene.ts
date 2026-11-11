@@ -110,7 +110,11 @@ export function getToolsScene(
               body: PanelBuilders.piechart()
                 .setTitle('Tool Decisions')
                 .setData(toolDecisionsQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .build(),
             }),
           ],

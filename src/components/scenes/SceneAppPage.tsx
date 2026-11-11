@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  SceneApp,
-  SceneAppPage,
-  SceneTimeRange,
-  useSceneApp,
-} from '@grafana/scenes';
+import { SceneApp, SceneAppPage, SceneTimeRange, useSceneApp } from '@grafana/scenes';
 import { AppPluginMeta } from '@grafana/data';
 import { PLUGIN_BASE_URL, ROUTES, getMetrics } from '../../constants';
 import { getSharedVariables } from '../../scenes/variables';

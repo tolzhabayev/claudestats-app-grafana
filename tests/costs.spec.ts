@@ -44,7 +44,11 @@ test.describe('Costs scene', () => {
     }
   });
 
-  test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({ mockData, gotoPage, selectors }) => {
+  test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({
+    mockData,
+    gotoPage,
+    selectors,
+  }) => {
     const app = await gotoPage('costs');
 
     for (const source of QUERY_SOURCES) {

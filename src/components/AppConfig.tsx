@@ -14,8 +14,7 @@ import {
   TabContent,
   CodeEditor,
   Card,
-  VerticalGroup,
-  HorizontalGroup,
+  Stack,
   ClipboardButton,
   Icon,
   Badge,
@@ -125,7 +124,8 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
         ) : (
           <>
             <Alert title="Plugin is enabled" severity="success">
-              Claude Code Stats is active. Visit the <a href="/a/timurdigital-claudestats-app">Overview page</a> to see your team&apos;s usage.
+              Claude Code Stats is active. Visit the <a href="/a/timurdigital-claudestats-app">Overview page</a> to see
+              your team&apos;s usage.
             </Alert>
             <div className={styles.buttonRow}>
               <Button variant="destructive" onClick={onDisable}>
@@ -178,7 +178,7 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
 
           <TabContent className={styles.tabContent}>
             {activeTab === 'setup' && (
-              <VerticalGroup spacing="lg">
+              <Stack direction="column" gap={3}>
                 <Alert title="Quick Start" severity="info">
                   Configure Claude Code to send telemetry to Grafana Cloud in 4 steps.
                 </Alert>
@@ -187,9 +187,18 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                   <Card.Heading>Step 1: Get Grafana Cloud OTLP Credentials</Card.Heading>
                   <Card.Description>
                     <ol className={styles.numberedList}>
-                      <li>Go to your <a href="https://grafana.com/profile/org" target="_blank" rel="noreferrer">Grafana Cloud Portal</a></li>
-                      <li>Select your stack and click <strong>Configure</strong> in the OpenTelemetry tile</li>
-                      <li>Click <strong>Generate API Token</strong></li>
+                      <li>
+                        Go to your{' '}
+                        <a href="https://grafana.com/profile/org" target="_blank" rel="noreferrer">
+                          Grafana Cloud Portal
+                        </a>
+                      </li>
+                      <li>
+                        Select your stack and click <strong>Configure</strong> in the OpenTelemetry tile
+                      </li>
+                      <li>
+                        Click <strong>Generate API Token</strong>
+                      </li>
                       <li>Copy the OTLP endpoint and token</li>
                     </ol>
                   </Card.Description>
@@ -198,7 +207,7 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                 <Card>
                   <Card.Heading>Step 2: Enter Your Credentials</Card.Heading>
                   <Card.Description>
-                    <VerticalGroup spacing="md">
+                    <Stack direction="column" gap={2}>
                       <Field label="OTLP Endpoint" description="Your Grafana Cloud OTLP endpoint">
                         <Input
                           placeholder="https://otlp-gateway-prod-us-east-0.grafana.net/otlp"
@@ -214,18 +223,18 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                           onChange={(e) => setSetupConfig({ ...setupConfig, otlpToken: e.currentTarget.value })}
                         />
                       </Field>
-                    </VerticalGroup>
+                    </Stack>
                   </Card.Description>
                 </Card>
 
                 <Card>
                   <Card.Heading>
-                    <HorizontalGroup justify="space-between">
+                    <Stack justifyContent="space-between" alignItems="center" gap={1}>
                       <span>Step 3: Add to Shell Profile</span>
                       <ClipboardButton getText={() => generateEnvScript()} icon="copy">
                         Copy Script
                       </ClipboardButton>
-                    </HorizontalGroup>
+                    </Stack>
                   </Card.Heading>
                   <Card.Description>
                     <CodeEditor
@@ -268,21 +277,22 @@ claude`}
                       <Badge text="Grafana Cloud" color="orange" />
                     </div>
                     <p className={styles.dataFlowDescription}>
-                      Claude Code exports metrics to <strong>Mimir</strong> (Prometheus-compatible).
-                      This app queries the metrics to display your team&apos;s usage analytics.
-                      Team members are identified by their <code>user_email</code> label.
+                      Claude Code exports metrics to <strong>Mimir</strong> (Prometheus-compatible). This app queries
+                      the metrics to display your team&apos;s usage analytics. Team members are identified by their{' '}
+                      <code>user_email</code> label.
                     </p>
                   </Card.Description>
                 </Card>
 
                 <Alert title="Next Step" severity="success">
-                  Once configured, data should appear within a few minutes. Team members will be identified by their email address automatically.
+                  Once configured, data should appear within a few minutes. Team members will be identified by their
+                  email address automatically.
                 </Alert>
-              </VerticalGroup>
+              </Stack>
             )}
 
             {activeTab === 'troubleshooting' && (
-              <VerticalGroup spacing="lg">
+              <Stack direction="column" gap={3}>
                 <Card>
                   <Card.Heading>No Data Appearing</Card.Heading>
                   <Card.Description>
@@ -299,10 +309,14 @@ claude`}
                       </li>
                       <li>
                         <strong>Use Claude Code for a few minutes:</strong>
-                        <p>Metrics are exported periodically (default: every 60 seconds). Have a conversation, edit some code, then wait 1-2 minutes.</p>
+                        <p>
+                          Metrics are exported periodically (default: every 60 seconds). Have a conversation, edit some
+                          code, then wait 1-2 minutes.
+                        </p>
                       </li>
                       <li>
-                        <strong>Query metrics directly in Grafana Explore</strong> to confirm data is arriving. Use the name matching your ingestion path:
+                        <strong>Query metrics directly in Grafana Explore</strong> to confirm data is arriving. Use the
+                        name matching your ingestion path:
                         <CodeEditor
                           value={`# Direct OTLP (Grafana Cloud / Mimir)\nclaude_code_cost_usage\n\n# Via OTEL Collector → Prometheus\nclaude_code_cost_usage_USD_total`}
                           language="promql"
@@ -331,7 +345,9 @@ claude`}
                   <Card.Description>
                     <p>This app requires a Prometheus data source. Grafana Cloud stacks include this by default.</p>
                     <ol className={styles.numberedList}>
-                      <li>Go to <strong>Connections → Data sources</strong></li>
+                      <li>
+                        Go to <strong>Connections → Data sources</strong>
+                      </li>
                       <li>Your Grafana Cloud Prometheus (Mimir) should be pre-configured</li>
                       <li>If not, add it from the Grafana Cloud connection details</li>
                     </ol>
@@ -345,7 +361,9 @@ claude`}
                       Metric names depend on your ingestion path. Set the correct format in the{' '}
                       <strong>Metric Format</strong> selector above.
                     </p>
-                    <p><strong>Direct OTLP (Grafana Cloud / Mimir):</strong></p>
+                    <p>
+                      <strong>Direct OTLP (Grafana Cloud / Mimir):</strong>
+                    </p>
                     <CodeEditor
                       value={`claude_code_session_count
 claude_code_cost_usage
@@ -360,7 +378,9 @@ claude_code_code_edit_tool_decision`}
                       readOnly
                       showMiniMap={false}
                     />
-                    <p><strong>Via OTEL Collector → Prometheus:</strong></p>
+                    <p>
+                      <strong>Via OTEL Collector → Prometheus:</strong>
+                    </p>
                     <CodeEditor
                       value={`claude_code_session_count_total
 claude_code_cost_usage_USD_total
@@ -389,7 +409,7 @@ claude_code_code_edit_tool_decision_total`}
                     </p>
                   </Card.Description>
                 </Card>
-              </VerticalGroup>
+              </Stack>
             )}
           </TabContent>
         </>

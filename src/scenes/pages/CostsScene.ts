@@ -154,7 +154,11 @@ export function getCostsScene(
                 .setTitle('Cost by Model')
                 .setUnit('currencyUSD')
                 .setData(costByModelQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .build(),
             }),
           ],
@@ -199,7 +203,11 @@ export function getCostsScene(
                 .setTitle('Cost Distribution by Member')
                 .setUnit('currencyUSD')
                 .setData(costByMemberQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .setOption('pieType', 'donut' as never)
                 .build(),
             }),
@@ -209,9 +217,7 @@ export function getCostsScene(
                 .setTitle('Cost Breakdown')
                 .setData(costTableQuery)
                 .setOption('sortBy', [{ displayName: 'Value', desc: true }])
-                .setOverrides((b) =>
-                  b.matchFieldsWithName('user_email').overrideDisplayName('Team Member')
-                )
+                .setOverrides((b) => b.matchFieldsWithName('user_email').overrideDisplayName('Team Member'))
                 .build(),
             }),
           ],
@@ -223,11 +229,23 @@ export function getCostsScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('CostByQuerySource', queries.costByQuerySource, 'query_source', 'Cost by Query Source', 'currencyUSD'),
+              body: attributionBarGauge(
+                'CostByQuerySource',
+                queries.costByQuerySource,
+                'query_source',
+                'Cost by Query Source',
+                'currencyUSD'
+              ),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('CostByAgent', queries.costByAgent, 'agent_name', 'Cost by Subagent', 'currencyUSD'),
+              body: attributionBarGauge(
+                'CostByAgent',
+                queries.costByAgent,
+                'agent_name',
+                'Cost by Subagent',
+                'currencyUSD'
+              ),
             }),
           ],
         }),
@@ -238,11 +256,23 @@ export function getCostsScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('CostBySkill', queries.costBySkill, 'skill_name', 'Cost by Skill', 'currencyUSD'),
+              body: attributionBarGauge(
+                'CostBySkill',
+                queries.costBySkill,
+                'skill_name',
+                'Cost by Skill',
+                'currencyUSD'
+              ),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('CostByMcpServer', queries.costByMcpServer, 'mcp_server_name', 'Cost by MCP Server', 'currencyUSD'),
+              body: attributionBarGauge(
+                'CostByMcpServer',
+                queries.costByMcpServer,
+                'mcp_server_name',
+                'Cost by MCP Server',
+                'currencyUSD'
+              ),
             }),
           ],
         }),
@@ -253,11 +283,23 @@ export function getCostsScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('CostBySpeed', queries.costBySpeed, 'speed', 'Cost by Speed (Fast Mode)', 'currencyUSD'),
+              body: attributionBarGauge(
+                'CostBySpeed',
+                queries.costBySpeed,
+                'speed',
+                'Cost by Speed (Fast Mode)',
+                'currencyUSD'
+              ),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('CostByEffort', queries.costByEffort, 'effort', 'Cost by Effort', 'currencyUSD'),
+              body: attributionBarGauge(
+                'CostByEffort',
+                queries.costByEffort,
+                'effort',
+                'Cost by Effort',
+                'currencyUSD'
+              ),
             }),
           ],
         }),

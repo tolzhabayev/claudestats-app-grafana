@@ -1,6 +1,16 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { MODELS, MEMBERS, TOKEN_TYPES, QUERY_SOURCES, AGENTS, SKILLS, MCP_SERVERS, SPEEDS, EFFORTS } from './mocks/prometheus';
+import {
+  MODELS,
+  MEMBERS,
+  TOKEN_TYPES,
+  QUERY_SOURCES,
+  AGENTS,
+  SKILLS,
+  MCP_SERVERS,
+  SPEEDS,
+  EFFORTS,
+} from './mocks/prometheus';
 
 test.describe('Tokens scene', () => {
   test('renders the token stat row', async ({ mockData, gotoPage, selectors }) => {
@@ -34,7 +44,11 @@ test.describe('Tokens scene', () => {
     }
   });
 
-  test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({ mockData, gotoPage, selectors }) => {
+  test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({
+    mockData,
+    gotoPage,
+    selectors,
+  }) => {
     const app = await gotoPage('tokens');
 
     for (const source of QUERY_SOURCES) {

@@ -210,7 +210,11 @@ export function getTokensScene(
                 .setTitle('Token Distribution by Type')
                 .setUnit('short')
                 .setData(tokensByTypeQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .setOption('pieType', 'donut' as never)
                 .build(),
             }),
@@ -238,7 +242,11 @@ export function getTokensScene(
                 .setTitle('Tokens by Model')
                 .setUnit('short')
                 .setData(tokensByModelQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .build(),
             }),
             new SceneFlexItem({
@@ -247,7 +255,11 @@ export function getTokensScene(
                 .setTitle('Tokens by Team Member')
                 .setUnit('short')
                 .setData(tokensByMemberQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .build(),
             }),
           ],
@@ -259,11 +271,23 @@ export function getTokensScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('TokensByQuerySource', queries.tokensByQuerySource, 'query_source', 'Tokens by Query Source', 'short'),
+              body: attributionBarGauge(
+                'TokensByQuerySource',
+                queries.tokensByQuerySource,
+                'query_source',
+                'Tokens by Query Source',
+                'short'
+              ),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('TokensByAgent', queries.tokensByAgent, 'agent_name', 'Tokens by Subagent', 'short'),
+              body: attributionBarGauge(
+                'TokensByAgent',
+                queries.tokensByAgent,
+                'agent_name',
+                'Tokens by Subagent',
+                'short'
+              ),
             }),
           ],
         }),
@@ -274,11 +298,23 @@ export function getTokensScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('TokensBySkill', queries.tokensBySkill, 'skill_name', 'Tokens by Skill', 'short'),
+              body: attributionBarGauge(
+                'TokensBySkill',
+                queries.tokensBySkill,
+                'skill_name',
+                'Tokens by Skill',
+                'short'
+              ),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('TokensByMcpServer', queries.tokensByMcpServer, 'mcp_server_name', 'Tokens by MCP Server', 'short'),
+              body: attributionBarGauge(
+                'TokensByMcpServer',
+                queries.tokensByMcpServer,
+                'mcp_server_name',
+                'Tokens by MCP Server',
+                'short'
+              ),
             }),
           ],
         }),
@@ -289,11 +325,23 @@ export function getTokensScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('TokensBySpeed', queries.tokensBySpeed, 'speed', 'Tokens by Speed (Fast Mode)', 'short'),
+              body: attributionBarGauge(
+                'TokensBySpeed',
+                queries.tokensBySpeed,
+                'speed',
+                'Tokens by Speed (Fast Mode)',
+                'short'
+              ),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: attributionBarGauge('TokensByEffort', queries.tokensByEffort, 'effort', 'Tokens by Effort', 'short'),
+              body: attributionBarGauge(
+                'TokensByEffort',
+                queries.tokensByEffort,
+                'effort',
+                'Tokens by Effort',
+                'short'
+              ),
             }),
           ],
         }),

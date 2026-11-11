@@ -242,7 +242,11 @@ export function getOverviewScene(
                 .setTitle('Cost by Team Member')
                 .setUnit('currencyUSD')
                 .setData(costByMemberQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.Table, placement: 'right', values: ['value', 'percent'] as never })
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
                 .build(),
             }),
           ],
