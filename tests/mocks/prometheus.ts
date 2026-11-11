@@ -15,15 +15,16 @@ import type { Page, Route } from '@playwright/test';
 // Exported so specs can assert on the exact strings the panels should render.
 
 export const MODELS = ['claude-sonnet-4-5', 'claude-opus-4-1'] as const;
-export const MEMBERS = ['timur@example.com', 'alex@example.com'] as const;
+export const MEMBERS = ['timur@example.com', 'alex@example.com', 'sam@example.com'] as const;
 export const TOKEN_TYPES = ['input', 'output', 'cacheRead', 'cacheCreation'] as const;
 export const LOC_TYPES = ['added', 'removed'] as const;
 export const DECISIONS = ['accept', 'reject'] as const;
-export const TOOLS = ['Edit', 'Write', 'Bash'] as const;
+// The code-edit decision metric only covers these tools.
+export const TOOLS = ['Edit', 'Write', 'NotebookEdit'] as const;
 export const OS_TYPES = ['darwin', 'linux'] as const;
 export const HOST_ARCHES = ['arm64', 'x64'] as const;
-export const TERMINAL_TYPES = ['iTerm.app', 'vscode'] as const;
-export const SERVICE_VERSIONS = ['1.0.0', '1.1.0'] as const;
+export const TERMINAL_TYPES = ['vscode', 'iTerm.app'] as const;
+export const SERVICE_VERSIONS = ['2.1.322', '2.1.310'] as const;
 // Session start types emitted on claude_code_session_count_total.
 export const START_TYPES = ['fresh', 'resume', 'continue', 'agents_view'] as const;
 // Attribution dimensions (what is driving spend).
@@ -35,21 +36,95 @@ export const MCP_SERVERS = ['github', 'filesystem'] as const;
 export const SPEEDS = ['normal', 'fast'] as const;
 export const EFFORTS = ['high', 'medium', 'default'] as const;
 
-// Scalar values rendered by stat panels. Kept under 1000 (or SI-clean) so the
-// rendered text contains these digits regardless of Grafana's unit formatting.
+// ==================== One consistent dataset ====================
+// A three-person team over one week. Every breakdown sums to its total, so
+// panels agree with each other (and screenshots taken from the mocks for the
+// docs look like a real team).
+
+type Breakdown = Record<string, number>;
+
+const sum = (b: Breakdown) => Object.values(b).reduce((a, v) => a + v, 0);
+
+// Cost in USD, per member x model (Cost Breakdown table); everything else derives from it.
+const COST_TABLE = [
+  { user_email: MEMBERS[0], model: MODELS[0], value: 120.4 },
+  { user_email: MEMBERS[0], model: MODELS[1], value: 92.0 },
+  { user_email: MEMBERS[1], model: MODELS[0], value: 98.85 },
+  { user_email: MEMBERS[1], model: MODELS[1], value: 69.5 },
+  { user_email: MEMBERS[2], model: MODELS[0], value: 82.5 },
+  { user_email: MEMBERS[2], model: MODELS[1], value: 24.0 },
+] as const;
+
+const groupCost = (key: 'user_email' | 'model'): Breakdown =>
+  COST_TABLE.reduce<Breakdown>((acc, row) => ({ ...acc, [row[key]]: (acc[row[key]] ?? 0) + row.value }), {});
+
+const COST = {
+  byMember: groupCost('user_email'),
+  byModel: groupCost('model'),
+  byQuerySource: { main: 341.05, subagent: 97.45, auxiliary: 48.75 },
+  // Subagent attribution covers the `subagent` query source.
+  byAgent: { 'general-purpose': 61.2, custom: 36.25 },
+  bySkill: { 'code-review': 74.3, 'third-party': 28.1 },
+  byMcpServer: { github: 52.4, filesystem: 19.85 },
+  bySpeed: { normal: 431.0, fast: 56.25 },
+  byEffort: { high: 289.5, medium: 151.25, default: 46.5 },
+  byOsType: { darwin: 381.25, linux: 106.0 },
+  byHostArch: { arm64: 381.25, x64: 106.0 },
+  byTerminalType: { vscode: 274.85, 'iTerm.app': 212.4 },
+  byServiceVersion: { '2.1.322': 398.75, '2.1.310': 88.5 },
+};
+
+const M = 1_000_000;
+const TOKENS = {
+  byType: { input: 1.24 * M, output: 3.86 * M, cacheRead: 168.9 * M, cacheCreation: 12.42 * M },
+  byModel: { [MODELS[0]]: 121.18 * M, [MODELS[1]]: 65.24 * M },
+  byMember: { [MEMBERS[0]]: 80.95 * M, [MEMBERS[1]]: 64.37 * M, [MEMBERS[2]]: 41.1 * M },
+  byQuerySource: { main: 130.5 * M, subagent: 37.28 * M, auxiliary: 18.64 * M },
+  byAgent: { 'general-purpose': 23.4 * M, custom: 13.88 * M },
+  bySkill: { 'code-review': 28.6 * M, 'third-party': 10.9 * M },
+  byMcpServer: { github: 19.7 * M, filesystem: 7.45 * M },
+  bySpeed: { normal: 165.02 * M, fast: 21.4 * M },
+  byEffort: { high: 110.8 * M, medium: 57.82 * M, default: 17.8 * M },
+};
+
+// `agents_view` launches are excluded from the Sessions total.
+const SESSIONS_BY_START_TYPE = { fresh: 34, resume: 15, continue: 9, agents_view: 4 };
+const DECISIONS_BY_TYPE = { accept: 438, reject: 146 };
+const DECISIONS_BY_TOOL = { Edit: 402, Write: 151, NotebookEdit: 31 };
+const LINES_BY_TYPE = { added: 4820, removed: 1960 };
+// Active time in seconds (20 hours across the team).
+const ACTIVE_TIME_BY_MEMBER = { [MEMBERS[0]]: 30600, [MEMBERS[1]]: 25200, [MEMBERS[2]]: 16200 };
+
+// Scalar values rendered by stat panels.
 export const SCALARS = {
-  TotalCost: 487.25,
-  TotalTokens: 842,
-  TotalSessions: 7,
-  ActiveUsers: 3,
-  InputTokens: 420,
-  OutputTokens: 330,
-  CacheReadTokens: 92,
-  ToolAcceptanceRate: 75,
-  TotalLinesOfCode: 640,
-  TotalCommits: 12,
-  TotalPullRequests: 4,
-  TotalActiveTime: 42,
+  TotalCost: sum(COST.byMember),
+  TotalTokens: sum(TOKENS.byType),
+  TotalSessions: sum(SESSIONS_BY_START_TYPE) - SESSIONS_BY_START_TYPE.agents_view,
+  ActiveUsers: MEMBERS.length,
+  InputTokens: TOKENS.byType.input,
+  OutputTokens: TOKENS.byType.output,
+  CacheReadTokens: TOKENS.byType.cacheRead,
+  ToolAcceptanceRate: (DECISIONS_BY_TYPE.accept / sum(DECISIONS_BY_TYPE)) * 100,
+  TotalLinesOfCode: sum(LINES_BY_TYPE),
+  TotalCommits: 23,
+  TotalPullRequests: 6,
+  TotalActiveTime: sum(ACTIVE_TIME_BY_MEMBER),
+} as const;
+
+// How the stat panels render SCALARS, for spec assertions.
+export const DISPLAY = {
+  TotalCost: '487',
+  TotalTokens: '186',
+  TotalSessions: '58',
+  ActiveUsers: '3',
+  InputTokens: '1.24',
+  OutputTokens: '3.86',
+  CacheReadTokens: '169',
+  ToolAcceptanceRate: '75',
+  TotalLinesOfCode: '6.78',
+  TotalCommits: '23',
+  TotalPullRequests: '6',
+  TotalActiveTime: '20',
 } as const;
 
 // ==================== Dataframe builders ====================
@@ -85,10 +160,13 @@ function makeFrame(refId: string, fields: FieldSpec[], meta?: Record<string, unk
   };
 }
 
-/** Evenly spaced timestamps across the requested range, used for range queries. */
-function timeAxis(from: number, to: number, points = 7): number[] {
-  const step = (to - from) / (points - 1);
-  return Array.from({ length: points }, (_, i) => Math.round(from + step * i));
+// Relative activity per point across the range: a working week with a quiet weekend.
+const ACTIVITY = [1.15, 1.3, 1.2, 1.25, 1.0, 0.35, 0.25, 0.9, 1.1, 1.2, 1.05, 1.15, 0.95, 0.4];
+
+/** Evenly spaced timestamps across the requested range, one per ACTIVITY entry. */
+function timeAxis(from: number, to: number): number[] {
+  const step = (to - from) / (ACTIVITY.length - 1);
+  return ACTIVITY.map((_, i) => Math.round(from + step * i));
 }
 
 // A single instant value (stat panels).
@@ -102,8 +180,8 @@ function scalarFrame(refId: string, value: number) {
 }
 
 // One instant value per label (pie charts / bar gauges using `instant: true`).
-function instantSeriesFrames(refId: string, labelKey: string, series: ReadonlyArray<{ label: string; value: number }>) {
-  return series.map(({ label, value }) =>
+function instantSeriesFrames(refId: string, labelKey: string, breakdown: Breakdown) {
+  return Object.entries(breakdown).map(([label, value]) =>
     makeFrame(refId, [
       { name: 'Time', type: 'time', values: [0] },
       { name: 'Value', type: 'number', labels: { [labelKey]: label }, values: [value] },
@@ -111,15 +189,22 @@ function instantSeriesFrames(refId: string, labelKey: string, series: ReadonlyAr
   );
 }
 
-// One time series per label (timeseries panels).
+/**
+ * One time series per label (timeseries panels). Each series spreads its total
+ * over the range following ACTIVITY, so the points add up to the total
+ * (`increase`), or to the total per second when `perSecond` is set (`rate`).
+ */
 function rangeSeriesFrames(
   refId: string,
   labelKey: string | null,
-  series: ReadonlyArray<{ label?: string; base: number }>,
-  range: { from: number; to: number }
+  breakdown: Breakdown,
+  range: { from: number; to: number },
+  perSecond = false
 ) {
   const times = timeAxis(range.from, range.to);
-  return series.map(({ label, base }, idx) =>
+  const weight = ACTIVITY.reduce((a, v) => a + v, 0);
+  const stepSeconds = (range.to - range.from) / 1000 / (ACTIVITY.length - 1) || 1;
+  return Object.entries(breakdown).map(([label, total], idx) =>
     makeFrame(
       refId,
       [
@@ -127,9 +212,13 @@ function rangeSeriesFrames(
         {
           name: 'Value',
           type: 'number',
-          ...(labelKey && label ? { labels: { [labelKey]: label } } : {}),
-          // A gently rising curve so the panel has a visible, non-flat series.
-          values: times.map((_, i) => base + idx * 3 + i),
+          ...(labelKey ? { labels: { [labelKey]: label } } : {}),
+          values: ACTIVITY.map((a, i) => {
+            // Offset series slightly so they don't move in lockstep.
+            const jitter = 1 + 0.12 * Math.sin(i * 1.7 + idx * 2.1);
+            const value = (total * a * jitter) / weight;
+            return Number((perSecond ? value / stepSeconds : value).toFixed(4));
+          }),
         },
       ],
       { type: 'timeseries-multi', typeVersion: [0, 1] }
@@ -162,9 +251,6 @@ function tableFrame(
 
 type FrameBuilder = (refId: string, range: { from: number; to: number }) => object[];
 
-const seriesFromList = (labels: ReadonlyArray<string>, start: number, step: number) =>
-  labels.map((label, i) => ({ label, value: start - i * step }));
-
 const DATASET: Record<string, FrameBuilder> = {
   // --- scalars (stat panels) ---
   ...Object.fromEntries(
@@ -172,89 +258,56 @@ const DATASET: Record<string, FrameBuilder> = {
   ),
 
   // --- cost ---
-  CostByModel: (id) => instantSeriesFrames(id, 'model', seriesFromList(MODELS, 300, 120)),
-  CostByMember: (id) => instantSeriesFrames(id, 'user_email', seriesFromList(MEMBERS, 300, 120)),
-  CostOverTime: (id, r) =>
-    rangeSeriesFrames(
-      id,
-      'model',
-      MODELS.map((label) => ({ label, base: 5 })),
-      r
-    ),
-  CostOverTimeByMember: (id, r) =>
-    rangeSeriesFrames(
-      id,
-      'user_email',
-      MEMBERS.map((label) => ({ label, base: 5 })),
-      r
-    ),
-  CostTable: (id, r) =>
-    tableFrame(id, r, [
-      { user_email: MEMBERS[0], model: MODELS[0], value: 300.5 },
-      { user_email: MEMBERS[1], model: MODELS[1], value: 186.75 },
-    ]),
+  CostByModel: (id) => instantSeriesFrames(id, 'model', COST.byModel),
+  CostByMember: (id) => instantSeriesFrames(id, 'user_email', COST.byMember),
+  CostOverTime: (id, r) => rangeSeriesFrames(id, 'model', COST.byModel, r),
+  CostOverTimeByMember: (id, r) => rangeSeriesFrames(id, 'user_email', COST.byMember, r),
+  CostTable: (id, r) => tableFrame(id, r, COST_TABLE),
 
   // --- cost attribution (sorted bar gauges) ---
-  CostByQuerySource: (id) => instantSeriesFrames(id, 'query_source', seriesFromList(QUERY_SOURCES, 300, 90)),
-  CostByAgent: (id) => instantSeriesFrames(id, 'agent_name', seriesFromList(AGENTS, 200, 70)),
-  CostBySkill: (id) => instantSeriesFrames(id, 'skill_name', seriesFromList(SKILLS, 150, 50)),
-  CostByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', seriesFromList(MCP_SERVERS, 120, 40)),
-  CostBySpeed: (id) => instantSeriesFrames(id, 'speed', seriesFromList(SPEEDS, 200, 60)),
-  CostByEffort: (id) => instantSeriesFrames(id, 'effort', seriesFromList(EFFORTS, 180, 50)),
+  CostByQuerySource: (id) => instantSeriesFrames(id, 'query_source', COST.byQuerySource),
+  CostByAgent: (id) => instantSeriesFrames(id, 'agent_name', COST.byAgent),
+  CostBySkill: (id) => instantSeriesFrames(id, 'skill_name', COST.bySkill),
+  CostByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', COST.byMcpServer),
+  CostBySpeed: (id) => instantSeriesFrames(id, 'speed', COST.bySpeed),
+  CostByEffort: (id) => instantSeriesFrames(id, 'effort', COST.byEffort),
 
   // --- tokens ---
-  TokensByType: (id) => instantSeriesFrames(id, 'type', seriesFromList(TOKEN_TYPES, 400, 90)),
-  TokensByModel: (id) => instantSeriesFrames(id, 'model', seriesFromList(MODELS, 500, 150)),
-  TokensByMember: (id) => instantSeriesFrames(id, 'user_email', seriesFromList(MEMBERS, 500, 150)),
-  TokensOverTime: (id, r) =>
-    rangeSeriesFrames(
-      id,
-      'type',
-      TOKEN_TYPES.map((label) => ({ label, base: 20 })),
-      r
-    ),
+  TokensByType: (id) => instantSeriesFrames(id, 'type', TOKENS.byType),
+  TokensByModel: (id) => instantSeriesFrames(id, 'model', TOKENS.byModel),
+  TokensByMember: (id) => instantSeriesFrames(id, 'user_email', TOKENS.byMember),
+  // tokensOverTime uses rate(), so its points are tokens per second.
+  TokensOverTime: (id, r) => rangeSeriesFrames(id, 'type', TOKENS.byType, r, true),
 
   // --- token attribution (sorted bar gauges) ---
-  TokensByQuerySource: (id) => instantSeriesFrames(id, 'query_source', seriesFromList(QUERY_SOURCES, 500, 150)),
-  TokensByAgent: (id) => instantSeriesFrames(id, 'agent_name', seriesFromList(AGENTS, 400, 120)),
-  TokensBySkill: (id) => instantSeriesFrames(id, 'skill_name', seriesFromList(SKILLS, 300, 90)),
-  TokensByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', seriesFromList(MCP_SERVERS, 250, 70)),
-  TokensBySpeed: (id) => instantSeriesFrames(id, 'speed', seriesFromList(SPEEDS, 400, 120)),
-  TokensByEffort: (id) => instantSeriesFrames(id, 'effort', seriesFromList(EFFORTS, 350, 100)),
+  TokensByQuerySource: (id) => instantSeriesFrames(id, 'query_source', TOKENS.byQuerySource),
+  TokensByAgent: (id) => instantSeriesFrames(id, 'agent_name', TOKENS.byAgent),
+  TokensBySkill: (id) => instantSeriesFrames(id, 'skill_name', TOKENS.bySkill),
+  TokensByMcpServer: (id) => instantSeriesFrames(id, 'mcp_server_name', TOKENS.byMcpServer),
+  TokensBySpeed: (id) => instantSeriesFrames(id, 'speed', TOKENS.bySpeed),
+  TokensByEffort: (id) => instantSeriesFrames(id, 'effort', TOKENS.byEffort),
 
   // --- sessions / activity (overview) ---
-  ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, null, [{ base: 30 }], r),
-  SessionsByStartType: (id) => instantSeriesFrames(id, 'start_type', seriesFromList(START_TYPES, 40, 10)),
+  ActiveTimeOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalActiveTime }, r),
+  SessionsByStartType: (id) => instantSeriesFrames(id, 'start_type', SESSIONS_BY_START_TYPE),
 
-  // --- environment (overview) ---
-  UsageByOsType: (id) => instantSeriesFrames(id, 'os_type', seriesFromList(OS_TYPES, 200, 80)),
-  UsageByHostArch: (id) => instantSeriesFrames(id, 'host_arch', seriesFromList(HOST_ARCHES, 200, 80)),
-  UsageByTerminalType: (id) => instantSeriesFrames(id, 'terminal_type', seriesFromList(TERMINAL_TYPES, 200, 80)),
-  UsageByServiceVersion: (id) => instantSeriesFrames(id, 'service_version', seriesFromList(SERVICE_VERSIONS, 200, 80)),
+  // --- environment (overview, weighted by cost) ---
+  UsageByOsType: (id) => instantSeriesFrames(id, 'os_type', COST.byOsType),
+  UsageByHostArch: (id) => instantSeriesFrames(id, 'host_arch', COST.byHostArch),
+  UsageByTerminalType: (id) => instantSeriesFrames(id, 'terminal_type', COST.byTerminalType),
+  UsageByServiceVersion: (id) => instantSeriesFrames(id, 'service_version', COST.byServiceVersion),
 
   // --- tools ---
-  ToolDecisions: (id) => instantSeriesFrames(id, 'decision', seriesFromList(DECISIONS, 90, 60)),
-  ToolDecisionsByTool: (id) => instantSeriesFrames(id, 'tool_name', seriesFromList(TOOLS, 50, 15)),
-  ToolDecisionsOverTime: (id, r) =>
-    rangeSeriesFrames(
-      id,
-      'decision',
-      DECISIONS.map((label) => ({ label, base: 4 })),
-      r
-    ),
+  ToolDecisions: (id) => instantSeriesFrames(id, 'decision', DECISIONS_BY_TYPE),
+  ToolDecisionsByTool: (id) => instantSeriesFrames(id, 'tool_name', DECISIONS_BY_TOOL),
+  ToolDecisionsOverTime: (id, r) => rangeSeriesFrames(id, 'decision', DECISIONS_BY_TYPE, r),
 
   // --- productivity ---
-  LinesOfCodeByType: (id) => instantSeriesFrames(id, 'type', seriesFromList(LOC_TYPES, 400, 160)),
-  LinesOfCodeOverTime: (id, r) =>
-    rangeSeriesFrames(
-      id,
-      'type',
-      LOC_TYPES.map((label) => ({ label, base: 15 })),
-      r
-    ),
-  CommitsOverTime: (id, r) => rangeSeriesFrames(id, null, [{ base: 2 }], r),
-  PullRequestsOverTime: (id, r) => rangeSeriesFrames(id, null, [{ base: 1 }], r),
-  ActiveTimeByMember: (id) => instantSeriesFrames(id, 'user_email', seriesFromList(MEMBERS, 120, 50)),
+  LinesOfCodeByType: (id) => instantSeriesFrames(id, 'type', LINES_BY_TYPE),
+  LinesOfCodeOverTime: (id, r) => rangeSeriesFrames(id, 'type', LINES_BY_TYPE, r),
+  CommitsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalCommits }, r),
+  PullRequestsOverTime: (id, r) => rangeSeriesFrames(id, null, { total: SCALARS.TotalPullRequests }, r),
+  ActiveTimeByMember: (id) => instantSeriesFrames(id, 'user_email', ACTIVE_TIME_BY_MEMBER),
 };
 
 // ==================== Route handlers ====================

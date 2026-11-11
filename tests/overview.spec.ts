@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
 import {
+  DISPLAY,
   MODELS,
   MEMBERS,
   TOKEN_TYPES,
@@ -15,10 +16,10 @@ test.describe('Overview scene', () => {
   test('renders the stat row with mocked totals', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage();
 
-    await expect(panelByTitle(app, selectors, 'Total Cost')).toContainText('487');
-    await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText('842');
-    await expect(panelByTitle(app, selectors, 'Sessions')).toContainText('7');
-    await expect(panelByTitle(app, selectors, 'Active Users')).toContainText('3');
+    await expect(panelByTitle(app, selectors, 'Total Cost')).toContainText(DISPLAY.TotalCost);
+    await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText(DISPLAY.TotalTokens);
+    await expect(panelByTitle(app, selectors, 'Sessions')).toContainText(DISPLAY.TotalSessions);
+    await expect(panelByTitle(app, selectors, 'Active Users')).toContainText(DISPLAY.ActiveUsers);
   });
 
   test('renders cost charts with model and member series', async ({ mockData, gotoPage, selectors }) => {

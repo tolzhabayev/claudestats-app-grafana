@@ -1,15 +1,15 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { MEMBERS, LOC_TYPES } from './mocks/prometheus';
+import { DISPLAY, MEMBERS, LOC_TYPES } from './mocks/prometheus';
 
 test.describe('Productivity scene', () => {
   test('renders the productivity stat row', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage('productivity');
 
-    await expect(panelByTitle(app, selectors, 'Lines of Code')).toContainText('640');
-    await expect(panelByTitle(app, selectors, 'Commits')).toContainText('12');
-    await expect(panelByTitle(app, selectors, 'Pull Requests')).toContainText('4');
-    await expect(panelByTitle(app, selectors, 'Active Time')).toContainText('42');
+    await expect(panelByTitle(app, selectors, 'Lines of Code')).toContainText(DISPLAY.TotalLinesOfCode);
+    await expect(panelByTitle(app, selectors, 'Commits')).toContainText(DISPLAY.TotalCommits);
+    await expect(panelByTitle(app, selectors, 'Pull Requests')).toContainText(DISPLAY.TotalPullRequests);
+    await expect(panelByTitle(app, selectors, 'Active Time')).toContainText(DISPLAY.TotalActiveTime);
   });
 
   test('renders lines-of-code charts split by type', async ({ mockData, gotoPage, selectors }) => {

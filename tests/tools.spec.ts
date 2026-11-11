@@ -1,11 +1,11 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { DECISIONS, TOOLS } from './mocks/prometheus';
+import { DISPLAY, DECISIONS, TOOLS } from './mocks/prometheus';
 
 test.describe('Tools scene', () => {
   test('renders the acceptance rate stat', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage('tools');
-    await expect(panelByTitle(app, selectors, 'Tool Acceptance Rate')).toContainText('75');
+    await expect(panelByTitle(app, selectors, 'Tool Acceptance Rate')).toContainText(DISPLAY.ToolAcceptanceRate);
   });
 
   test('renders tool decisions by type and over time', async ({ mockData, gotoPage, selectors }) => {
