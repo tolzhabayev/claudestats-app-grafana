@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
-import { DISPLAY, MEMBERS, LOC_TYPES } from './mocks/prometheus';
+import { ACTIVE_TIME_TYPES, DISPLAY, MEMBERS, LOC_TYPES } from './mocks/prometheus';
 
 test.describe('Productivity scene', () => {
   test('renders the productivity stat row', async ({ mockData, gotoPage, selectors }) => {
@@ -35,6 +35,14 @@ test.describe('Productivity scene', () => {
 
     for (const member of MEMBERS) {
       await expect(panel.getByText(member, { exact: true }).first()).toBeVisible();
+    }
+  });
+
+  test('splits active time into user and CLI time', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('productivity');
+
+    for (const name of Object.values(ACTIVE_TIME_TYPES)) {
+      await expect(legendItem(app, selectors, 'Active Time: User vs CLI', name)).toBeVisible();
     }
   });
 });

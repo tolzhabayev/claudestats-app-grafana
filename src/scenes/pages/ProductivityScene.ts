@@ -19,7 +19,7 @@ import {
   BarGaugeValueMode,
   VizOrientation,
 } from '@grafana/schema';
-import { QUERIES, Queries } from '../queries';
+import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
 import { PANEL_HEIGHTS } from '../../constants';
 
@@ -113,6 +113,18 @@ export function getProductivityScene(
         refId: 'PullRequestsOverTime',
         expr: queries.pullRequestsOverTime,
         legendFormat: 'Pull requests',
+      },
+    ],
+  });
+
+  const activeTimeByTypeQuery = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [
+      {
+        refId: 'ActiveTimeByType',
+        expr: queries.activeTimeByType,
+        legendFormat: '{{type}}',
+        instant: true,
       },
     ],
   });
@@ -243,12 +255,35 @@ export function getProductivityScene(
             }),
           ],
         }),
-        // Row 4: Active time by member
+        // Row 4: Active time split (user vs CLI) and by member
         new SceneFlexLayout({
           direction: 'row',
           height: PANEL_HEIGHTS.LARGE,
           children: [
             new SceneFlexItem({
+              width: '35%',
+              body: PanelBuilders.piechart()
+                .setTitle('Active Time: User vs CLI')
+                .setDescription(
+                  'User is time spent interacting (typing). CLI is time Claude Code spends running tools and generating responses.'
+                )
+                .setUnit('s')
+                .setData(activeTimeByTypeQuery)
+                .setOption('legend', {
+                  displayMode: LegendDisplayMode.Table,
+                  placement: 'right',
+                  values: ['value', 'percent'] as never,
+                })
+                .setOption('pieType', 'donut' as never)
+                .setOverrides((b) => {
+                  for (const [type, name] of Object.entries(ACTIVE_TIME_TYPE_NAMES)) {
+                    b.matchFieldsWithName(type).overrideDisplayName(name);
+                  }
+                })
+                .build(),
+            }),
+            new SceneFlexItem({
+              width: '65%',
               body: PanelBuilders.bargauge()
                 .setTitle('Active Time by Team Member')
                 .setUnit('s')

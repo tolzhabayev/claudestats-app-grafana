@@ -53,6 +53,7 @@ export const LABELS = {
   MODEL: 'model',
   TOKEN_TYPE: 'type', // input, output, cacheRead, cacheCreation
   LOC_TYPE: 'type', // added, removed
+  ACTIVE_TIME_TYPE: 'type', // user (keyboard interaction), cli (tool execution and responses)
   SESSION_ID: 'session_id',
   START_TYPE: 'start_type', // fresh, resume, continue, agents_view
   TOOL: 'tool_name',

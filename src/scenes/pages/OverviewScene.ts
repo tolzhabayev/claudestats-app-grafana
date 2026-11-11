@@ -12,7 +12,7 @@ import {
   SceneRefreshPicker,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
-import { QUERIES, Queries } from '../queries';
+import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getOverviewScene(
@@ -105,7 +105,7 @@ export function getOverviewScene(
       {
         refId: 'ActiveTimeOverTime',
         expr: queries.activeTimeOverTime,
-        legendFormat: 'Active time',
+        legendFormat: '{{type}}',
       },
     ],
   });
@@ -273,7 +273,14 @@ export function getOverviewScene(
                 .setTitle('Active Time Over Time')
                 .setUnit('s')
                 .setData(activeTimeOverTimeQuery)
+                .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
+                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
                 .setCustomFieldConfig('fillOpacity', 20)
+                .setOverrides((b) => {
+                  for (const [type, name] of Object.entries(ACTIVE_TIME_TYPE_NAMES)) {
+                    b.matchFieldsWithName(type).overrideDisplayName(name);
+                  }
+                })
                 .build(),
             }),
             new SceneFlexItem({

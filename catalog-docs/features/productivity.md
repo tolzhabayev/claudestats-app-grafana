@@ -28,10 +28,13 @@ Panels show no data when nothing happened in the period, such as no commits.
 
 ## Track active time
 
-| Panel                          | What it shows                                                                                                                                                  |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Active Time**                | Time spent actively using Claude Code, not counting idle time. It includes both typing and the time Claude Code spends running tools and generating responses. |
-| **Active Time by Team Member** | Active time per member.                                                                                                                                        |
+Claude Code records active time in two parts: **User** is time spent interacting, such as typing, and **CLI** is time Claude Code spends running tools and generating responses.
+
+| Panel                          | What it shows                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Active Time**                | Time spent actively using Claude Code, not counting idle time. It's the sum of User and CLI time. |
+| **Active Time: User vs CLI**   | The split between User (interaction) and CLI (processing) time, with each part's share.           |
+| **Active Time by Team Member** | Active time per member.                                                                           |
 
 ## Filters on this tab
 

@@ -26,13 +26,13 @@ Cost is the estimate Claude Code reports. For billing data, use your Anthropic o
 
 ## See trends over time
 
-| Panel                      | What it shows                                                                                |
-| -------------------------- | -------------------------------------------------------------------------------------------- |
-| **Cost Over Time**         | Cost per interval, one series per model.                                                     |
-| **Cost by Team Member**    | Each member's share of cost.                                                                 |
-| **Token Usage Over Time**  | Token rate per second, one series per token type.                                            |
-| **Active Time Over Time**  | Time spent actively using Claude Code, including typing and waiting for responses and tools. |
-| **Sessions by Start Type** | Sessions by how they started: `fresh`, `resume`, `continue` or `agents_view`.                |
+| Panel                      | What it shows                                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Cost Over Time**         | Cost per interval, one series per model.                                                                                  |
+| **Cost by Team Member**    | Each member's share of cost.                                                                                              |
+| **Token Usage Over Time**  | Token rate per second, one series per token type.                                                                         |
+| **Active Time Over Time**  | Active time per interval, stacked as User (interaction, such as typing) and CLI (running tools and generating responses). |
+| **Sessions by Start Type** | Sessions by how they started: `fresh`, `resume`, `continue` or `agents_view`.                                             |
 
 ## Check your team's environment
 

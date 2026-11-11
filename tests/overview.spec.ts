@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
 import {
+  ACTIVE_TIME_TYPES,
   DISPLAY,
   MODELS,
   MEMBERS,
@@ -38,6 +39,14 @@ test.describe('Overview scene', () => {
 
     for (const type of TOKEN_TYPES.slice(0, 3)) {
       await expect(legendItem(app, selectors, 'Token Usage Over Time', type)).toBeVisible();
+    }
+  });
+
+  test('renders active time over time split into user and CLI', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage();
+
+    for (const name of Object.values(ACTIVE_TIME_TYPES)) {
+      await expect(legendItem(app, selectors, 'Active Time Over Time', name)).toBeVisible();
     }
   });
 
