@@ -147,7 +147,7 @@ export function getProductivityScene(
       {
         refId: 'ActiveTimeByMember',
         expr: queries.activeTimeByMember,
-        legendFormat: '{{user_email}}',
+        legendFormat: '{{member}}',
         instant: true,
       },
     ],

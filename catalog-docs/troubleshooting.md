@@ -49,13 +49,13 @@ These issues occur when the app loads but panels show **No data**.
 | Nothing in the period used that feature, such as no subagents, skills, MCP tools, commits or edit decisions. | No action needed. The panel fills in when the feature is used.                                                                               |
 | Claude Code redacts user-defined subagent, third-party skill and user-configured MCP server names.           | Set `OTEL_LOG_TOOL_DETAILS=1` for team members. For details, refer to [Optional telemetry settings](./index.md#optional-telemetry-settings). |
 
-### A team member is missing
+### A team member shows as a random ID
 
-**Symptoms:** A team member uses Claude Code but isn't listed in **Team Member** or the per-member panels.
+**Symptoms:** A team member appears in **Team Member** and the per-member panels as a long random string instead of an email address.
 
 **Solutions:**
 
-The app identifies team members by the `user_email` label, which Claude Code sends only when the member signs in with a Claude account. Usage from an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry has no email and isn't attributed to a member. It still counts towards totals. Follow [issue #61](https://github.com/tolzhabayev/claudestats-app-grafana/issues/61) for support for these setups.
+Claude Code sends an email address only when the member signs in with a Claude account. With an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry, the app falls back to the anonymous ID Claude Code generates for each machine. Set `enduser.id` for that member to show a readable name, as described in [Name team members who don't sign in with a Claude account](./index.md#name-team-members-who-dont-sign-in-with-a-claude-account). A member who uses several machines appears once per machine until `enduser.id` is set.
 
 ## Export errors
 

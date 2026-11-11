@@ -97,6 +97,16 @@ The attribution panels need an extra Claude Code setting to show real names:
 | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server** and their token equivalents | `OTEL_LOG_TOOL_DETAILS=1` shows the real names of user-defined subagents, third-party skills and user-configured MCP servers. Without it, those appear as `custom` or `third-party`. |
 
+#### Name team members who don't sign in with a Claude account
+
+The app names each team member by the email address of their Claude account. Sessions that use an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry don't send an email, so the app falls back to the anonymous ID Claude Code generates for each machine, a long random string. To show a readable name instead, set `enduser.id` in each team member's shell profile:
+
+```bash
+export OTEL_RESOURCE_ATTRIBUTES="enduser.id=jdoe@example.com"
+```
+
+If `OTEL_RESOURCE_ATTRIBUTES` is already set, add `enduser.id=...` to it, separated by a comma. An email address from a Claude account takes precedence over `enduser.id`.
+
 For every Claude Code telemetry setting, refer to [Monitoring usage](https://code.claude.com/docs/en/monitoring-usage) in the Claude Code docs.
 
 ## Common tasks

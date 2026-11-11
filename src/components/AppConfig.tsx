@@ -282,14 +282,16 @@ claude`}
                     <p className={styles.dataFlowDescription}>
                       Claude Code exports metrics to <strong>Mimir</strong> (Prometheus-compatible). This app queries
                       the metrics to display your team&apos;s usage analytics. Team members are identified by their{' '}
-                      <code>user_email</code> label.
+                      <code>user_email</code> label, else <code>enduser_id</code>, else the anonymous{' '}
+                      <code>user_id</code>.
                     </p>
                   </Card.Description>
                 </Card>
 
                 <Alert title="Next Step" severity="success">
                   Once configured, data should appear within a few minutes. Team members will be identified by their
-                  email address automatically.
+                  email address automatically. For API key, Bedrock, Vertex or Foundry users, set{' '}
+                  <code>OTEL_RESOURCE_ATTRIBUTES=enduser.id=&lt;name&gt;</code> to show a readable name.
                 </Alert>
               </Stack>
             )}

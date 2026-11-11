@@ -1,5 +1,7 @@
+import { VariableRefresh } from '@grafana/schema';
 import { QueryVariable, DataSourceVariable, SceneVariableSet, VariableValueControl } from '@grafana/scenes';
-import { METRICS, LABELS, MetricNames } from '../constants';
+import { getMetrics, LABELS, MetricNames } from '../constants';
+import { memberValuesQuery } from './queries';
 
 /**
  * Creates a data source variable for Prometheus/Mimir
@@ -14,9 +16,11 @@ export function getPrometheusDataSourceVariable() {
 }
 
 /**
- * Creates a team member filter variable using user_email
+ * Creates the team member filter variable. Members are identified by
+ * `user_email`, else `enduser_id`, else the anonymous `user_id`, so API-key and
+ * cloud-provider users can be picked too (see `scoped` in queries.ts).
  */
-export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
+export function getTeamMemberVariable(metrics: MetricNames = getMetrics()) {
   return new QueryVariable({
     name: 'member',
     label: 'Team Member',
@@ -25,9 +29,15 @@ export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
       uid: '${prometheus_ds}',
     },
     query: {
-      query: `label_values(${metrics.COST_USAGE}, ${LABELS.USER_EMAIL})`,
+      query: memberValuesQuery(metrics),
       refId: 'MemberQuery',
     },
+    // Grafana renders each result as `{member="<value>"} <value> <ts>` without escaping the
+    // value, and `member` is the only label, so match greedily up to the closing `"}` to keep
+    // identities that contain quotes or braces intact.
+    regex: `/${LABELS.MEMBER}="(.+)"}/`,
+    sort: 1,
+    refresh: VariableRefresh.onTimeRangeChanged,
     includeAll: true,
     defaultToAll: true,
     allValue: '.*',
@@ -37,7 +47,7 @@ export function getTeamMemberVariable(metrics: MetricNames = METRICS) {
 /**
  * Creates a model filter variable (sonnet, opus, etc.)
  */
-export function getModelVariable(metrics: MetricNames = METRICS) {
+export function getModelVariable(metrics: MetricNames = getMetrics()) {
   return new QueryVariable({
     name: 'model',
     label: 'Model',
@@ -58,7 +68,7 @@ export function getModelVariable(metrics: MetricNames = METRICS) {
 /**
  * Creates the shared variable set used across all scenes
  */
-export function getSharedVariables(metrics: MetricNames = METRICS) {
+export function getSharedVariables(metrics: MetricNames = getMetrics()) {
   return new SceneVariableSet({
     variables: [getPrometheusDataSourceVariable(), getTeamMemberVariable(metrics), getModelVariable(metrics)],
   });

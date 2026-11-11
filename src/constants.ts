@@ -49,7 +49,14 @@ export const METRICS = METRICS_PROMETHEUS;
 
 // Label names from OTEL
 export const LABELS = {
+  // Member identity, in order of preference. `user_email` is only set for sessions signed in
+  // with a Claude account; API-key / Bedrock / Vertex / Foundry sessions carry `enduser_id`
+  // (when admins set OTEL_RESOURCE_ATTRIBUTES=enduser.id=...) or only the anonymous `user_id`.
   USER_EMAIL: 'user_email',
+  ENDUSER_ID: 'enduser_id',
+  USER_ID: 'user_id',
+  // Label the queries derive from the three above (see withMember in queries.ts).
+  MEMBER: 'member',
   MODEL: 'model',
   TOKEN_TYPE: 'type', // input, output, cacheRead, cacheCreation
   LOC_TYPE: 'type', // added, removed

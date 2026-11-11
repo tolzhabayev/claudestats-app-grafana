@@ -15,12 +15,12 @@ The **Overview** tab is the landing page of Claude Code Stats. It summarizes you
 
 The top row shows four totals:
 
-| Panel            | What it shows                                                                                                                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Total Cost**   | Estimated cost in US dollars.                                                                                                                                               |
-| **Total Tokens** | All tokens: input, output, cache reads and cache writes.                                                                                                                    |
-| **Sessions**     | Distinct Claude Code sessions started. Launches of the `claude agents` dashboard don't count.                                                                               |
-| **Active Users** | Team members whose Claude Code reported cost data in the period. This includes members with an open but idle session, because Claude Code keeps reporting its cost counter. |
+| Panel            | What it shows                                                                                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Total Cost**   | Estimated cost in US dollars.                                                                                                                                                                                 |
+| **Total Tokens** | All tokens: input, output, cache reads and cache writes.                                                                                                                                                      |
+| **Sessions**     | Distinct Claude Code sessions started. Launches of the `claude agents` dashboard don't count.                                                                                                                 |
+| **Active Users** | Team members whose Claude Code reported cost data in the period. This includes members with an open but idle session, because Claude Code keeps reporting its cost counter. Unattributed usage isn't counted. |
 
 Cost is the estimate Claude Code reports. For billing data, use your Anthropic or cloud provider console.
 
