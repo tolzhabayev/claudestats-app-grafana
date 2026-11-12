@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures';
-import { panelByTitle, legendItem } from './mocks/panels';
+import { barFillWidths, panelByTitle, legendItem } from './mocks/panels';
 import {
   mockEmptyPanels,
   DISPLAY,
@@ -55,6 +55,17 @@ test.describe('Costs scene', () => {
     }
     for (const model of MODELS) {
       await expect(table.getByText(model, { exact: true }).first()).toBeVisible();
+    }
+  });
+
+  test('bar gauges start at zero, so the smallest bar is still drawn', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage('costs');
+
+    for (const title of ['Cost by Query Source', 'Cost by Subagent', 'Cost by MCP Server']) {
+      const widths = await barFillWidths(panelByTitle(app, selectors, title));
+      expect(widths.length, title).toBeGreaterThan(1);
+      // Scaled from the smallest value, the last bar was drawn with no fill at all.
+      expect(Math.min(...widths), title).toBeGreaterThan(2);
     }
   });
 

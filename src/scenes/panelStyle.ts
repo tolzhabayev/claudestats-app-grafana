@@ -1,5 +1,13 @@
-import { PanelBuilders } from '@grafana/scenes';
-import { BarAlignment, GraphDrawStyle, StackingMode, VisibilityMode } from '@grafana/schema';
+import { PanelBuilders, SceneQueryRunner } from '@grafana/scenes';
+import {
+  BarAlignment,
+  BarGaugeDisplayMode,
+  BarGaugeValueMode,
+  GraphDrawStyle,
+  StackingMode,
+  VisibilityMode,
+  VizOrientation,
+} from '@grafana/schema';
 
 /**
  * Query options for the "Over Time" panels. Each point is the amount for one
@@ -40,3 +48,61 @@ export function overTimeBars() {
  * gradient made the biggest bucket look like a problem.
  */
 export const BAR_GAUGE_COLOR = { mode: 'continuous-BlPu' } as const;
+
+/**
+ * A horizontal bar gauge, one bar per series, labelled with the series name.
+ * Bars start at zero: without a min, Grafana scales from the smallest value,
+ * so the smallest bar (or a single bar) is drawn empty.
+ */
+export function horizontalBars() {
+  return PanelBuilders.bargauge()
+    .setMin(0)
+    .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+    .setColor(BAR_GAUGE_COLOR)
+    .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('valueMode', BarGaugeValueMode.Text)
+    .setOption('showUnfilled', true)
+    .setOption('minVizWidth', 150)
+    .setOption('minVizHeight', 25)
+    .setDisplayName('${__series.name}');
+}
+
+/**
+ * A horizontal bar gauge with one bar per attribution bucket, mirroring the
+ * "Usage by Tool" gauge on the Tools page. The query is a plain instant
+ * multi-series vector (`sort_desc(...)` in PromQL puts the biggest bucket
+ * first); `legendFormat` names each series after `labelKey`, and
+ * `${__series.name}` surfaces that name as the bar label.
+ */
+export function attributionBarGauge(
+  refId: string,
+  expr: string,
+  labelKey: string,
+  title: string,
+  unit: string,
+  {
+    legendFormat = `{{${labelKey}}}`,
+    noValue,
+    description,
+  }: {
+    /** Series name, when it's built from more than `labelKey`. */
+    legendFormat?: string;
+    /** Shown instead of "No data", to say what the panel needs. */
+    noValue?: string;
+    /** Panel description, shown as an (i) icon next to the title. */
+    description?: string;
+  } = {}
+) {
+  const data = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [{ refId, expr, legendFormat, instant: true }],
+  });
+
+  return horizontalBars()
+    .setTitle(title)
+    .setDescription(description)
+    .setUnit(unit)
+    .setData(data)
+    .setNoValue(noValue)
+    .build();
+}
