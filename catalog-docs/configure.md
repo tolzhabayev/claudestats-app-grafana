@@ -122,11 +122,11 @@ The plugin repository includes recommended alert rules as Grafana provisioning f
 
 [`examples/alerting/claude-code-event-alerts.yaml`](https://github.com/tolzhabayev/claudestats-app-grafana/blob/main/examples/alerting/claude-code-event-alerts.yaml) reads the events in Loki, so it needs `OTEL_LOGS_EXPORTER=otlp`, as described in [Send events to Loki](./index.md#send-events-to-loki):
 
-| Alert rule                                    | Fires when                                                                                                              |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Claude Code API error rate spike**          | More than 10% of API requests failed in the last 15 minutes, with at least 5 errors, for 5 minutes in a row.            |
-| **Claude Code refusal spike**                 | The model refused more than 5 requests in the last hour. Refusals the API already retried on another model don't count. |
-| **Claude Code switched to bypassPermissions** | A team member switched to `bypassPermissions` mode, which allows every tool call without a check.                       |
+| Alert rule                                    | Fires when                                                                                                                                                                   |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Claude Code API error rate spike**          | More than 10% of API requests failed in the last 15 minutes, with at least 5 errors, for 5 minutes in a row.                                                                 |
+| **Claude Code refusal spike**                 | The model refused more than 5 requests in the last hour. Refusals the API already retried on another model don't count.                                                      |
+| **Claude Code switched to bypassPermissions** | A team member switched to `bypassPermissions` mode, which allows every tool call without a check. It looks back 10 minutes, so a switch that reaches Loki late isn't missed. |
 
 The rules are checked every 5 minutes. Team members are identified the same way as in the app: by email address, else `enduser.id`, else the anonymous Claude Code user ID.
 

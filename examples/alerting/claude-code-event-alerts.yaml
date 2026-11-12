@@ -97,11 +97,12 @@ groups:
         title: Claude Code switched to bypassPermissions
         condition: C
         data:
-          # Switches to bypassPermissions in the last 5 minutes, per member (email,
-          # else enduser.id, else user.id, like in the app).
+          # Switches to bypassPermissions in the last 10 minutes, per member (email,
+          # else enduser.id, else user.id, like in the app). The window is twice the
+          # evaluation interval, so an event that reaches Loki late isn't missed.
           - refId: A
             relativeTimeRange:
-              from: 300
+              from: 600
               to: 0
             datasourceUid: loki
             model:
@@ -111,7 +112,7 @@ groups:
                 sum by (member) (count_over_time({service_name="claude-code"} | event_name="permission_mode_changed"
                 | to_mode="bypassPermissions"
                 | label_format member=`{{ if .user_email }}{{ .user_email }}{{ else if .enduser_id }}{{ .enduser_id }}{{ else if .user_id }}{{ .user_id }}{{ else }}Unattributed{{ end }}`
-                [5m]))
+                [10m]))
           - refId: C
             datasourceUid: __expr__
             model:
@@ -132,4 +133,5 @@ groups:
           summary: 'Claude Code bypassPermissions: {{ $labels.member }}'
           description: >-
             {{ $labels.member }} switched Claude Code to bypassPermissions, which allows every tool call
-            without a check. See the Security tab.
+            without a check. Investigate on the Claude Code Stats Security tab, or query
+            permission_mode_changed events for this member in Loki.
