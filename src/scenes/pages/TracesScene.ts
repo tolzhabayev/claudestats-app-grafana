@@ -88,7 +88,11 @@ export function getTracesScene(
                 .setData(search('ModelRequests', q.llmRequests, 'spans'))
                 .setNoValue(NO_TRACES)
                 .setOverrides((b) => {
-                  b.matchFieldsWithName('traceIdHidden').overrideDisplayName('Trace ID').overrideLinks([openTrace]);
+                  // Tempo hides the trace ID column of span results; show it so it can be clicked.
+                  b.matchFieldsWithName('traceIdHidden')
+                    .overrideDisplayName('Trace ID')
+                    .overrideCustomFieldConfig('hideFrom', { viz: false, legend: false, tooltip: false })
+                    .overrideLinks([openTrace]);
                 })
                 .build(),
             }),

@@ -214,6 +214,29 @@ export const TRACES = {
     { traceID: '4bf92f3577b34da6a3ce929d0e0e4736', durationMs: 41200 },
     { traceID: '00f067aa0ba902b74bf92f3577b34da6', durationMs: 12800 },
   ],
+  llmRequests: [
+    {
+      traceID: '4bf92f3577b34da6a3ce929d0e0e4736',
+      model: MODELS[1],
+      ttftMs: 1840,
+      durationMs: 9600,
+      stopReason: 'tool_use',
+    },
+    {
+      traceID: '4bf92f3577b34da6a3ce929d0e0e4736',
+      model: MODELS[1],
+      ttftMs: 1210,
+      durationMs: 7300,
+      stopReason: 'end_turn',
+    },
+    {
+      traceID: '00f067aa0ba902b74bf92f3577b34da6',
+      model: MODELS[0],
+      ttftMs: 640,
+      durationMs: 4100,
+      stopReason: 'end_turn',
+    },
+  ],
   spans: [
     { spanID: 'a1', parentSpanID: '', operationName: 'claude_code.interaction', start: 0, duration: 41200 },
     { spanID: 'b1', parentSpanID: 'a1', operationName: 'claude_code.llm_request', start: 20, duration: 9600 },
@@ -656,11 +679,30 @@ function traceSearchFrame(refId: string, r: { from: number; to: number }) {
       displayNameFromDS: 'Trace ID',
       values: TRACES.interactions.map((t) => t.traceID),
     },
-    { name: 'startTime', type: 'time', values: TRACES.interactions.map((_, i) => r.to - (i + 1) * 3600_000) },
-    { name: 'traceService', type: 'string', values: TRACES.interactions.map(() => 'claude-code') },
-    { name: 'traceName', type: 'string', values: TRACES.interactions.map(() => 'claude_code.interaction') },
-    { name: 'traceDuration', type: 'number', values: TRACES.interactions.map((t) => t.durationMs) },
-    // Each trace's matching spans; the Tempo frontend expects the column.
+    {
+      name: 'startTime',
+      type: 'time',
+      displayNameFromDS: 'Start time',
+      values: TRACES.interactions.map((_, i) => r.to - (i + 1) * 3600_000),
+    },
+    {
+      name: 'traceService',
+      type: 'string',
+      displayNameFromDS: 'Service',
+      values: TRACES.interactions.map(() => 'claude-code'),
+    },
+    {
+      name: 'traceName',
+      type: 'string',
+      displayNameFromDS: 'Name',
+      values: TRACES.interactions.map(() => 'claude_code.interaction'),
+    },
+    {
+      name: 'traceDuration',
+      type: 'number',
+      displayNameFromDS: 'Duration (ms)',
+      values: TRACES.interactions.map((t) => t.durationMs),
+    },
     {
       name: 'nested',
       type: 'other',
@@ -718,8 +760,9 @@ function traceSearchFrame(refId: string, r: { from: number; to: number }) {
   return [frame];
 }
 
-function traceFrame(refId: string, r: { from: number; to: number }) {
-  const start = r.to - 3600_000;
+function traceFrame(refId: string) {
+  // Trace-by-ID queries are sent with from/to 0, so anchor the spans to now.
+  const start = Date.now() - 3600_000;
   const frame = makeFrame(refId, [
     { name: 'traceID', type: 'string', values: TRACES.spans.map(() => TRACES.interactions[0].traceID) },
     { name: 'spanID', type: 'string', values: TRACES.spans.map((s) => s.spanID) },
@@ -733,9 +776,31 @@ function traceFrame(refId: string, r: { from: number; to: number }) {
   return [frame];
 }
 
+// A TraceQL span search (model requests), shaped like Tempo's "Spans" table.
+function spanSearchFrame(refId: string, r: { from: number; to: number }) {
+  const rows = TRACES.llmRequests;
+  const frame = makeFrame(refId, [
+    { name: 'traceIdHidden', type: 'string', values: rows.map((x) => x.traceID) },
+    {
+      name: 'time',
+      type: 'time',
+      displayNameFromDS: 'Start time',
+      values: rows.map((_, i) => r.to - (i + 1) * 1800_000),
+    },
+    { name: 'name', type: 'string', displayNameFromDS: 'Name', values: rows.map(() => 'claude_code.llm_request') },
+    { name: 'model', type: 'string', displayNameFromDS: 'model', values: rows.map((x) => x.model) },
+    { name: 'ttft_ms', type: 'number', displayNameFromDS: 'ttft_ms', values: rows.map((x) => x.ttftMs) },
+    { name: 'stop_reason', type: 'string', displayNameFromDS: 'stop_reason', values: rows.map((x) => x.stopReason) },
+    { name: 'duration', type: 'number', displayNameFromDS: 'Duration (ms)', values: rows.map((x) => x.durationMs) },
+  ]) as { schema: { name?: string; meta?: Record<string, unknown> } };
+  frame.schema.name = 'Spans';
+  frame.schema.meta = { typeVersion: [0, 0], preferredVisualisationType: 'table' };
+  return [frame];
+}
+
 Object.assign(DATASET, {
   Interactions: traceSearchFrame,
-  ModelRequests: traceSearchFrame,
+  ModelRequests: spanSearchFrame,
   Trace: traceFrame,
 } satisfies Record<string, FrameBuilder>);
 
