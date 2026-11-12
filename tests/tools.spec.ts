@@ -56,7 +56,7 @@ test.describe('Tools scene', () => {
     const bash = table.getByRole('row').filter({ hasText: 'Bash' });
     await expect(bash).toContainText(String(TOOL_PERFORMANCE.calls.Bash));
     await expect(bash).toContainText(`${TOOL_PERFORMANCE.failureRate.Bash}%`);
-    await expect(bash).toContainText(`${TOOL_PERFORMANCE.p50.Bash} ms`);
+    await expect(bash).toContainText(`${TOOL_PERFORMANCE.p50.Bash}.0 ms`);
 
     for (const errorType of Object.keys(TOOL_PERFORMANCE.errorTypes)) {
       await expect(legendItem(app, selectors, 'Failures by Error Type', errorType)).toBeVisible();
