@@ -9,6 +9,10 @@ import { DECISION_SOURCE_NAMES } from './queries';
  * event attributes as structured metadata, with dots turned into underscores
  * (`event.name` -> `event_name`, `status_code`, `attempt`, `user_email`, ...).
  * Structured metadata can be filtered on like labels after the stream selector.
+ *
+ * Every `unwrap` is followed by `__error__=""`: events from older Claude Code
+ * versions can lack the unwrapped attribute (for example the cache lifetime
+ * tokens, v2.1.300+), and some Loki versions fail the whole query on that.
  */
 
 /** Stream of every Claude Code event. */
@@ -141,16 +145,16 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     toolFailureRate: `(sum by (tool_name) (count_over_time(${tools} | success="false" [$__range])) or sum by (tool_name) (count_over_time(${tools} [$__range])) * 0) / sum by (tool_name) (count_over_time(${tools} [$__range])) * 100`,
 
     /** Median execution time per tool, in ms */
-    toolLatencyP50: `quantile_over_time(0.5, ${tools} | unwrap duration_ms [$__range]) by (tool_name)`,
+    toolLatencyP50: `quantile_over_time(0.5, ${tools} | unwrap duration_ms | __error__="" [$__range]) by (tool_name)`,
 
     /** 95th percentile execution time per tool, in ms */
-    toolLatencyP95: `quantile_over_time(0.95, ${tools} | unwrap duration_ms [$__range]) by (tool_name)`,
+    toolLatencyP95: `quantile_over_time(0.95, ${tools} | unwrap duration_ms | __error__="" [$__range]) by (tool_name)`,
 
     /** Failed calls by error category, such as Error:ENOENT or ShellError */
     toolErrorTypes: `sort_desc(sum by (error_type) (count_over_time(${tools} | success="false" | label_format error_type=\`{{ if .error_type }}{{ .error_type }}{{ else }}Unknown{{ end }}\` [$__range])))`,
 
     /** 95th percentile execution time by who allowed the call (config rule, hook or the user) */
-    toolLatencyP95BySource: `sort_desc(quantile_over_time(0.95, ${tools} | label_format decision_source=\`${sourceNameOf('decision_source')}\` | unwrap duration_ms [$__range]) by (decision_source))`,
+    toolLatencyP95BySource: `sort_desc(quantile_over_time(0.95, ${tools} | label_format decision_source=\`${sourceNameOf('decision_source')}\` | unwrap duration_ms | __error__="" [$__range]) by (decision_source))`,
 
     // ---------- Prompts (user_prompt events) ----------
 
@@ -164,7 +168,7 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     promptsPerSession: `avg(sum by (session_id) (count_over_time(${prompts} [$__range])))`,
 
     /** Median length of typed prompts, in characters (slash commands left out) */
-    promptLengthP50: `quantile_over_time(0.5, ${typed} | unwrap prompt_length [$__range]) by (service_name)`,
+    promptLengthP50: `quantile_over_time(0.5, ${typed} | unwrap prompt_length | __error__="" [$__range]) by (service_name)`,
 
     /** Prompts per interval, split into typed prompts and slash commands */
     promptsOverTime: `sum by (kind) (count_over_time(${prompts} | label_format kind=\`{{ if .command_name }}Slash command{{ else }}Typed prompt{{ end }}\` [$__interval]))`,
@@ -189,22 +193,22 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     /** API requests per model */
     requestsByModel: `sum by (model) (count_over_time(${requestsAll} [$__range]))`,
     /** Median API request duration per model, in ms */
-    requestLatencyP50: `quantile_over_time(0.5, ${requestsAll} | unwrap duration_ms [$__range]) by (model)`,
+    requestLatencyP50: `quantile_over_time(0.5, ${requestsAll} | unwrap duration_ms | __error__="" [$__range]) by (model)`,
     /** 95th percentile API request duration per model, in ms */
-    requestLatencyP95: `quantile_over_time(0.95, ${requestsAll} | unwrap duration_ms [$__range]) by (model)`,
+    requestLatencyP95: `quantile_over_time(0.95, ${requestsAll} | unwrap duration_ms | __error__="" [$__range]) by (model)`,
     /** 95th percentile API request duration by effort level; no effort sent -> "default" */
-    requestLatencyP95ByEffort: `sort_desc(quantile_over_time(0.95, ${requestsAll} | label_format effort=\`{{ if .effort }}{{ .effort }}{{ else }}default{{ end }}\` | unwrap duration_ms [$__range]) by (effort))`,
+    requestLatencyP95ByEffort: `sort_desc(quantile_over_time(0.95, ${requestsAll} | label_format effort=\`{{ if .effort }}{{ .effort }}{{ else }}default{{ end }}\` | unwrap duration_ms | __error__="" [$__range]) by (effort))`,
     /** Cache write tokens with a 5-minute lifetime */
-    cacheWrites5m: `sum(sum_over_time(${requestsAll} | unwrap cache_creation_5m_tokens [$__range]))`,
+    cacheWrites5m: `sum(sum_over_time(${requestsAll} | unwrap cache_creation_5m_tokens | __error__="" [$__range]))`,
     /** Cache write tokens with a 1-hour lifetime */
-    cacheWrites1h: `sum(sum_over_time(${requestsAll} | unwrap cache_creation_1h_tokens [$__range]))`,
+    cacheWrites1h: `sum(sum_over_time(${requestsAll} | unwrap cache_creation_1h_tokens | __error__="" [$__range]))`,
 
     /** Subagent runs per agent type */
     subagentRuns: `sum by (agent_type) (count_over_time(${subagents} [$__range]))`,
     /** 95th percentile subagent run time per agent type, in ms */
-    subagentDurationP95: `quantile_over_time(0.95, ${subagents} | unwrap duration_ms [$__range]) by (agent_type)`,
+    subagentDurationP95: `quantile_over_time(0.95, ${subagents} | unwrap duration_ms | __error__="" [$__range]) by (agent_type)`,
     /** Average tool calls per subagent run */
-    subagentToolUses: `avg_over_time(${subagents} | unwrap total_tool_uses [$__range]) by (agent_type)`,
+    subagentToolUses: `avg_over_time(${subagents} | unwrap total_tool_uses | __error__="" [$__range]) by (agent_type)`,
     /** Share of subagent runs that ran in the background */
     subagentAsyncShare: share(`${subagents} | is_async="true"`, subagents, 'agent_type'),
     /** Share of subagent runs served by more than one model (a mid-run fallback) */
@@ -217,7 +221,7 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     /** Share of compactions that failed */
     compactionFailureRate: share(`${compactions} | success="false"`, compactions),
     /** Average tokens freed per compaction (pre_tokens - post_tokens) */
-    compactionTokensReclaimed: `(sum(sum_over_time(${compactions} | unwrap pre_tokens [$__range])) - sum(sum_over_time(${compactions} | unwrap post_tokens [$__range]))) / sum(count_over_time(${compactions} [$__range]))`,
+    compactionTokensReclaimed: `(sum(sum_over_time(${compactions} | unwrap pre_tokens | __error__="" [$__range])) - sum(sum_over_time(${compactions} | unwrap post_tokens | __error__="" [$__range]))) / sum(count_over_time(${compactions} [$__range]))`,
 
     /** Skill activations per skill; user-defined and third-party skills show as custom_skill */
     skillActivations: `sort_desc(sum by (skill_name) (count_over_time(${skills} [$__range])))`,
@@ -232,11 +236,11 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     /** Hook runs per hook event (one event covers all matching hooks) */
     hookRuns: `sum by (hook_event) (count_over_time(${hooks} [$__range]))`,
     /** 95th percentile time in hooks per hook event, in ms */
-    hookDurationP95: `quantile_over_time(0.95, ${hooks} | unwrap total_duration_ms [$__range]) by (hook_event)`,
+    hookDurationP95: `quantile_over_time(0.95, ${hooks} | unwrap total_duration_ms | __error__="" [$__range]) by (hook_event)`,
     /** Hooks that returned a blocking decision, per hook event */
-    hookBlocking: `sum by (hook_event) (sum_over_time(${hooks} | unwrap num_blocking [$__range]))`,
+    hookBlocking: `sum by (hook_event) (sum_over_time(${hooks} | unwrap num_blocking | __error__="" [$__range]))`,
     /** Hooks that failed without blocking, per hook event */
-    hookErrors: `sum by (hook_event) (sum_over_time(${hooks} | unwrap num_non_blocking_error [$__range]))`,
+    hookErrors: `sum by (hook_event) (sum_over_time(${hooks} | unwrap num_non_blocking_error | __error__="" [$__range]))`,
 
     // ---------- Security ----------
 
