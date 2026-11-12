@@ -29,3 +29,20 @@ export function legendItem(
 ): Locator {
   return panelByTitle(appPage, selectors, panelTitle).getByText(seriesName, { exact: true }).first();
 }
+
+/**
+ * Width in pixels of each bar's filled part in a bar gauge panel, top to bottom.
+ * The filled part is the bar element drawn with a gradient; the unfilled track
+ * next to it has no background image.
+ */
+export async function barFillWidths(panel: Locator): Promise<number[]> {
+  await panel.getByTestId('data-testid Bar gauge value').first().waitFor();
+  return panel.getByTestId('data-testid Bar gauge value').evaluateAll((values) =>
+    values.map((value) => {
+      const fill = Array.from(value.parentElement?.children ?? []).find(
+        (el) => getComputedStyle(el).backgroundImage !== 'none'
+      );
+      return fill ? fill.getBoundingClientRect().width : 0;
+    })
+  );
+}
