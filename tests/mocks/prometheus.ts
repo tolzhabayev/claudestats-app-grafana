@@ -178,6 +178,36 @@ export const PROMPTS = {
   lengthBuckets: [412, 437, 151, 48],
 };
 
+// Workflow tab (api_request, subagent, compaction, skill, MCP and hook events in Loki).
+export const WORKFLOW = {
+  requests: { [MODELS[0]]: 6120, [MODELS[1]]: 2380 },
+  latencyP50: { [MODELS[0]]: 4200, [MODELS[1]]: 7900 },
+  latencyP95: { [MODELS[0]]: 18500, [MODELS[1]]: 31200 },
+  latencyByEffort: { high: 29800, medium: 17100, default: 9400 },
+  cacheWrites: { '5 minutes': 4.1e6, '1 hour': 8.3e6 },
+  subagents: {
+    runs: { 'general-purpose': 142, Explore: 96, custom: 31 },
+    p95: { 'general-purpose': 214000, Explore: 88000, custom: 141000 },
+    toolUses: { 'general-purpose': 18.4, Explore: 11.2, custom: 9.7 },
+    background: { 'general-purpose': 22, Explore: 41, custom: 0 },
+    switched: { 'general-purpose': 3, Explore: 1, custom: 0 },
+  },
+  compactions: 47,
+  autoShare: 72.3,
+  failureRate: 2.1,
+  tokensFreed: 118000,
+  skills: { 'code-review': 58, custom_skill: 34, 'pdf-export': 12 },
+  skillTriggers: { 'claude-proactive': 61, 'user-slash': 39, 'nested-skill': 4 },
+  mcpConnections: { connected: 214, disconnected: 198, failed: 9 },
+  mcpFailures: { ECONNREFUSED: 6, ETIMEDOUT: 3 },
+  hooks: {
+    runs: { PreToolUse: 2410, PostToolUse: 2388, Stop: 312 },
+    p95: { PreToolUse: 420, PostToolUse: 1260, Stop: 3100 },
+    blocking: { PreToolUse: 37, PostToolUse: 0, Stop: 4 },
+    errors: { PreToolUse: 2, PostToolUse: 11, Stop: 0 },
+  },
+};
+
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
   // Unattributed usage (no identity) comes back from the query but isn't listed.
@@ -505,6 +535,29 @@ Object.assign(DATASET, {
   RefusalsByModel: (id: string) => lokiInstantFrames(id, 'model', RELIABILITY.refusalsByModel),
   ToolCalls: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.calls),
   Prompts: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.total }),
+  RequestsByModel: (id: string) => lokiInstantFrames(id, 'model', WORKFLOW.requests),
+  RequestLatencyP50: (id: string) => lokiInstantFrames(id, 'model', WORKFLOW.latencyP50),
+  RequestLatencyP95: (id: string) => lokiInstantFrames(id, 'model', WORKFLOW.latencyP95),
+  RequestLatencyByEffort: (id: string) => lokiInstantFrames(id, 'effort', WORKFLOW.latencyByEffort),
+  CacheWrites5m: (id: string) => lokiInstantFrames(id, null, { total: WORKFLOW.cacheWrites['5 minutes'] }),
+  CacheWrites1h: (id: string) => lokiInstantFrames(id, null, { total: WORKFLOW.cacheWrites['1 hour'] }),
+  SubagentRuns: (id: string) => lokiInstantFrames(id, 'agent_type', WORKFLOW.subagents.runs),
+  SubagentDurationP95: (id: string) => lokiInstantFrames(id, 'agent_type', WORKFLOW.subagents.p95),
+  SubagentToolUses: (id: string) => lokiInstantFrames(id, 'agent_type', WORKFLOW.subagents.toolUses),
+  SubagentAsyncShare: (id: string) => lokiInstantFrames(id, 'agent_type', WORKFLOW.subagents.background),
+  SubagentModelSwapShare: (id: string) => lokiInstantFrames(id, 'agent_type', WORKFLOW.subagents.switched),
+  Compactions: (id: string) => lokiInstantFrames(id, null, { total: WORKFLOW.compactions }),
+  CompactionAutoShare: (id: string) => lokiInstantFrames(id, null, { total: WORKFLOW.autoShare }),
+  CompactionFailureRate: (id: string) => lokiInstantFrames(id, null, { total: WORKFLOW.failureRate }),
+  CompactionTokensReclaimed: (id: string) => lokiInstantFrames(id, null, { total: WORKFLOW.tokensFreed }),
+  SkillActivations: (id: string) => lokiInstantFrames(id, 'skill_name', WORKFLOW.skills),
+  SkillTriggers: (id: string) => lokiInstantFrames(id, 'invocation_trigger', WORKFLOW.skillTriggers),
+  McpConnections: (id: string) => lokiInstantFrames(id, 'status', WORKFLOW.mcpConnections),
+  McpFailures: (id: string) => lokiInstantFrames(id, 'error_code', WORKFLOW.mcpFailures),
+  HookRuns: (id: string) => lokiInstantFrames(id, 'hook_event', WORKFLOW.hooks.runs),
+  HookDurationP95: (id: string) => lokiInstantFrames(id, 'hook_event', WORKFLOW.hooks.p95),
+  HookBlocking: (id: string) => lokiInstantFrames(id, 'hook_event', WORKFLOW.hooks.blocking),
+  HookErrors: (id: string) => lokiInstantFrames(id, 'hook_event', WORKFLOW.hooks.errors),
   CommandShare: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.commandShare }),
   PromptsPerSession: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.perSession }),
   PromptLengthP50: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.lengthP50 }),

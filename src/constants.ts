@@ -11,6 +11,7 @@ export const ROUTES = {
   Tools: 'tools',
   Reliability: 'reliability',
   Prompts: 'prompts',
+  Workflow: 'workflow',
   Productivity: 'productivity',
 } as const;
 
