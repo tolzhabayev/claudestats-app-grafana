@@ -145,8 +145,15 @@ Some panels need an extra Claude Code setting or a minimum Claude Code version. 
 | Readable names for team members who use an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry                                               | `enduser.id` in `OTEL_RESOURCE_ATTRIBUTES`. For details, refer to [Name team members who don't sign in with a Claude account](#name-team-members-who-dont-sign-in-with-a-claude-account).                                                                              |
 | The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the tool performance panels on the **Tools** tab                           | `OTEL_LOGS_EXPORTER=otlp` and a Loki data source. For details, refer to [Send events to Loki](#send-events-to-loki).                                                                                                                                                   |
 | The **Traces** tab                                                                                                                                  | `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`, `OTEL_TRACES_EXPORTER=otlp` and a Tempo data source. For details, refer to [Send traces to Tempo](#send-traces-to-tempo).                                                                                                     |
+| **Team** filter                                                                                                                                     | Sessions signed in through a Claude apps gateway. For details, refer to [Filter by team](#filter-by-team).                                                                                                                                                             |
 | **Surface** on the **Overview** tab                                                                                                                 | `OTEL_METRICS_INCLUDE_ENTRYPOINT=true`.                                                                                                                                                                                                                                |
 | **Lines of Code by Model**                                                                                                                          | Claude Code v2.1.172 or later. Lines from older versions appear as `unknown`.                                                                                                                                                                                          |
+
+#### Filter by team
+
+Sessions signed in through a Claude apps gateway carry the team member's identity-provider groups in `user.groups`. The app then shows a **Team** filter with one entry per group. Picking a group shows the usage of sessions in that group, including team members who are in several groups. No setting is needed.
+
+The filter lists the first five groups of each session. A group that only ever appears sixth or later in a team member's list of groups isn't offered.
 
 #### Filter by repository
 

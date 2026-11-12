@@ -1,5 +1,5 @@
 import { LABELS } from '../constants';
-import { FilterDimension, getFilterDimensions } from './dimensions';
+import { dimensionMatcher, FilterDimension, getFilterDimensions } from './dimensions';
 import { DECISION_SOURCE_NAMES } from './queries';
 
 /**
@@ -61,7 +61,7 @@ export const PROMPT_LENGTH_BUCKETS = [
 // Counts fall back to 0 only when there are API request events in the period: with
 // none at all (events not exported) they stay empty, so the panels can say so.
 export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensions()) {
-  const dims = dimensions.map((d) => `${d.label}=~"$${d.variable}"`);
+  const dims = dimensions.map(dimensionMatcher);
   const filters = [MEMBER_FILTER, `${LABELS.MODEL}=~"$model"`, ...dims].join(' | ');
   // tool_result events carry no model, so the tool queries skip the Model filter.
   const toolFilters = [MEMBER_FILTER, ...dims].join(' | ');

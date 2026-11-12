@@ -17,7 +17,7 @@ Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into 
 - **Security:** Permission escalations, auto mode classifier verdicts, rejected tool calls, login failures, unofficial plugin installs and managed settings, for administrators.
 - **Traces (beta):** One prompt end to end: model requests with time to first token, tool calls, permission waits and tool runs, from traces in Tempo.
 
-Filter every tab by team member, repository, your own labels such as team or cost center, and time range, and the cost and token views by model.
+Filter the metrics and events tabs by team member, team (identity-provider group), repository, your own labels such as cost center, and time range, and the cost and token views by model. The **Traces** tab filters by team member and time range.
 
 ## Requirements
 

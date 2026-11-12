@@ -17,6 +17,16 @@ export interface FilterDimension {
    * attributes; labels an admin configures are always shown.
    */
   hideWhenEmpty: boolean;
+  /**
+   * The label holds a comma-separated list (such as `user_groups`): a series
+   * matches when the picked value is one of the list's items.
+   */
+  listValued?: boolean;
+}
+
+/** The label matcher a dimension adds to every query (PromQL and LogQL). */
+export function dimensionMatcher(d: FilterDimension): string {
+  return d.listValued ? `${d.label}=~"(.*,)?($${d.variable})(,.*)?"` : `${d.label}=~"$${d.variable}"`;
 }
 
 /** Built-in Repository filter (`OTEL_METRICS_INCLUDE_REPOSITORY=true`). */
@@ -27,6 +37,18 @@ export const REPOSITORY_DIMENSION: FilterDimension = {
   hideWhenEmpty: true,
 };
 
+/**
+ * Built-in Team filter on `user_groups`: the identity-provider groups that
+ * sessions signed in through a Claude apps gateway carry, comma-separated.
+ */
+export const TEAM_DIMENSION: FilterDimension = {
+  label: LABELS.USER_GROUPS,
+  variable: 'team',
+  title: 'Team',
+  hideWhenEmpty: true,
+  listValued: true,
+};
+
 // Labels the app already filters or groups by; configuring them again would clash.
 const RESERVED_LABELS = new Set<string>([
   LABELS.USER_EMAIL,
@@ -35,6 +57,7 @@ const RESERVED_LABELS = new Set<string>([
   LABELS.MEMBER,
   LABELS.MODEL,
   LABELS.REPOSITORY,
+  LABELS.USER_GROUPS,
   '__name__',
 ]);
 
@@ -54,7 +77,7 @@ export function isUsableCustomLabel(attribute: string): boolean {
 }
 
 /**
- * The filters every query applies: Repository first, then the labels configured
+ * The filters every query applies: Repository and Team first, then the labels configured
  * on the app's configuration page (invalid, reserved and duplicate ones dropped).
  */
 export function getFilterDimensions(customLabels: string[] = []): FilterDimension[] {
@@ -68,5 +91,5 @@ export function getFilterDimensions(customLabels: string[] = []): FilterDimensio
     seen.add(label);
     custom.push({ label, variable: `label_${label}`, title: attribute.trim(), hideWhenEmpty: false });
   }
-  return [REPOSITORY_DIMENSION, ...custom];
+  return [REPOSITORY_DIMENSION, TEAM_DIMENSION, ...custom];
 }

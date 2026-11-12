@@ -1,5 +1,5 @@
 import { getMetrics, LABELS, MetricNames } from '../constants';
-import { FilterDimension, getFilterDimensions } from './dimensions';
+import { dimensionMatcher, FilterDimension, getFilterDimensions } from './dimensions';
 
 /** Member value for usage that carries none of the identity labels. */
 export const UNATTRIBUTED = 'Unattributed';
@@ -79,7 +79,7 @@ export function memberValuesQuery(m: MetricNames): string {
  */
 function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterDimensions()) {
   // `vcs_repository_name=~"$repository", project=~"$label_project", ...`
-  const dims = dimensions.map((d) => `${d.label}=~"$${d.variable}"`).join(', ');
+  const dims = dimensions.map(dimensionMatcher).join(', ');
   const join = (...matchers: string[]) => matchers.filter(Boolean).join(', ');
   /** `fn(metric{matchers}[range])` for the selected members and filter dimensions */
   const scoped = (fn: string, metric: string, range: string, matchers = '') =>

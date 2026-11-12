@@ -4,8 +4,9 @@ import { legendItem } from './mocks/panels';
 import { mockEmptyPanels, REPOSITORIES } from './mocks/prometheus';
 import { panelByTitle } from './mocks/panels';
 
+/** A variable picker by its exact label ("Team" must not match "Team Member"). */
 const picker = (page: Page, label: string) =>
-  page.getByTestId('data-testid template variable').filter({ hasText: label });
+  page.getByTestId('data-testid template variable').filter({ has: page.getByText(label, { exact: true }) });
 
 const TEAMS = ['platform', 'payments'] as const;
 
@@ -134,6 +135,42 @@ test.describe('Filter dimensions', () => {
     const requests = queriesWith(page, `team_id=~"${team}"`, ['TotalCommits', 'ActiveTimeByMember']);
 
     await selectOption(page, 'team.id', team);
+    await requests;
+  });
+
+  test('the Team picker stays hidden without gateway groups', async ({ mockData, gotoPage, page }) => {
+    await gotoPage('costs');
+    await expect(picker(page, 'Team Member')).toBeVisible();
+    await expect(picker(page, 'Team')).toHaveCount(0);
+  });
+
+  test('a Team picks one gateway group and scopes every query to sessions in it', async ({
+    mockData,
+    gotoPage,
+    page,
+  }) => {
+    // The Team options query splits user_groups into one `item` per group.
+    await page.route('**/api/datasources/**/resources/api/v1/query', async (route) => {
+      if (!(route.request().postData() ?? '').includes('user_groups')) {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        json: {
+          status: 'success',
+          data: {
+            resultType: 'vector',
+            result: ['eng', 'platform', 'Platform "EU"'].map((item) => ({ metric: { item }, value: [0, '1'] })),
+          },
+        },
+      });
+    });
+
+    await gotoPage('productivity');
+    const requests = queriesWith(page, 'user_groups=~"(.*,)?(platform)(,.*)?"', ['TotalCommits', 'ActiveTimeByMember']);
+    // A group name with quotes is listed whole.
+    await selectOption(page, 'Team', 'Platform "EU"');
+    await selectOption(page, 'Team', 'platform');
     await requests;
   });
 });
