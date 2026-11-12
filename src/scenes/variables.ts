@@ -97,7 +97,9 @@ const LIST_POSITIONS = 5;
  * to LIST_POSITIONS) copies that item into an `item` label.
  */
 function listItemsQuery(label: string): string {
-  const series = `max_over_time({__name__=~"${CLAUDE_CODE_METRICS}", ${label}!=""}[$__range])`;
+  // last_over_time keeps the metric name; max_over_time would drop it and make series of
+  // different metrics with the same labels collide ("same labelset") in label_replace.
+  const series = `last_over_time({__name__=~"${CLAUDE_CODE_METRICS}", ${label}!=""}[$__range])`;
   const positions = Array.from(
     { length: LIST_POSITIONS },
     (_, n) => `label_replace(${series}, "item", "$1", "${label}", "(?:[^,]+,){${n}}([^,]+).*")`
@@ -126,7 +128,9 @@ export function getDimensionVariable(dimension: FilterDimension) {
         : `label_values({__name__=~"${CLAUDE_CODE_METRICS}"}, ${dimension.label})`,
       refId: `${dimension.variable}Query`,
     },
-    ...(dimension.listValued ? { regex: '/item="([^"]+)"/' } : {}),
+    // `item` is the only label of each result and Grafana doesn't escape it, so match up to
+    // the closing `"}` to keep group names that contain quotes whole.
+    ...(dimension.listValued ? { regex: '/item="(.+)"}/' } : {}),
     sort: 1,
     refresh: VariableRefresh.onTimeRangeChanged,
     includeAll: true,
