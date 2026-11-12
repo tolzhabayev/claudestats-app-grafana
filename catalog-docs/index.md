@@ -153,6 +153,8 @@ Some panels need an extra Claude Code setting or a minimum Claude Code version. 
 
 Sessions signed in through a Claude apps gateway carry the team member's identity-provider groups in `user.groups`. The app then shows a **Team** filter with one entry per group. Picking a group shows the usage of sessions in that group, including team members who are in several groups. No setting is needed.
 
+The filter lists the first five groups of each session. A group that only ever appears sixth or later in a team member's list of groups isn't offered.
+
 #### Filter by repository
 
 Set `OTEL_METRICS_INCLUDE_REPOSITORY=true` (Claude Code v2.1.269 and later) to tag metrics with the Git repository Claude Code works in, taken from its `origin` remote. The app then shows a **Repository** filter and the **Cost by Repository** and **Tokens by Repository** panels.

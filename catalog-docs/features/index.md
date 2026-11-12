@@ -27,16 +27,16 @@ Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under
 
 Every tab has the same controls above the panels:
 
-| Control         | What it does                                                                                                                                                                     |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Metrics**     | The Prometheus data source the app queries.                                                                                                                                      |
-| **Team Member** | One or more team members, or **All**.                                                                                                                                            |
-| **Repository**  | One Git repository, or **All**. Shown only when Claude Code sends repository attributes, as described in [Optional telemetry settings](../index.md#optional-telemetry-settings). |
-| **Team**        | One identity-provider group, or **All**. Shown only for sessions signed in through a Claude apps gateway, as described in [Filter by team](../index.md#filter-by-team).          |
-| Filter labels   | One picker for each label set under [Filters](../configure.md#filters) on the configuration page, such as a team or cost center.                                                 |
-| **Model**       | One model, or **All**. Only the **Overview**, **Costs** and **Tokens** tabs show it, because commits, pull requests, active time and edit decisions aren't recorded per model.   |
-| Time range      | The period every panel covers. The default is the last 7 days.                                                                                                                   |
-| Refresh         | Reloads the panels, manually or every 30 seconds to 30 minutes.                                                                                                                  |
+| Control         | What it does                                                                                                                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Metrics**     | The Prometheus data source the app queries.                                                                                                                                                        |
+| **Team Member** | One or more team members, or **All**.                                                                                                                                                              |
+| **Repository**  | One Git repository, or **All**. Shown only when Claude Code sends repository attributes, as described in [Optional telemetry settings](../index.md#optional-telemetry-settings).                   |
+| **Team**        | One identity-provider group, or **All**. Shown only for sessions signed in through a Claude apps gateway, as described in [Filter by team](../index.md#filter-by-team). Not on the **Traces** tab. |
+| Filter labels   | One picker for each label set under [Filters](../configure.md#filters) on the configuration page, such as a team or cost center.                                                                   |
+| **Model**       | One model, or **All**. Only the **Overview**, **Costs** and **Tokens** tabs show it, because commits, pull requests, active time and edit decisions aren't recorded per model.                     |
+| Time range      | The period every panel covers. The default is the last 7 days.                                                                                                                                     |
+| Refresh         | Reloads the panels, manually or every 30 seconds to 30 minutes.                                                                                                                                    |
 
 Team members are named by their Claude account email address. Without one, the app uses the `enduser.id` attribute, and then the anonymous ID Claude Code generates for each machine. For how to set `enduser.id`, refer to [Name team members who don't sign in with a Claude account](../index.md#name-team-members-who-dont-sign-in-with-a-claude-account). Usage with none of these appears as **Unattributed** in the per-member panels. It counts towards totals but not towards **Active Users**.
 

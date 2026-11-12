@@ -32,4 +32,4 @@ Prompt text, tool input and tool output stay redacted unless team members set `O
 
 ## Filters on this tab
 
-**Traces** picks the Tempo data source with Claude Code traces. **Team Member** applies to both lists. **Trace ID** picks the trace for the waterfall. The tab has no **Model** or **Repository** filter.
+**Traces** picks the Tempo data source with Claude Code traces. **Team Member** applies to both lists. **Trace ID** picks the trace for the waterfall. The tab has no **Model**, **Repository** or **Team** filter.
