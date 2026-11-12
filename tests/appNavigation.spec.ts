@@ -38,10 +38,22 @@ test.describe('App Navigation', () => {
     await expect(page).toHaveURL(/.*\/prompts/);
   });
 
+  test('should navigate to Workflow tab', async ({ gotoPage, page }) => {
+    await gotoPage();
+    await page.getByRole('tab', { name: 'Workflow' }).click();
+    await expect(page).toHaveURL(/.*\/workflow/);
+  });
+
   test('should navigate to Reliability tab', async ({ gotoPage, page }) => {
     await gotoPage();
     await page.getByRole('tab', { name: 'Reliability' }).click();
     await expect(page).toHaveURL(/.*\/reliability/);
+  });
+
+  test('should navigate to Security tab', async ({ gotoPage, page }) => {
+    await gotoPage();
+    await page.getByRole('tab', { name: 'Security' }).click();
+    await expect(page).toHaveURL(/.*\/security/);
   });
 
   test('should display time range picker', async ({ gotoPage, page }) => {

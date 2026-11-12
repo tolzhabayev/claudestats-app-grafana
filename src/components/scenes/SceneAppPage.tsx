@@ -11,6 +11,8 @@ import { getTokensScene } from '../../scenes/pages/TokensScene';
 import { getToolsScene } from '../../scenes/pages/ToolsScene';
 import { getReliabilityScene } from '../../scenes/pages/ReliabilityScene';
 import { getPromptsScene } from '../../scenes/pages/PromptsScene';
+import { getWorkflowScene } from '../../scenes/pages/WorkflowScene';
+import { getSecurityScene } from '../../scenes/pages/SecurityScene';
 import { buildLogQueries } from '../../scenes/logQueries';
 import { getProductivityScene } from '../../scenes/pages/ProductivityScene';
 import { ClaudeStatsSettings } from '../../types';
@@ -76,10 +78,22 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
             getScene: () => getPromptsScene(timeRange, variables, logQueries),
           }),
           new SceneAppPage({
+            title: 'Workflow',
+            url: prefixRoute(ROUTES.Workflow),
+            routePath: `/${ROUTES.Workflow}`,
+            getScene: () => getWorkflowScene(timeRange, variables, logQueries),
+          }),
+          new SceneAppPage({
             title: 'Reliability',
             url: prefixRoute(ROUTES.Reliability),
             routePath: `/${ROUTES.Reliability}`,
             getScene: () => getReliabilityScene(timeRange, variables, logQueries),
+          }),
+          new SceneAppPage({
+            title: 'Security',
+            url: prefixRoute(ROUTES.Security),
+            routePath: `/${ROUTES.Security}`,
+            getScene: () => getSecurityScene(timeRange, variables, logQueries),
           }),
         ],
       }),
