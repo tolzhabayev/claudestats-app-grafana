@@ -16,7 +16,7 @@ Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into 
 - **Reliability:** API errors by status code, model and retry attempts, exhausted retries and refusals by category, from the events Claude Code sends to Loki.
 - **Security:** Permission escalations, auto mode classifier verdicts, rejected tool calls, login failures, unofficial plugin installs and managed settings, for administrators.
 
-Filter every tab by team member, repository, your own labels such as team or cost center, and time range, and the cost and token views by model.
+Filter every tab by team member, team (identity-provider group), repository, your own labels such as cost center, and time range, and the cost and token views by model.
 
 ## Requirements
 

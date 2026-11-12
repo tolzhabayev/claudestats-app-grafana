@@ -31,6 +31,7 @@ Every tab has the same controls above the panels:
 | **Metrics**     | The Prometheus data source the app queries.                                                                                                                                      |
 | **Team Member** | One or more team members, or **All**.                                                                                                                                            |
 | **Repository**  | One Git repository, or **All**. Shown only when Claude Code sends repository attributes, as described in [Optional telemetry settings](../index.md#optional-telemetry-settings). |
+| **Team**        | One identity-provider group, or **All**. Shown only for sessions signed in through a Claude apps gateway, as described in [Filter by team](../index.md#filter-by-team).          |
 | Filter labels   | One picker for each label set under [Filters](../configure.md#filters) on the configuration page, such as a team or cost center.                                                 |
 | **Model**       | One model, or **All**. Only the **Overview**, **Costs** and **Tokens** tabs show it, because commits, pull requests, active time and edit decisions aren't recorded per model.   |
 | Time range      | The period every panel covers. The default is the last 7 days.                                                                                                                   |

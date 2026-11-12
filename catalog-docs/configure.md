@@ -67,7 +67,7 @@ The **Filters** section adds a filter above the panels for each label you list, 
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | **Filter labels** | Attribute names, such as `team.id`, or the Prometheus labels they become, such as `team_id`. Type a name and press Enter. Labels the app already filters by, such as `model` and `user_email`, and names with other characters than letters, digits, dots and underscores can't be used. | No       |
 
-Click **Save filters** to save the list and reload the page. Each filter's picker is named after the label as you entered it, applies to every panel and defaults to **All**. A repository filter is built in and doesn't need to be listed. For how team members set attributes, refer to [Filter by your own attributes](./index.md#filter-by-your-own-attributes).
+Click **Save filters** to save the list and reload the page. Each filter's picker is named after the label as you entered it, applies to every panel and defaults to **All**. Repository and team filters are built in and don't need to be listed. For how team members set attributes, refer to [Filter by your own attributes](./index.md#filter-by-your-own-attributes).
 
 ### Setup Guide
 
