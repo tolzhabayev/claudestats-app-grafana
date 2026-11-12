@@ -44,7 +44,7 @@ The tab works without `OTEL_LOG_TOOL_DETAILS`. The panels that need it for names
 
 | Panel                              | What it shows                                                                                                                      |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Login Failures by Category**     | Failed logins and logouts by error category. The error message itself is never sent.                                               |
+| **Login Failures by Category**     | Failed logins by error category. Logouts aren't counted, and the error message itself is never sent.                               |
 | **Plugin Installs by Marketplace** | Plugin installs from official Anthropic marketplaces and from others. Names of third-party plugins need `OTEL_LOG_TOOL_DETAILS=1`. |
 | **Managed Settings Helper State**  | The state of the managed settings policy helper, reported when a session starts and when it changes.                               |
 

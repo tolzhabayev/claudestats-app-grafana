@@ -84,7 +84,8 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
   const modeChanges = events('permission_mode_changed', toolFilters);
   const escalations = `${modeChanges} | to_mode=~"${ESCALATED_MODES.join('|')}"`;
   const decisions = events('tool_decision', toolFilters);
-  const auth = events('auth', toolFilters);
+  // Only logins: a failed logout isn't a login failure.
+  const logins = `${events('auth', toolFilters)} | action="login"`;
   const pluginInstalls = events('plugin_installed', toolFilters);
   const managedSettings = events('managed_settings_resolved', toolFilters);
 
@@ -261,9 +262,9 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     rejectionsBySource: `sort_desc(sum by (source) (count_over_time(${decisions} | decision="reject" | label_format source=\`${sourceNameOf('source')}\` [$__range])))`,
 
     /** Failed logins */
-    loginFailures: `sum(count_over_time(${auth} | success="false" [$__range])) or sum(count_over_time(${auth} [$__range])) * 0`,
-    /** Failed logins and logouts by error category */
-    authFailuresByCategory: `sort_desc(sum by (error_category) (count_over_time(${auth} | success="false" | label_format error_category=\`{{ if .error_category }}{{ .error_category }}{{ else }}Unknown{{ end }}\` [$__range])))`,
+    loginFailures: `sum(count_over_time(${logins} | success="false" [$__range])) or sum(count_over_time(${logins} [$__range])) * 0`,
+    /** Failed logins by error category */
+    authFailuresByCategory: `sort_desc(sum by (error_category) (count_over_time(${logins} | success="false" | label_format error_category=\`{{ if .error_category }}{{ .error_category }}{{ else }}Unknown{{ end }}\` [$__range])))`,
 
     /** Plugins installed from marketplaces that aren't official Anthropic ones */
     unofficialPluginInstalls: `sum(count_over_time(${pluginInstalls} | marketplace_is_official="false" [$__range])) or sum(count_over_time(${pluginInstalls} [$__range])) * 0`,

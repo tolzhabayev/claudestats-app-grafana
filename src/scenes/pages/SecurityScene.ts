@@ -129,7 +129,7 @@ export function getSecurityScene(
             q.authFailuresByCategory,
             'error_category',
             'Login Failures by Category',
-            'Failed logins and logouts by error category. The raw error message is never sent.'
+            'Failed logins by error category. Logouts are not counted, and the raw error message is never sent.'
           ),
           lokiBreakdown(
             'PluginInstallsByMarketplace',
