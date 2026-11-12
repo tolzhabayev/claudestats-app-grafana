@@ -285,6 +285,7 @@ export function getCostsScene(
                 'Cost by Subagent',
                 'currencyUSD',
                 {
+                  noValue: 'No subagent ran in this period',
                   description:
                     'Estimated cost by the subagent type that issued the request. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -306,6 +307,7 @@ export function getCostsScene(
                 'Cost by Skill',
                 'currencyUSD',
                 {
+                  noValue: 'No skill was active in this period',
                   description:
                     'Estimated cost by the skill that was active. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -320,6 +322,7 @@ export function getCostsScene(
                 'Cost by MCP Server',
                 'currencyUSD',
                 {
+                  noValue: 'No MCP tool result was used in this period',
                   description:
                     'Estimated cost by the MCP server whose tool result the request used. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -341,6 +344,7 @@ export function getCostsScene(
                 'Cost by Plugin',
                 'currencyUSD',
                 {
+                  noValue: 'No plugin skill or subagent ran in this period',
                   description:
                     'Estimated cost by the plugin that owns the active skill or subagent. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -355,6 +359,7 @@ export function getCostsScene(
                 'Cost by MCP Tool',
                 'currencyUSD',
                 {
+                  noValue: 'No MCP tool result was used in this period',
                   legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}',
                   description:
                     'Estimated cost by MCP tool, shown as server / tool, for requests that used an MCP tool result. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',

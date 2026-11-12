@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 import { panelByTitle, legendItem } from './mocks/panels';
 import {
+  mockEmptyPanels,
   DISPLAY,
   MODELS,
   MEMBERS,
@@ -98,5 +99,19 @@ test.describe('Costs scene', () => {
     for (const effort of EFFORTS) {
       await expect(legendItem(app, selectors, 'Cost by Effort', effort)).toBeVisible();
     }
+  });
+
+  test('says when nothing used a subagent, skill, MCP tool or plugin', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    await mockEmptyPanels(page, ['CostByAgent', 'CostBySkill', 'CostByMcpServer', 'CostByMcpTool', 'CostByPlugin']);
+    const app = await gotoPage('costs');
+    await expect(panelByTitle(app, selectors, 'Cost by Subagent')).toContainText('No subagent ran in this period');
+    await expect(panelByTitle(app, selectors, 'Cost by Skill')).toContainText('No skill was active in this period');
+    await expect(panelByTitle(app, selectors, 'Cost by MCP Tool')).toContainText('No MCP tool result was used');
+    await expect(panelByTitle(app, selectors, 'Cost by Plugin')).toContainText('No plugin skill or subagent ran');
   });
 });
