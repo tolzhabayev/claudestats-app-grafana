@@ -4,6 +4,7 @@ import {
   SceneControlsSpacer,
   SceneFlexItem,
   SceneFlexLayout,
+  SceneDataTransformer,
   SceneQueryRunner,
   SceneRefreshPicker,
   SceneTimePicker,
@@ -11,8 +12,10 @@ import {
   SceneVariableSet,
   VariableValueControl,
 } from '@grafana/scenes';
+import type { CustomTransformOperator } from '@grafana/data';
 import { PANEL_HEIGHTS, PLUGIN_BASE_URL, ROUTES } from '../../constants';
 import { buildTraceQueries, TraceQueries } from '../traceQueries';
+import { interactionColumns, modelRequestColumns } from '../traceTables';
 import { TEMPO_DS_VARIABLE, TRACE_VARIABLE } from '../variables';
 import { WhenVariableSet } from '../WhenVariableSet';
 
@@ -27,10 +30,13 @@ const PICK_A_TRACE = 'Click a trace ID above, or enter one in **Trace ID**, to s
 
 const NO_TRACES = 'No traces. Needs CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1 and OTEL_TRACES_EXPORTER=otlp';
 
-function search(refId: string, query: string, tableType: 'traces' | 'spans') {
-  return new SceneQueryRunner({
-    datasource: TEMPO,
-    queries: [{ refId, queryType: 'traceql', query, limit: 50, spss: 20, tableType }],
+function search(refId: string, query: string, tableType: 'traces' | 'spans', columns: CustomTransformOperator) {
+  return new SceneDataTransformer({
+    $data: new SceneQueryRunner({
+      datasource: TEMPO,
+      queries: [{ refId, queryType: 'traceql', query, limit: 50, spss: 20, tableType }],
+    }),
+    transformations: [columns],
   });
 }
 
@@ -73,12 +79,13 @@ export function getTracesScene(
           height: PANEL_HEIGHTS.LARGE,
           children: [
             new SceneFlexItem({
+              width: '40%',
               body: PanelBuilders.table()
                 .setTitle('Interactions')
                 .setDescription(
                   'One row per prompt (a claude_code.interaction trace), newest first, with its prompt length and duration. Click a trace ID to show the trace below. The prompt text stays redacted unless OTEL_LOG_USER_PROMPTS=1.'
                 )
-                .setData(search('Interactions', q.interactions, 'traces'))
+                .setData(search('Interactions', q.interactions, 'traces', interactionColumns))
                 .setNoValue(NO_TRACES)
                 .setOverrides((b) => {
                   // Tempo already names the trace ID field "Trace ID", which is what the matcher compares.
@@ -87,19 +94,17 @@ export function getTracesScene(
                 .build(),
             }),
             new SceneFlexItem({
+              width: '60%',
               body: PanelBuilders.table()
                 .setTitle('Model Requests')
                 .setDescription(
-                  'Model requests (claude_code.llm_request spans) with their model, time to first token (ttft_ms), duration and stop reason. Click a trace ID to show the trace below.'
+                  'Model requests (claude_code.llm_request spans) with their model, time to first token, duration and stop reason. Click a trace ID to show the trace below.'
                 )
-                .setData(search('ModelRequests', q.llmRequests, 'spans'))
+                .setData(search('ModelRequests', q.llmRequests, 'spans', modelRequestColumns))
                 .setNoValue(NO_TRACES)
                 .setOverrides((b) => {
-                  // Tempo hides the trace ID column of span results; show it so it can be clicked.
-                  b.matchFieldsWithName('traceIdHidden')
-                    .overrideDisplayName('Trace ID')
-                    .overrideCustomFieldConfig('hideFrom', { viz: false, legend: false, tooltip: false })
-                    .overrideLinks([openTrace]);
+                  // modelRequestColumns shows Tempo's hidden trace ID column as "Trace ID".
+                  b.matchFieldsWithName('Trace ID').overrideLinks([openTrace]);
                 })
                 .build(),
             }),

@@ -25,8 +25,8 @@ export function buildTraceQueries() {
     /** One row per prompt: the interaction root spans, newest first */
     interactions: `{${SERVICE} && name="claude_code.interaction" && ${MEMBER}} | select(span.user_prompt_length, span.interaction.duration_ms)`,
 
-    /** Model requests with their time to first token and duration */
-    llmRequests: `{${SERVICE} && name="claude_code.llm_request" && ${MEMBER}} | select(span.model, span.ttft_ms, span.duration_ms, span.stop_reason)`,
+    /** Model requests with their time to first token (Tempo adds each span's duration) */
+    llmRequests: `{${SERVICE} && name="claude_code.llm_request" && ${MEMBER}} | select(span.model, span.ttft_ms, span.stop_reason)`,
 
     /** The trace picked in the Trace ID variable */
     trace: '$trace',
