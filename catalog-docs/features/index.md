@@ -34,7 +34,7 @@ Every tab has the same controls above the panels:
 
 Team members are named by their Claude account email address. Without one, the app uses the `enduser.id` attribute, and then the anonymous ID Claude Code generates for each machine. For how to set `enduser.id`, refer to [Name team members who don't sign in with a Claude account](../index.md#name-team-members-who-dont-sign-in-with-a-claude-account). Usage with none of these appears as **Unattributed** in the per-member panels. It counts towards totals but not towards **Active Users**.
 
-The **Over Time** charts draw one stacked bar per interval, so the bars add up to the total for the period. An interval is wide enough that a chart has at most 60 bars, such as about 3 hours over 7 days, and at least 2 minutes. The current, unfinished interval isn't shown. Hover over the information icon next to a panel title to see what the panel measures.
+The **Over Time** charts draw one stacked bar per interval, estimated from the rate during that interval. The bars approximately add up to the total for the period. An interval is wide enough that a chart has at most 60 bars, such as about 3 hours over 7 days, and at least 2 minutes. The current, unfinished interval isn't shown. Hover over the information icon next to a panel title to see what the panel measures.
 
 Your choices carry over when you switch tabs and are saved in the URL, so you can share a filtered view by copying the link.
 

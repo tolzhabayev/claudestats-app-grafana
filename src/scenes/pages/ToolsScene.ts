@@ -164,7 +164,7 @@ export function getToolsScene(
               body: overTimeBars()
                 .setTitle('Tool Decisions Over Time')
                 .setDescription(
-                  'Accepted and rejected edit decisions per interval. Each bar is the total for one interval.'
+                  'Accepted and rejected edit decisions per interval. Each bar is an estimate for one interval.'
                 )
                 .setUnit('short')
                 .setData(toolDecisionsOverTimeQuery)
