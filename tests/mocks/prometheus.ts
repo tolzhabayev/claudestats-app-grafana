@@ -717,7 +717,7 @@ function traceSearchFrame(refId: string, r: { from: number; to: number }) {
     {
       name: 'traceDuration',
       type: 'number',
-      displayNameFromDS: 'Duration (ms)',
+      displayNameFromDS: 'Duration',
       values: TRACES.interactions.map((t) => t.durationMs),
     },
     {
@@ -771,7 +771,23 @@ function traceSearchFrame(refId: string, r: { from: number; to: number }) {
       ]),
     },
   ]) as { schema: { name?: string; meta?: Record<string, unknown> } };
-  // Shaped like Grafana's Tempo backend response: a "Traces" table frame.
+  // Shaped like Grafana's Tempo backend response: a "Traces" table frame, whose
+  // trace ID carries Tempo's own link and whose duration is in ms.
+  const fields = (frame.schema as unknown as { fields: Array<{ config?: Record<string, unknown> }> }).fields;
+  fields[0].config = {
+    displayNameFromDS: 'Trace ID',
+    links: [
+      {
+        title: 'Trace: ${__value.raw}',
+        internal: {
+          query: { query: '${__value.raw}', queryType: 'traceql' },
+          datasourceUid: 'tempo',
+          datasourceName: 'Tempo',
+        },
+      },
+    ],
+  };
+  fields[4].config = { displayNameFromDS: 'Duration', unit: 'ms', noValue: '<1 ms' };
   frame.schema.name = 'Traces';
   frame.schema.meta = { typeVersion: [0, 0], preferredVisualisationType: 'table', uniqueRowIdFields: [0] };
   return [frame];
@@ -793,26 +809,120 @@ function traceFrame(refId: string) {
   return [frame];
 }
 
-// A TraceQL span search (model requests), shaped like Tempo's "Spans" table.
+// A TraceQL span search (model requests), copied from the "Spans" table frame a
+// real Tempo 2.6 returns: the trace ID comes hidden, the trace's service and name
+// come first, every attribute the query mentions follows (including the member
+// filter's user.email), and the duration is in nanoseconds. The first row's root
+// span hasn't arrived yet, as happens while a prompt is still running.
 function spanSearchFrame(refId: string, r: { from: number; to: number }) {
   const rows = TRACES.llmRequests;
-  const frame = makeFrame(refId, [
-    { name: 'traceIdHidden', type: 'string', values: rows.map((x) => x.traceID) },
+  const field = (
+    name: string,
+    type: string,
+    frameType: string,
+    config: Record<string, unknown>,
+    values: unknown[]
+  ) => ({
+    schema: { name, type, typeInfo: { frame: frameType }, config },
+    values,
+  });
+  const fields = [
+    field(
+      'traceIdHidden',
+      'string',
+      'string',
+      { custom: { hideFrom: { viz: true } } },
+      rows.map((x) => x.traceID)
+    ),
+    field(
+      'traceService',
+      'string',
+      'string',
+      { displayNameFromDS: 'Trace Service', custom: { width: 200 } },
+      rows.map((_, i) => (i === 0 ? '<root span not yet received>' : 'claude-code'))
+    ),
+    field(
+      'traceName',
+      'string',
+      'string',
+      { displayNameFromDS: 'Trace Name', custom: { width: 200 } },
+      rows.map((_, i) => (i === 0 ? '' : 'claude_code.interaction'))
+    ),
+    field(
+      'spanID',
+      'string',
+      'string',
+      { displayNameFromDS: 'Span ID', unit: 'string', custom: { width: 200 } },
+      rows.map((_, i) => `llm${i}`)
+    ),
+    field(
+      'time',
+      'time',
+      'time.Time',
+      { displayNameFromDS: 'Start time' },
+      rows.map((_, i) => r.to - (i + 1) * 1800_000)
+    ),
+    field(
+      'name',
+      'string',
+      'string',
+      { displayNameFromDS: 'Name', custom: { hideFrom: { viz: false } } },
+      rows.map(() => 'claude_code.llm_request')
+    ),
+    field(
+      'model',
+      'string',
+      'string',
+      { displayNameFromDS: 'model' },
+      rows.map((x) => x.model)
+    ),
+    field(
+      'service.name',
+      'string',
+      'string',
+      { displayNameFromDS: 'service.name' },
+      rows.map(() => 'claude-code')
+    ),
+    field(
+      'stop_reason',
+      'string',
+      'string',
+      { displayNameFromDS: 'stop_reason' },
+      rows.map((x) => x.stopReason)
+    ),
+    field(
+      'ttft_ms',
+      'number',
+      'int64',
+      { displayNameFromDS: 'ttft_ms' },
+      rows.map((x) => x.ttftMs)
+    ),
+    field(
+      'user.email',
+      'string',
+      'string',
+      { displayNameFromDS: 'user.email' },
+      rows.map(() => MEMBERS[0])
+    ),
+    field(
+      'duration',
+      'number',
+      'float64',
+      { displayNameFromDS: 'Duration', unit: 'ns', custom: { width: 120 } },
+      rows.map((x) => x.durationMs * 1e6)
+    ),
+  ];
+  return [
     {
-      name: 'time',
-      type: 'time',
-      displayNameFromDS: 'Start time',
-      values: rows.map((_, i) => r.to - (i + 1) * 1800_000),
+      schema: {
+        refId,
+        name: 'Spans',
+        meta: { typeVersion: [0, 0], preferredVisualisationType: 'table' },
+        fields: fields.map((f) => f.schema),
+      },
+      data: { values: fields.map((f) => f.values) },
     },
-    { name: 'name', type: 'string', displayNameFromDS: 'Name', values: rows.map(() => 'claude_code.llm_request') },
-    { name: 'model', type: 'string', displayNameFromDS: 'model', values: rows.map((x) => x.model) },
-    { name: 'ttft_ms', type: 'number', displayNameFromDS: 'ttft_ms', values: rows.map((x) => x.ttftMs) },
-    { name: 'stop_reason', type: 'string', displayNameFromDS: 'stop_reason', values: rows.map((x) => x.stopReason) },
-    { name: 'duration', type: 'number', displayNameFromDS: 'Duration (ms)', values: rows.map((x) => x.durationMs) },
-  ]) as { schema: { name?: string; meta?: Record<string, unknown> } };
-  frame.schema.name = 'Spans';
-  frame.schema.meta = { typeVersion: [0, 0], preferredVisualisationType: 'table' };
-  return [frame];
+  ];
 }
 
 Object.assign(DATASET, {
