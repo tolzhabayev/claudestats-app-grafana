@@ -9,7 +9,7 @@ Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into 
 - **Overview:** Total cost, tokens, sessions and active users, efficiency ratios such as cache hit rate and cost per session, a team leaderboard, trends and an environment breakdown.
 - **Costs:** Spend by model and team member, and what drives it: subagents, skills, plugins, MCP servers and tools, fast mode and effort level.
 - **Tokens:** Token volume by type, including prompt cache reads and writes, by model and team member.
-- **Tools:** How often team members accept the file edits Claude Code proposes.
+- **Tools:** How often team members accept the file edits Claude Code proposes, and how every tool performs: calls, failure rate, latency and error types.
 - **Productivity:** Lines of code, commits, pull requests and active time.
 - **Reliability:** API errors by status code, model and retry attempts, exhausted retries and refusals by category, from the events Claude Code sends to Loki.
 
