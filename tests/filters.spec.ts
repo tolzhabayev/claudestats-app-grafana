@@ -160,7 +160,7 @@ test.describe('Filter dimensions', () => {
           status: 'success',
           data: {
             resultType: 'vector',
-            result: ['eng', 'platform'].map((item) => ({ metric: { item }, value: [0, '1'] })),
+            result: ['eng', 'platform', 'Platform "EU"'].map((item) => ({ metric: { item }, value: [0, '1'] })),
           },
         },
       });
@@ -168,6 +168,8 @@ test.describe('Filter dimensions', () => {
 
     await gotoPage('productivity');
     const requests = queriesWith(page, 'user_groups=~"(.*,)?(platform)(,.*)?"', ['TotalCommits', 'ActiveTimeByMember']);
+    // A group name with quotes is listed whole.
+    await selectOption(page, 'Team', 'Platform "EU"');
     await selectOption(page, 'Team', 'platform');
     await requests;
   });

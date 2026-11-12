@@ -208,6 +208,51 @@ export const WORKFLOW = {
   },
 };
 
+// Traces tab (Tempo, beta): two interactions and the spans of the first one.
+export const TRACES = {
+  interactions: [
+    { traceID: '4bf92f3577b34da6a3ce929d0e0e4736', durationMs: 41200 },
+    { traceID: '00f067aa0ba902b74bf92f3577b34da6', durationMs: 12800 },
+  ],
+  llmRequests: [
+    {
+      traceID: '4bf92f3577b34da6a3ce929d0e0e4736',
+      model: MODELS[1],
+      ttftMs: 1840,
+      durationMs: 9600,
+      stopReason: 'tool_use',
+    },
+    {
+      traceID: '4bf92f3577b34da6a3ce929d0e0e4736',
+      model: MODELS[1],
+      ttftMs: 1210,
+      durationMs: 7300,
+      stopReason: 'end_turn',
+    },
+    {
+      traceID: '00f067aa0ba902b74bf92f3577b34da6',
+      model: MODELS[0],
+      ttftMs: 640,
+      durationMs: 4100,
+      stopReason: 'end_turn',
+    },
+  ],
+  spans: [
+    { spanID: 'a1', parentSpanID: '', operationName: 'claude_code.interaction', start: 0, duration: 41200 },
+    { spanID: 'b1', parentSpanID: 'a1', operationName: 'claude_code.llm_request', start: 20, duration: 9600 },
+    { spanID: 'c1', parentSpanID: 'a1', operationName: 'claude_code.tool', start: 9700, duration: 24000 },
+    {
+      spanID: 'c2',
+      parentSpanID: 'c1',
+      operationName: 'claude_code.tool.blocked_on_user',
+      start: 9700,
+      duration: 3100,
+    },
+    { spanID: 'c3', parentSpanID: 'c1', operationName: 'claude_code.tool.execution', start: 12800, duration: 20900 },
+    { spanID: 'b2', parentSpanID: 'a1', operationName: 'claude_code.llm_request', start: 33800, duration: 7300 },
+  ],
+};
+
 // Security tab (permission, decision, auth, plugin and managed settings events in Loki).
 export const SECURITY = {
   escalations: 7,
@@ -264,6 +309,14 @@ export const SCALARS = {
   CostPerActiveHour: sum(COST.byMember) / (sum(ACTIVE_TIME_BY_MEMBER) / 3600),
 } as const;
 
+// Change against the previous period for the Overview totals (percent).
+export const TRENDS = {
+  TotalCostChange: 24,
+  TotalTokensChange: 18,
+  TotalSessionsChange: -6,
+  ActiveUsersChange: 0,
+} as const;
+
 // How the stat panels render SCALARS, for spec assertions.
 export const DISPLAY = {
   TotalCost: '487',
@@ -285,7 +338,7 @@ export const DISPLAY = {
 
 // ==================== Dataframe builders ====================
 
-type FieldType = 'time' | 'number' | 'string';
+type FieldType = 'time' | 'number' | 'string' | 'other';
 
 interface FieldSpec {
   name: string;
@@ -295,13 +348,14 @@ interface FieldSpec {
   displayNameFromDS?: string;
   // Time-field interval (ms) the data source reports, which Grafana uses as the bar width.
   interval?: number;
-  values: Array<number | string>;
+  values: unknown[];
 }
 
 const TYPE_INFO: Record<FieldType, { frame: string }> = {
   time: { frame: 'time.Time' },
   number: { frame: 'float64' },
   string: { frame: 'string' },
+  other: { frame: 'json.RawMessage' },
 };
 
 function makeFrame(refId: string, fields: FieldSpec[], meta?: Record<string, unknown>) {
@@ -621,6 +675,147 @@ for (const [column, byMember] of Object.entries(LEADERBOARD)) {
       ])
     );
 }
+
+Object.assign(
+  DATASET,
+  Object.fromEntries(Object.entries(TRENDS).map(([refId, value]) => [refId, (id: string) => scalarFrame(id, value)]))
+);
+
+// --- traces (Tempo) ---
+// A TraceQL search as a table (one row per trace), and a single trace for the waterfall.
+function traceSearchFrame(refId: string, r: { from: number; to: number }) {
+  const frame = makeFrame(refId, [
+    // Tempo names this field "Trace ID" for display.
+    {
+      name: 'traceID',
+      type: 'string',
+      displayNameFromDS: 'Trace ID',
+      values: TRACES.interactions.map((t) => t.traceID),
+    },
+    {
+      name: 'startTime',
+      type: 'time',
+      displayNameFromDS: 'Start time',
+      values: TRACES.interactions.map((_, i) => r.to - (i + 1) * 3600_000),
+    },
+    {
+      name: 'traceService',
+      type: 'string',
+      displayNameFromDS: 'Service',
+      values: TRACES.interactions.map(() => 'claude-code'),
+    },
+    {
+      name: 'traceName',
+      type: 'string',
+      displayNameFromDS: 'Name',
+      values: TRACES.interactions.map(() => 'claude_code.interaction'),
+    },
+    {
+      name: 'traceDuration',
+      type: 'number',
+      displayNameFromDS: 'Duration (ms)',
+      values: TRACES.interactions.map((t) => t.durationMs),
+    },
+    {
+      name: 'nested',
+      type: 'other',
+      // Each trace's matching spans, as Tempo's backend sends them: a "Spans"
+      // frame whose fields all carry a config object.
+      values: TRACES.interactions.map((t, i) => [
+        {
+          schema: {
+            name: 'Spans',
+            meta: { typeVersion: [0, 0], preferredVisualisationType: 'table' },
+            fields: [
+              {
+                name: 'traceIdHidden',
+                type: 'string',
+                typeInfo: { frame: 'string' },
+                config: { custom: { hideFrom: { viz: true } } },
+              },
+              {
+                name: 'spanID',
+                type: 'string',
+                typeInfo: { frame: 'string' },
+                config: { displayNameFromDS: 'Span ID' },
+              },
+              {
+                name: 'time',
+                type: 'time',
+                typeInfo: { frame: 'time.Time' },
+                config: { displayNameFromDS: 'Start time' },
+              },
+              { name: 'name', type: 'string', typeInfo: { frame: 'string' }, config: { displayNameFromDS: 'Name' } },
+              {
+                name: 'duration',
+                type: 'number',
+                typeInfo: { frame: 'float64' },
+                config: { displayNameFromDS: 'Duration', unit: 'ns' },
+              },
+            ],
+          },
+          data: {
+            values: [
+              [t.traceID],
+              [`root${i}`],
+              [r.to - (i + 1) * 3600_000],
+              ['claude_code.interaction'],
+              [t.durationMs * 1e6],
+            ],
+          },
+        },
+      ]),
+    },
+  ]) as { schema: { name?: string; meta?: Record<string, unknown> } };
+  // Shaped like Grafana's Tempo backend response: a "Traces" table frame.
+  frame.schema.name = 'Traces';
+  frame.schema.meta = { typeVersion: [0, 0], preferredVisualisationType: 'table', uniqueRowIdFields: [0] };
+  return [frame];
+}
+
+function traceFrame(refId: string) {
+  // Trace-by-ID queries are sent with from/to 0, so anchor the spans to now.
+  const start = Date.now() - 3600_000;
+  const frame = makeFrame(refId, [
+    { name: 'traceID', type: 'string', values: TRACES.spans.map(() => TRACES.interactions[0].traceID) },
+    { name: 'spanID', type: 'string', values: TRACES.spans.map((s) => s.spanID) },
+    { name: 'parentSpanID', type: 'string', values: TRACES.spans.map((s) => s.parentSpanID) },
+    { name: 'operationName', type: 'string', values: TRACES.spans.map((s) => s.operationName) },
+    { name: 'serviceName', type: 'string', values: TRACES.spans.map(() => 'claude-code') },
+    { name: 'startTime', type: 'number', values: TRACES.spans.map((s) => start + s.start) },
+    { name: 'duration', type: 'number', values: TRACES.spans.map((s) => s.duration) },
+  ]) as { schema: { meta?: Record<string, unknown> } };
+  frame.schema.meta = { preferredVisualisationType: 'trace' };
+  return [frame];
+}
+
+// A TraceQL span search (model requests), shaped like Tempo's "Spans" table.
+function spanSearchFrame(refId: string, r: { from: number; to: number }) {
+  const rows = TRACES.llmRequests;
+  const frame = makeFrame(refId, [
+    { name: 'traceIdHidden', type: 'string', values: rows.map((x) => x.traceID) },
+    {
+      name: 'time',
+      type: 'time',
+      displayNameFromDS: 'Start time',
+      values: rows.map((_, i) => r.to - (i + 1) * 1800_000),
+    },
+    { name: 'name', type: 'string', displayNameFromDS: 'Name', values: rows.map(() => 'claude_code.llm_request') },
+    { name: 'model', type: 'string', displayNameFromDS: 'model', values: rows.map((x) => x.model) },
+    { name: 'ttft_ms', type: 'number', displayNameFromDS: 'ttft_ms', values: rows.map((x) => x.ttftMs) },
+    { name: 'stop_reason', type: 'string', displayNameFromDS: 'stop_reason', values: rows.map((x) => x.stopReason) },
+    { name: 'duration', type: 'number', displayNameFromDS: 'Duration (ms)', values: rows.map((x) => x.durationMs) },
+  ]) as { schema: { name?: string; meta?: Record<string, unknown> } };
+  frame.schema.name = 'Spans';
+  frame.schema.meta = { typeVersion: [0, 0], preferredVisualisationType: 'table' };
+  return [frame];
+}
+
+Object.assign(DATASET, {
+  Interactions: traceSearchFrame,
+  ModelRequests: spanSearchFrame,
+  Trace: traceFrame,
+} satisfies Record<string, FrameBuilder>);
 
 // ==================== Route handlers ====================
 

@@ -4,6 +4,8 @@ import {
   ACTIVE_TIME_TYPES,
   DISPLAY,
   LEADERBOARD,
+  TRENDS,
+  mockEmptyPanels,
   MODELS,
   MEMBERS,
   TOKEN_TYPES,
@@ -14,6 +16,13 @@ import {
   START_TYPES,
 } from './mocks/prometheus';
 
+const TREND_PANELS = [
+  ['TotalCostChange', 'Cost'],
+  ['TotalTokensChange', 'Tokens'],
+  ['TotalSessionsChange', 'Sessions'],
+  ['ActiveUsersChange', 'Active Users'],
+] as const;
+
 test.describe('Overview scene', () => {
   test('renders the stat row with mocked totals', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage();
@@ -22,6 +31,24 @@ test.describe('Overview scene', () => {
     await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText(DISPLAY.TotalTokens);
     await expect(panelByTitle(app, selectors, 'Sessions')).toContainText(DISPLAY.TotalSessions);
     await expect(panelByTitle(app, selectors, 'Active Users')).toContainText(DISPLAY.ActiveUsers);
+  });
+
+  test('shows how each total changed against the previous period', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage();
+
+    for (const [refId, name] of TREND_PANELS) {
+      await expect(panelByTitle(app, selectors, `${name} vs Previous Period`)).toContainText(`${TRENDS[refId]}%`);
+    }
+  });
+
+  test('keeps an empty comparison in its own slot', async ({ mockData, gotoPage, page, selectors }) => {
+    await mockEmptyPanels(page, ['TotalTokensChange']);
+    const app = await gotoPage();
+
+    await expect(panelByTitle(app, selectors, 'Tokens vs Previous Period')).toContainText('No previous period');
+    for (const [refId, name] of TREND_PANELS.filter(([refId]) => refId !== 'TotalTokensChange')) {
+      await expect(panelByTitle(app, selectors, `${name} vs Previous Period`)).toContainText(`${TRENDS[refId]}%`);
+    }
   });
 
   test('renders the efficiency ratios', async ({ mockData, gotoPage, selectors }) => {
