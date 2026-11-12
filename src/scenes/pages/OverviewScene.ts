@@ -14,7 +14,7 @@ import {
 import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, changeVsPrevious, QUERIES, Queries } from '../queries';
 import { OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
-import { PANEL_HEIGHTS } from '../../constants';
+import { LABELS, PANEL_HEIGHTS } from '../../constants';
 import { teamLeaderboard } from './leaderboard';
 
 /** A single-value stat for an efficiency ratio. */
@@ -182,6 +182,17 @@ export function getOverviewScene(
   });
 
   // Environment queries
+  const usageByEntrypointQuery = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [
+      {
+        refId: 'UsageByEntrypoint',
+        expr: queries.usageByEntrypoint,
+        legendFormat: `{{${LABELS.ENTRYPOINT}}}`,
+        instant: true,
+      },
+    ],
+  });
   const usageByOsTypeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: [
@@ -421,13 +432,13 @@ export function getOverviewScene(
             }),
           ],
         }),
-        // Row 4: Environment
+        // Row 4: Environment (adoption details, so a slimmer row at the bottom)
         new SceneFlexLayout({
           direction: 'row',
-          height: PANEL_HEIGHTS.MEDIUM,
+          height: 170,
           children: [
             new SceneFlexItem({
-              width: '25%',
+              width: '20%',
               body: PanelBuilders.piechart()
                 .setTitle('OS Type')
                 .setDescription('Usage split by operating system, weighted by cost.')
@@ -437,7 +448,7 @@ export function getOverviewScene(
                 .build(),
             }),
             new SceneFlexItem({
-              width: '25%',
+              width: '20%',
               body: PanelBuilders.piechart()
                 .setTitle('Architecture')
                 .setDescription('Usage split by host architecture, weighted by cost.')
@@ -447,7 +458,7 @@ export function getOverviewScene(
                 .build(),
             }),
             new SceneFlexItem({
-              width: '25%',
+              width: '20%',
               body: PanelBuilders.piechart()
                 .setTitle('Terminal')
                 .setDescription('Usage split by terminal type, weighted by cost.')
@@ -457,13 +468,26 @@ export function getOverviewScene(
                 .build(),
             }),
             new SceneFlexItem({
-              width: '25%',
+              width: '20%',
               body: PanelBuilders.piechart()
                 .setTitle('Claude Code Version')
                 .setDescription('Usage split by Claude Code version, weighted by cost.')
                 .setData(usageByServiceVersionQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
                 .setOption('pieType', 'donut' as never)
+                .build(),
+            }),
+            new SceneFlexItem({
+              width: '20%',
+              body: PanelBuilders.piechart()
+                .setTitle('Surface')
+                .setDescription(
+                  'Usage split by where Claude Code ran: the CLI, the VS Code extension, the desktop app or the SDK, weighted by cost.'
+                )
+                .setData(usageByEntrypointQuery)
+                .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
+                .setOption('pieType', 'donut' as never)
+                .setNoValue('Needs OTEL_METRICS_INCLUDE_ENTRYPOINT=true')
                 .build(),
             }),
           ],

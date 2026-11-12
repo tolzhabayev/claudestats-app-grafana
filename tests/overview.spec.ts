@@ -13,6 +13,7 @@ import {
   HOST_ARCHES,
   TERMINAL_TYPES,
   SERVICE_VERSIONS,
+  ENTRYPOINTS,
   START_TYPES,
 } from './mocks/prometheus';
 
@@ -49,6 +50,21 @@ test.describe('Overview scene', () => {
     for (const [refId, name] of TREND_PANELS.filter(([refId]) => refId !== 'TotalTokensChange')) {
       await expect(panelByTitle(app, selectors, `${name} vs Previous Period`)).toContainText(`${TRENDS[refId]}%`);
     }
+  });
+
+  test('shows usage by surface, with a hint when entrypoints are not sent', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    let app = await gotoPage();
+    for (const entrypoint of ENTRYPOINTS) {
+      await expect(legendItem(app, selectors, 'Surface', entrypoint)).toBeVisible();
+    }
+    await mockEmptyPanels(page, ['UsageByEntrypoint']);
+    app = await gotoPage();
+    await expect(panelByTitle(app, selectors, 'Surface')).toContainText('OTEL_METRICS_INCLUDE_ENTRYPOINT=true');
   });
 
   test('renders the efficiency ratios', async ({ mockData, gotoPage, selectors }) => {

@@ -326,6 +326,7 @@ export function getTokensScene(
                 'Tokens by Subagent',
                 'short',
                 {
+                  noValue: 'No subagent ran in this period',
                   description:
                     'Tokens by the subagent type that issued the request. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -347,6 +348,7 @@ export function getTokensScene(
                 'Tokens by Skill',
                 'short',
                 {
+                  noValue: 'No skill was active in this period',
                   description:
                     'Tokens by the skill that was active. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -361,6 +363,7 @@ export function getTokensScene(
                 'Tokens by MCP Server',
                 'short',
                 {
+                  noValue: 'No MCP tool result was used in this period',
                   description:
                     'Tokens by the MCP server whose tool result the request used. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -382,6 +385,7 @@ export function getTokensScene(
                 'Tokens by Plugin',
                 'short',
                 {
+                  noValue: 'No plugin skill or subagent ran in this period',
                   description:
                     'Tokens by the plugin that owns the active skill or subagent. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
@@ -396,6 +400,7 @@ export function getTokensScene(
                 'Tokens by MCP Tool',
                 'short',
                 {
+                  noValue: 'No MCP tool result was used in this period',
                   legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}',
                   description:
                     'Tokens by MCP tool, shown as server / tool, for requests that used an MCP tool result. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',

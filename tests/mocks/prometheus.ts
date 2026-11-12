@@ -40,6 +40,8 @@ export const OS_TYPES = ['darwin', 'linux'] as const;
 export const HOST_ARCHES = ['arm64', 'x64'] as const;
 export const TERMINAL_TYPES = ['vscode', 'iTerm.app'] as const;
 export const SERVICE_VERSIONS = ['2.1.322', '2.1.310'] as const;
+// `app_entrypoint` values (OTEL_METRICS_INCLUDE_ENTRYPOINT=true).
+export const ENTRYPOINTS = ['cli', 'vscode', 'desktop'] as const;
 // Session start types emitted on claude_code_session_count_total.
 export const START_TYPES = ['fresh', 'resume', 'continue', 'agents_view'] as const;
 // Attribution dimensions (what is driving spend).
@@ -101,6 +103,7 @@ const COST = {
   byHostArch: { arm64: 381.25, x64: 106.0 },
   byTerminalType: { vscode: 274.85, 'iTerm.app': 212.4 },
   byServiceVersion: { '2.1.322': 398.75, '2.1.310': 88.5 },
+  byEntrypoint: { cli: 296.4, vscode: 152.1, desktop: 38.75 },
 };
 
 const M = 1_000_000;
@@ -432,6 +435,7 @@ const DATASET: Record<string, FrameBuilder> = {
   UsageByHostArch: (id) => instantSeriesFrames(id, 'host_arch', COST.byHostArch),
   UsageByTerminalType: (id) => instantSeriesFrames(id, 'terminal_type', COST.byTerminalType),
   UsageByServiceVersion: (id) => instantSeriesFrames(id, 'service_version', COST.byServiceVersion),
+  UsageByEntrypoint: (id) => instantSeriesFrames(id, 'app_entrypoint', COST.byEntrypoint),
 
   // --- tools ---
   ToolDecisions: (id) => instantSeriesFrames(id, 'decision', DECISIONS_BY_TYPE),

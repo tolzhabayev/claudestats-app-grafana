@@ -52,7 +52,7 @@ The second row shows three ratios for the period:
 
 ## Check your team's environment
 
-The bottom row shows how usage splits across environments, weighted by cost: **OS Type**, **Architecture**, **Terminal** and **Claude Code Version**.
+The bottom row shows how usage splits across environments, weighted by cost: **OS Type**, **Architecture**, **Terminal**, **Claude Code Version** and **Surface**. **Surface** shows where Claude Code ran, such as the CLI, the VS Code extension, the desktop app or the SDK. It needs `OTEL_METRICS_INCLUDE_ENTRYPOINT=true` and says so when it's missing.
 
 ## Filters on this tab
 
