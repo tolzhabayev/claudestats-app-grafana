@@ -10,6 +10,7 @@ export const ROUTES = {
   Tokens: 'tokens',
   Tools: 'tools',
   Reliability: 'reliability',
+  Traces: 'traces',
   Prompts: 'prompts',
   Workflow: 'workflow',
   Productivity: 'productivity',

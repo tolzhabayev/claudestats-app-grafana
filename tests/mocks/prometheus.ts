@@ -208,6 +208,28 @@ export const WORKFLOW = {
   },
 };
 
+// Traces tab (Tempo, beta): two interactions and the spans of the first one.
+export const TRACES = {
+  interactions: [
+    { traceID: '4bf92f3577b34da6a3ce929d0e0e4736', durationMs: 41200 },
+    { traceID: '00f067aa0ba902b74bf92f3577b34da6', durationMs: 12800 },
+  ],
+  spans: [
+    { spanID: 'a1', parentSpanID: '', operationName: 'claude_code.interaction', start: 0, duration: 41200 },
+    { spanID: 'b1', parentSpanID: 'a1', operationName: 'claude_code.llm_request', start: 20, duration: 9600 },
+    { spanID: 'c1', parentSpanID: 'a1', operationName: 'claude_code.tool', start: 9700, duration: 24000 },
+    {
+      spanID: 'c2',
+      parentSpanID: 'c1',
+      operationName: 'claude_code.tool.blocked_on_user',
+      start: 9700,
+      duration: 3100,
+    },
+    { spanID: 'c3', parentSpanID: 'c1', operationName: 'claude_code.tool.execution', start: 12800, duration: 20900 },
+    { spanID: 'b2', parentSpanID: 'a1', operationName: 'claude_code.llm_request', start: 33800, duration: 7300 },
+  ],
+};
+
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
   // Unattributed usage (no identity) comes back from the query but isn't listed.
@@ -263,7 +285,7 @@ export const DISPLAY = {
 
 // ==================== Dataframe builders ====================
 
-type FieldType = 'time' | 'number' | 'string';
+type FieldType = 'time' | 'number' | 'string' | 'other';
 
 interface FieldSpec {
   name: string;
@@ -273,13 +295,14 @@ interface FieldSpec {
   displayNameFromDS?: string;
   // Time-field interval (ms) the data source reports, which Grafana uses as the bar width.
   interval?: number;
-  values: Array<number | string>;
+  values: unknown[];
 }
 
 const TYPE_INFO: Record<FieldType, { frame: string }> = {
   time: { frame: 'time.Time' },
   number: { frame: 'float64' },
   string: { frame: 'string' },
+  other: { frame: 'json.RawMessage' },
 };
 
 function makeFrame(refId: string, fields: FieldSpec[], meta?: Record<string, unknown>) {
@@ -585,6 +608,100 @@ for (const [column, byMember] of Object.entries(LEADERBOARD)) {
       ])
     );
 }
+
+// --- traces (Tempo) ---
+// A TraceQL search as a table (one row per trace), and a single trace for the waterfall.
+function traceSearchFrame(refId: string, r: { from: number; to: number }) {
+  const frame = makeFrame(refId, [
+    // Tempo names this field "Trace ID" for display.
+    {
+      name: 'traceID',
+      type: 'string',
+      displayNameFromDS: 'Trace ID',
+      values: TRACES.interactions.map((t) => t.traceID),
+    },
+    { name: 'startTime', type: 'time', values: TRACES.interactions.map((_, i) => r.to - (i + 1) * 3600_000) },
+    { name: 'traceService', type: 'string', values: TRACES.interactions.map(() => 'claude-code') },
+    { name: 'traceName', type: 'string', values: TRACES.interactions.map(() => 'claude_code.interaction') },
+    { name: 'traceDuration', type: 'number', values: TRACES.interactions.map((t) => t.durationMs) },
+    // Each trace's matching spans; the Tempo frontend expects the column.
+    {
+      name: 'nested',
+      type: 'other',
+      // Each trace's matching spans, as Tempo's backend sends them: a "Spans"
+      // frame whose fields all carry a config object.
+      values: TRACES.interactions.map((t, i) => [
+        {
+          schema: {
+            name: 'Spans',
+            meta: { typeVersion: [0, 0], preferredVisualisationType: 'table' },
+            fields: [
+              {
+                name: 'traceIdHidden',
+                type: 'string',
+                typeInfo: { frame: 'string' },
+                config: { custom: { hideFrom: { viz: true } } },
+              },
+              {
+                name: 'spanID',
+                type: 'string',
+                typeInfo: { frame: 'string' },
+                config: { displayNameFromDS: 'Span ID' },
+              },
+              {
+                name: 'time',
+                type: 'time',
+                typeInfo: { frame: 'time.Time' },
+                config: { displayNameFromDS: 'Start time' },
+              },
+              { name: 'name', type: 'string', typeInfo: { frame: 'string' }, config: { displayNameFromDS: 'Name' } },
+              {
+                name: 'duration',
+                type: 'number',
+                typeInfo: { frame: 'float64' },
+                config: { displayNameFromDS: 'Duration', unit: 'ns' },
+              },
+            ],
+          },
+          data: {
+            values: [
+              [t.traceID],
+              [`root${i}`],
+              [r.to - (i + 1) * 3600_000],
+              ['claude_code.interaction'],
+              [t.durationMs * 1e6],
+            ],
+          },
+        },
+      ]),
+    },
+  ]) as { schema: { name?: string; meta?: Record<string, unknown> } };
+  // Shaped like Grafana's Tempo backend response: a "Traces" table frame.
+  frame.schema.name = 'Traces';
+  frame.schema.meta = { typeVersion: [0, 0], preferredVisualisationType: 'table', uniqueRowIdFields: [0] };
+  return [frame];
+}
+
+function traceFrame(refId: string, r: { from: number; to: number }) {
+  const start = r.to - 3600_000;
+  const frame = makeFrame(refId, [
+    { name: 'traceID', type: 'string', values: TRACES.spans.map(() => TRACES.interactions[0].traceID) },
+    { name: 'spanID', type: 'string', values: TRACES.spans.map((s) => s.spanID) },
+    { name: 'parentSpanID', type: 'string', values: TRACES.spans.map((s) => s.parentSpanID) },
+    { name: 'operationName', type: 'string', values: TRACES.spans.map((s) => s.operationName) },
+    { name: 'serviceName', type: 'string', values: TRACES.spans.map(() => 'claude-code') },
+    { name: 'startTime', type: 'number', values: TRACES.spans.map((s) => start + s.start) },
+    { name: 'duration', type: 'number', values: TRACES.spans.map((s) => s.duration) },
+  ]) as { schema: { meta?: Record<string, unknown> } };
+  frame.schema.meta = { preferredVisualisationType: 'trace' };
+  return [frame];
+}
+
+Object.assign(DATASET, {
+  Interactions: traceSearchFrame,
+  ModelRequests: traceSearchFrame,
+  Trace: traceFrame,
+} satisfies Record<string, FrameBuilder>);
 
 // ==================== Route handlers ====================
 
