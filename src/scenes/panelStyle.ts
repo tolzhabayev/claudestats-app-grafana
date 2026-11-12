@@ -2,12 +2,11 @@ import { PanelBuilders } from '@grafana/scenes';
 import { BarAlignment, GraphDrawStyle, StackingMode, VisibilityMode } from '@grafana/schema';
 
 /**
- * Query options for the "Over Time" panels. Each point is the `increase()` over
- * one `$__interval`, so the bars add up to the period's total. Capping the
- * points keeps bars readable (about 3 hours each over 7 days). The minimum is
- * kept short because Grafana aligns the query end down to a whole step, so the
- * newest partial interval (up to one step) is never shown; 2 minutes still
- * spans two samples of a counter Claude Code exports once a minute.
+ * Query options for the "Over Time" panels. Each point is the amount for one
+ * `$__interval` (see the Over Time queries in queries.ts). Capping the points
+ * keeps bars readable (about 3 hours each over 7 days). The minimum is kept
+ * short because Grafana aligns the query end down to a whole step, so the
+ * newest partial interval (up to one step) is never shown.
  */
 export const OVER_TIME_QUERY_OPTIONS = { maxDataPoints: 60, minInterval: '2m' } as const;
 

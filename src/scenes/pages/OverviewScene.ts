@@ -251,7 +251,7 @@ export function getOverviewScene(
               body: overTimeBars()
                 .setTitle('Cost Over Time')
                 .setDescription(
-                  'Estimated cost per interval, one series per model. Each bar is the total for one interval.'
+                  'Estimated cost per interval, one series per model. Each bar is an estimate for one interval.'
                 )
                 .setUnit('currencyUSD')
                 .setData(costOverTimeQuery)
@@ -285,7 +285,7 @@ export function getOverviewScene(
               width: '40%',
               body: overTimeBars()
                 .setTitle('Token Usage Over Time')
-                .setDescription('Tokens per interval, stacked by token type. Each bar is the total for one interval.')
+                .setDescription('Tokens per interval, stacked by token type. Each bar is an estimate for one interval.')
                 .setUnit('short')
                 .setData(tokensOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
@@ -296,7 +296,7 @@ export function getOverviewScene(
               body: overTimeBars()
                 .setTitle('Active Time Over Time')
                 .setDescription(
-                  'Active time per interval, stacked as User (interaction, such as typing) and CLI (running tools and generating responses). Each bar is the total for one interval.'
+                  'Active time per interval, stacked as User (interaction, such as typing) and CLI (running tools and generating responses). Each bar is an estimate for one interval.'
                 )
                 .setUnit('s')
                 .setData(activeTimeOverTimeQuery)

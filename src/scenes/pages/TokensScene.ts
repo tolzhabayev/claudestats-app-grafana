@@ -256,7 +256,7 @@ export function getTokensScene(
               width: '65%',
               body: overTimeBars()
                 .setTitle('Token Usage Over Time')
-                .setDescription('Tokens per interval, stacked by token type. Each bar is the total for one interval.')
+                .setDescription('Tokens per interval, stacked by token type. Each bar is an estimate for one interval.')
                 .setUnit('short')
                 .setData(tokensOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })

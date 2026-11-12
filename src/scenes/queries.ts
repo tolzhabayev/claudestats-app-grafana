@@ -51,6 +51,11 @@ export function memberValuesQuery(m: MetricNames): string {
   return `query_result(count by (${LABELS.MEMBER}) (${resolveMember(`max_over_time(${m.COST_USAGE}[$__range])`)}))`;
 }
 
+// "Over Time" queries: rate() over $__rate_interval (which overlaps the previous
+// step by a scrape interval, so a counter jump between two bars isn't lost)
+// times the bar length gives the amount per bar. Adjacent increase() windows
+// would each miss the jump between their last and the next window's first sample.
+
 /**
  * PromQL query builders for Claude Code metrics.
  *
@@ -82,10 +87,10 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     costByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.COST_USAGE, `${LABELS.MODEL}=~"$model"`)}[$__range])`)})`,
 
     /** Cost over time (rate) */
-    costOverTime: `sum(${scoped('increase', m.COST_USAGE, '$__interval', `${LABELS.MODEL}=~"$model"`)}) by (${LABELS.MODEL})`,
+    costOverTime: `(sum(${scoped('rate', m.COST_USAGE, '$__rate_interval', `${LABELS.MODEL}=~"$model"`)}) by (${LABELS.MODEL})) * $__interval_ms / 1000`,
 
     /** Cost over time by member */
-    costOverTimeByMember: `sum by (${LABELS.MEMBER}) (${withMember(scoped('increase', m.COST_USAGE, '$__interval', `${LABELS.MODEL}=~"$model"`))})`,
+    costOverTimeByMember: `(sum by (${LABELS.MEMBER}) (${withMember(scoped('rate', m.COST_USAGE, '$__rate_interval', `${LABELS.MODEL}=~"$model"`))})) * $__interval_ms / 1000`,
 
     /** Cost table breakdown by member and model */
     costTable: `sum by (${LABELS.MEMBER}, ${LABELS.MODEL}) (${withMember(scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model"`))})`,
@@ -141,7 +146,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     tokensByModel: `sum by (${LABELS.MODEL}) (${scoped('increase', m.TOKEN_USAGE, '$__range')})`,
 
     /** Tokens over time */
-    tokensOverTime: `sum(${scoped('increase', m.TOKEN_USAGE, '$__interval', `${LABELS.MODEL}=~"$model"`)}) by (${LABELS.TOKEN_TYPE})`,
+    tokensOverTime: `(sum(${scoped('rate', m.TOKEN_USAGE, '$__rate_interval', `${LABELS.MODEL}=~"$model"`)}) by (${LABELS.TOKEN_TYPE})) * $__interval_ms / 1000`,
 
     /** Tokens by member */
     tokensByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.TOKEN_USAGE, `${LABELS.MODEL}=~"$model"`)}[$__range])`)})`,
@@ -221,7 +226,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     linesOfCodeByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.LINES_OF_CODE)}[$__range])`)})`,
 
     /** Lines of code over time */
-    linesOfCodeOverTime: `sum(${scoped('increase', m.LINES_OF_CODE, '$__interval')}) by (${LABELS.LOC_TYPE})`,
+    linesOfCodeOverTime: `(sum(${scoped('rate', m.LINES_OF_CODE, '$__rate_interval')}) by (${LABELS.LOC_TYPE})) * $__interval_ms / 1000`,
 
     /** Total commits */
     totalCommits: `sum(${scoped('increase', m.COMMITS, '$__range')})`,
@@ -230,7 +235,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     commitsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.COMMITS)}[$__range])`)})`,
 
     /** Commits over time */
-    commitsOverTime: `sum(${scoped('increase', m.COMMITS, '$__interval')})`,
+    commitsOverTime: `(sum(${scoped('rate', m.COMMITS, '$__rate_interval')})) * $__interval_ms / 1000`,
 
     /** Total pull requests */
     totalPullRequests: `sum(${scoped('increase', m.PULL_REQUESTS, '$__range')})`,
@@ -239,7 +244,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     pullRequestsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.PULL_REQUESTS)}[$__range])`)})`,
 
     /** Pull requests over time */
-    pullRequestsOverTime: `sum(${scoped('increase', m.PULL_REQUESTS, '$__interval')})`,
+    pullRequestsOverTime: `(sum(${scoped('rate', m.PULL_REQUESTS, '$__rate_interval')})) * $__interval_ms / 1000`,
 
     // ==================== ACTIVITY QUERIES ====================
 
@@ -253,7 +258,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     activeTimeByType: `sum by (${LABELS.ACTIVE_TIME_TYPE}) (${scoped('increase', m.ACTIVE_TIME, '$__range')})`,
 
     /** Active time over time, split by type: user (interaction) vs cli (processing) */
-    activeTimeOverTime: `sum(${scoped('increase', m.ACTIVE_TIME, '$__interval')}) by (${LABELS.ACTIVE_TIME_TYPE})`,
+    activeTimeOverTime: `(sum(${scoped('rate', m.ACTIVE_TIME, '$__rate_interval')}) by (${LABELS.ACTIVE_TIME_TYPE})) * $__interval_ms / 1000`,
 
     // ==================== TOOL QUERIES ====================
 
@@ -277,7 +282,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     toolDecisionsBySource: `sort_desc(sum by (${LABELS.DECISION_SOURCE}) (${scoped('increase', m.TOOL_DECISION, '$__range')}))`,
 
     /** Tool decisions over time */
-    toolDecisionsOverTime: `sum(${scoped('increase', m.TOOL_DECISION, '$__interval')}) by (${LABELS.DECISION})`,
+    toolDecisionsOverTime: `(sum(${scoped('rate', m.TOOL_DECISION, '$__rate_interval')}) by (${LABELS.DECISION})) * $__interval_ms / 1000`,
 
     // ==================== ENVIRONMENT QUERIES ====================
 

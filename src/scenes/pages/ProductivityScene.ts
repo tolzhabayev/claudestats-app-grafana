@@ -260,7 +260,7 @@ export function getProductivityScene(
               width: '35%',
               body: overTimeBars()
                 .setTitle('Lines of Code Over Time')
-                .setDescription('Lines added and removed per interval. Each bar is the total for one interval.')
+                .setDescription('Lines added and removed per interval. Each bar is an estimate for one interval.')
                 .setUnit('short')
                 .setData(linesOfCodeOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
@@ -277,7 +277,7 @@ export function getProductivityScene(
               width: '50%',
               body: overTimeBars()
                 .setTitle('Commits Over Time')
-                .setDescription('Commits per interval. Each bar is the total for one interval.')
+                .setDescription('Commits per interval. Each bar is an estimate for one interval.')
                 .setUnit('short')
                 .setData(commitsOverTimeQuery)
                 .setCustomFieldConfig('drawStyle', GraphDrawStyle.Bars)
@@ -287,7 +287,7 @@ export function getProductivityScene(
               width: '50%',
               body: overTimeBars()
                 .setTitle('Pull Requests Over Time')
-                .setDescription('Pull requests per interval. Each bar is the total for one interval.')
+                .setDescription('Pull requests per interval. Each bar is an estimate for one interval.')
                 .setUnit('short')
                 .setData(pullRequestsOverTimeQuery)
                 .setCustomFieldConfig('drawStyle', GraphDrawStyle.Bars)
