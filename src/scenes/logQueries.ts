@@ -1,5 +1,6 @@
 import { LABELS } from '../constants';
 import { FilterDimension, getFilterDimensions } from './dimensions';
+import { DECISION_SOURCE_NAMES } from './queries';
 
 /**
  * LogQL queries for Claude Code events (OTel logs) in Loki.
@@ -38,11 +39,15 @@ export const NO_CATEGORY = 'No category';
 // Counts fall back to 0 only when there are API request events in the period: with
 // none at all (events not exported) they stay empty, so the panels can say so.
 export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensions()) {
-  const filters = [
-    MEMBER_FILTER,
-    `${LABELS.MODEL}=~"$model"`,
-    ...dimensions.map((d) => `${d.label}=~"$${d.variable}"`),
-  ].join(' | ');
+  const dims = dimensions.map((d) => `${d.label}=~"$${d.variable}"`);
+  const filters = [MEMBER_FILTER, `${LABELS.MODEL}=~"$model"`, ...dims].join(' | ');
+  // tool_result events carry no model, so the tool queries skip the Model filter.
+  const toolFilters = [MEMBER_FILTER, ...dims].join(' | ');
+  const tools = events('tool_result', toolFilters);
+  const sourceName = Object.entries(DECISION_SOURCE_NAMES).reduceRight(
+    (rest, [value, name]) => `{{ if eq .decision_source "${value}" }}${name}{{ else }}${rest}{{ end }}`,
+    '{{ .decision_source }}'
+  );
 
   const errors = events('api_error', filters);
   const requests = events('api_error|api_request', filters);
@@ -79,6 +84,26 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
      * so a categorized refusal without it gets a bucket saying so.
      */
     refusalsByCategory: `sort_desc(sum by (category) (count_over_time(${refusals} | label_format category=\`{{ if .category }}{{ .category }}{{ else if eq .has_category "true" }}${CATEGORY_HIDDEN}{{ else }}${NO_CATEGORY}{{ end }}\` [$__range])))`,
+
+    // ---------- Tool performance (tool_result events) ----------
+
+    /** Tool calls per tool (only calls that ran: rejected calls have no result) */
+    toolCalls: `sum by (tool_name) (count_over_time(${tools} [$__range]))`,
+
+    /** Share of calls that failed, per tool; tools without failures stay at 0% */
+    toolFailureRate: `(sum by (tool_name) (count_over_time(${tools} | success="false" [$__range])) or sum by (tool_name) (count_over_time(${tools} [$__range])) * 0) / sum by (tool_name) (count_over_time(${tools} [$__range])) * 100`,
+
+    /** Median execution time per tool, in ms */
+    toolLatencyP50: `quantile_over_time(0.5, ${tools} | unwrap duration_ms [$__range]) by (tool_name)`,
+
+    /** 95th percentile execution time per tool, in ms */
+    toolLatencyP95: `quantile_over_time(0.95, ${tools} | unwrap duration_ms [$__range]) by (tool_name)`,
+
+    /** Failed calls by error category, such as Error:ENOENT or ShellError */
+    toolErrorTypes: `sort_desc(sum by (error_type) (count_over_time(${tools} | success="false" | label_format error_type=\`{{ if .error_type }}{{ .error_type }}{{ else }}Unknown{{ end }}\` [$__range])))`,
+
+    /** 95th percentile execution time by who allowed the call (config rule, hook or the user) */
+    toolLatencyP95BySource: `sort_desc(quantile_over_time(0.95, ${tools} | label_format decision_source=\`${sourceName}\` | unwrap duration_ms [$__range]) by (decision_source))`,
 
     /** Refusals by model */
     refusalsByModel: `sort_desc(sum by (model) (count_over_time(${refusals} [$__range])))`,

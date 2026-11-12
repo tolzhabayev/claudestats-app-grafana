@@ -8,9 +8,9 @@ keywords:
 sidebar_position: 40
 ---
 
-The **Tools** tab shows the permission decisions team members make on the file-editing tools: `Edit`, `Write` and `NotebookEdit`. Other tools, such as Bash, don't appear here.
+The **Tools** tab shows the permission decisions team members make on the file-editing tools: `Edit`, `Write` and `NotebookEdit`. Its last section shows how every tool, such as Bash or an MCP tool, performs when it runs, from the events Claude Code sends to Loki.
 
-![The Tools tab with the acceptance rate and edit decisions](../img/tools.webp)
+![The Tools tab with the acceptance rate, edit decisions and tool performance](../img/tools.webp)
 
 ## Check the acceptance rate
 
@@ -43,6 +43,16 @@ A decision counts whether a team member made it or a configuration rule or hook 
 
 A language with only a few decisions can swing between 0% and 100%, so compare it with **Decisions by Source** and **Usage by Tool** before drawing conclusions.
 
+## Check tool performance
+
+These panels read `tool_result` events from Loki, so they need `OTEL_LOGS_EXPORTER=otlp` and a Loki data source, picked in **Events**. For details, refer to [Send events to Loki](../index.md#send-events-to-loki). They cover every tool that ran. Rejected calls never run, so they don't appear here.
+
+| Panel                                     | What it shows                                                                                                                                             |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tool Performance**                      | One row per tool with its number of calls, the share that failed, and its median (**p50**) and 95th percentile (**p95**) execution time. Sorted by calls. |
+| **Failures by Error Type**                | Failed calls by error category, such as `ShellError` or `Error:ENOENT`.                                                                                   |
+| **p95 Execution Time by Decision Source** | The 95th percentile execution time by who allowed the call, with the source names from **Decisions by Source**.                                           |
+
 ## Filters on this tab
 
-**Team Member** applies to every panel. The tab has no **Model** filter, because edit decisions aren't recorded per model. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.
+**Team Member** applies to every panel. The tab has no **Model** filter, because edit decisions and tool results aren't recorded per model. **Events** picks the Loki data source for the tool performance panels. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.
