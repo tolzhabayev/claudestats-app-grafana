@@ -242,19 +242,17 @@ function instantSeriesFrames(refId: string, labelKey: string, breakdown: Breakdo
 
 /**
  * One time series per label (timeseries panels). Each series spreads its total
- * over the range following ACTIVITY, so the points add up to the total
- * (`increase`), or to the total per second when `perSecond` is set (`rate`).
+ * over the range following ACTIVITY, so the points (one `increase()` per
+ * interval) add up to the total.
  */
 function rangeSeriesFrames(
   refId: string,
   labelKey: string | null,
   breakdown: Breakdown,
-  range: { from: number; to: number },
-  perSecond = false
+  range: { from: number; to: number }
 ) {
   const times = timeAxis(range.from, range.to);
   const weight = ACTIVITY.reduce((a, v) => a + v, 0);
-  const stepSeconds = (range.to - range.from) / 1000 / (ACTIVITY.length - 1) || 1;
   return Object.entries(breakdown).map(([label, total], idx) =>
     makeFrame(
       refId,
@@ -267,8 +265,7 @@ function rangeSeriesFrames(
           values: ACTIVITY.map((a, i) => {
             // Offset series slightly so they don't move in lockstep.
             const jitter = 1 + 0.12 * Math.sin(i * 1.7 + idx * 2.1);
-            const value = (total * a * jitter) / weight;
-            return Number((perSecond ? value / stepSeconds : value).toFixed(4));
+            return Number(((total * a * jitter) / weight).toFixed(4));
           }),
         },
       ],
@@ -346,8 +343,7 @@ const DATASET: Record<string, FrameBuilder> = {
   TokensByType: (id) => instantSeriesFrames(id, 'type', TOKENS.byType),
   TokensByModel: (id) => instantSeriesFrames(id, 'model', TOKENS.byModel),
   TokensByMember: (id) => instantSeriesFrames(id, 'member', TOKENS.byMember),
-  // tokensOverTime uses rate(), so its points are tokens per second.
-  TokensOverTime: (id, r) => rangeSeriesFrames(id, 'type', TOKENS.byType, r, true),
+  TokensOverTime: (id, r) => rangeSeriesFrames(id, 'type', TOKENS.byType, r),
 
   // --- token attribution (sorted bar gauges) ---
   TokensByQuerySource: (id) => instantSeriesFrames(id, 'query_source', TOKENS.byQuerySource),

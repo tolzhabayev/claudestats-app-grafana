@@ -21,7 +21,7 @@ The **Tokens** tab shows how many tokens your team's Claude Code requests use an
 | **Output Tokens**              | Tokens the model generated.                                                 |
 | **Cache Read**                 | Tokens read from the prompt cache.                                          |
 | **Token Distribution by Type** | Each type's share: `input`, `output`, `cacheRead` and `cacheCreation`.      |
-| **Token Usage Over Time**      | Token rate per second, one series per type.                                 |
+| **Token Usage Over Time**      | Tokens per interval, stacked by type.                                       |
 | **Tokens by Model**            | Each model's share of tokens.                                               |
 | **Tokens by Team Member**      | Each member's share of tokens.                                              |
 

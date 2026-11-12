@@ -11,8 +11,9 @@ import {
   SceneTimePicker,
   SceneRefreshPicker,
 } from '@grafana/scenes';
-import { BigValueGraphMode, LegendDisplayMode, StackingMode } from '@grafana/schema';
+import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
+import { OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getOverviewScene(
@@ -67,6 +68,7 @@ export function getOverviewScene(
 
   const costOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'CostOverTime',
@@ -90,6 +92,7 @@ export function getOverviewScene(
 
   const tokensOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'TokensOverTime',
@@ -101,6 +104,7 @@ export function getOverviewScene(
 
   const activeTimeOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'ActiveTimeOverTime',
@@ -191,34 +195,45 @@ export function getOverviewScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Total Cost')
+                .setDescription('Estimated cost in US dollars, as reported by Claude Code.')
                 .setUnit('currencyUSD')
                 .setData(totalCostQuery)
-                .setColor({ mode: 'thresholds' })
                 .setOption('graphMode', BigValueGraphMode.None)
+                .setColor({ mode: 'fixed', fixedColor: 'blue' })
                 .build(),
             }),
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Total Tokens')
+                .setDescription('All tokens in the period: input, output, cache reads and cache writes.')
                 .setUnit('short')
                 .setData(totalTokensQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
+                .setColor({ mode: 'fixed', fixedColor: 'purple' })
                 .build(),
             }),
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Sessions')
+                .setDescription(
+                  'Distinct Claude Code sessions started in the period. Launches of the claude agents dashboard are not counted.'
+                )
                 .setUnit('short')
                 .setData(totalSessionsQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
+                .setColor({ mode: 'fixed', fixedColor: 'green' })
                 .build(),
             }),
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Active Users')
+                .setDescription(
+                  'Team members whose Claude Code reported cost data in the period. Usage with no member identity is not counted.'
+                )
                 .setUnit('short')
                 .setData(activeUsersQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
+                .setColor({ mode: 'fixed', fixedColor: 'orange' })
                 .build(),
             }),
           ],
@@ -230,8 +245,11 @@ export function getOverviewScene(
           children: [
             new SceneFlexItem({
               width: '60%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Cost Over Time')
+                .setDescription(
+                  'Estimated cost per interval, one series per model. Each bar is the total for one interval.'
+                )
                 .setUnit('currencyUSD')
                 .setData(costOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
@@ -241,6 +259,9 @@ export function getOverviewScene(
               width: '40%',
               body: PanelBuilders.piechart()
                 .setTitle('Cost by Team Member')
+                .setDescription(
+                  "Each member's share of estimated cost. Shows every member regardless of the Team Member filter."
+                )
                 .setUnit('currencyUSD')
                 .setData(costByMemberQuery)
                 .setOption('legend', {
@@ -259,23 +280,24 @@ export function getOverviewScene(
           children: [
             new SceneFlexItem({
               width: '40%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Token Usage Over Time')
+                .setDescription('Tokens per interval, stacked by token type. Each bar is the total for one interval.')
                 .setUnit('short')
                 .setData(tokensOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
                 .build(),
             }),
             new SceneFlexItem({
               width: '35%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Active Time Over Time')
+                .setDescription(
+                  'Active time per interval, stacked as User (interaction, such as typing) and CLI (running tools and generating responses). Each bar is the total for one interval.'
+                )
                 .setUnit('s')
                 .setData(activeTimeOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
-                .setCustomFieldConfig('fillOpacity', 20)
                 .setOverrides((b) => {
                   for (const [type, name] of Object.entries(ACTIVE_TIME_TYPE_NAMES)) {
                     b.matchFieldsWithName(type).overrideDisplayName(name);
@@ -287,6 +309,7 @@ export function getOverviewScene(
               width: '25%',
               body: PanelBuilders.piechart()
                 .setTitle('Sessions by Start Type')
+                .setDescription('Sessions by how they started: fresh, resume, continue or agents_view.')
                 .setUnit('short')
                 .setData(sessionsByStartTypeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
@@ -304,6 +327,7 @@ export function getOverviewScene(
               width: '25%',
               body: PanelBuilders.piechart()
                 .setTitle('OS Type')
+                .setDescription('Usage split by operating system, weighted by cost.')
                 .setData(usageByOsTypeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
                 .setOption('pieType', 'donut' as never)
@@ -313,6 +337,7 @@ export function getOverviewScene(
               width: '25%',
               body: PanelBuilders.piechart()
                 .setTitle('Architecture')
+                .setDescription('Usage split by host architecture, weighted by cost.')
                 .setData(usageByHostArchQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
                 .setOption('pieType', 'donut' as never)
@@ -322,6 +347,7 @@ export function getOverviewScene(
               width: '25%',
               body: PanelBuilders.piechart()
                 .setTitle('Terminal')
+                .setDescription('Usage split by terminal type, weighted by cost.')
                 .setData(usageByTerminalTypeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
                 .setOption('pieType', 'donut' as never)
@@ -331,6 +357,7 @@ export function getOverviewScene(
               width: '25%',
               body: PanelBuilders.piechart()
                 .setTitle('Claude Code Version')
+                .setDescription('Usage split by Claude Code version, weighted by cost.')
                 .setData(usageByServiceVersionQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
                 .setOption('pieType', 'donut' as never)

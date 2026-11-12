@@ -13,14 +13,23 @@ import {
 import {
   BigValueGraphMode,
   LegendDisplayMode,
-  StackingMode,
   BarGaugeDisplayMode,
   BarGaugeValueMode,
   VizOrientation,
 } from '@grafana/schema';
 import { DECISION_SOURCE_COLORS, DECISION_SOURCE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
+import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
+
+// A low acceptance rate means many proposed edits are rejected, so red/yellow/green
+// carry meaning here. The base step (below 0, including no data) stays neutral.
+const ACCEPTANCE_RATE_STEPS = [
+  { color: 'text', value: -Infinity },
+  { color: 'red', value: 0 },
+  { color: 'yellow', value: 50 },
+  { color: 'green', value: 80 },
+];
 
 export function getToolsScene(
   timeRange: SceneTimeRange,
@@ -64,6 +73,7 @@ export function getToolsScene(
 
   const toolDecisionsOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'ToolDecisionsOverTime',
@@ -112,27 +122,28 @@ export function getToolsScene(
         // Row 1: Stats
         new SceneFlexLayout({
           direction: 'row',
-          height: PANEL_HEIGHTS.STAT,
+          height: PANEL_HEIGHTS.MEDIUM, // room for the pie next to the stat
           children: [
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Tool Acceptance Rate')
+                .setDescription('Percentage of edit decisions that were accepts. Covers Edit, Write and NotebookEdit.')
                 .setUnit('percent')
                 .setData(toolAcceptanceRateQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
                 .setThresholds({
                   mode: 'absolute',
-                  steps: [
-                    { color: 'red', value: 0 },
-                    { color: 'yellow', value: 50 },
-                    { color: 'green', value: 80 },
-                  ],
+                  // Base step neutral, so "No data" isn't shown in red.
+                  steps: ACCEPTANCE_RATE_STEPS,
                 } as never)
                 .build(),
             }),
             new SceneFlexItem({
               body: PanelBuilders.piechart()
                 .setTitle('Tool Decisions')
+                .setDescription(
+                  'Accepted and rejected edit decisions in the period. Decisions made by a config rule or hook count too.'
+                )
                 .setData(toolDecisionsQuery)
                 .setOption('legend', {
                   displayMode: LegendDisplayMode.Table,
@@ -150,22 +161,25 @@ export function getToolsScene(
           children: [
             new SceneFlexItem({
               width: '60%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Tool Decisions Over Time')
+                .setDescription(
+                  'Accepted and rejected edit decisions per interval. Each bar is the total for one interval.'
+                )
                 .setUnit('short')
                 .setData(toolDecisionsOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
-                .setCustomFieldConfig('fillOpacity', 30)
                 .build(),
             }),
             new SceneFlexItem({
               width: '40%',
               body: PanelBuilders.bargauge()
                 .setTitle('Usage by Tool')
+                .setDescription('Edit decisions per tool: Edit, Write or NotebookEdit.')
                 .setUnit('short')
                 .setData(toolDecisionsByToolQuery)
                 .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+                .setColor(BAR_GAUGE_COLOR)
                 .setOption('orientation', VizOrientation.Horizontal)
                 .setOption('valueMode', BarGaugeValueMode.Text)
                 .setOption('showUnfilled', true)
@@ -201,11 +215,8 @@ export function getToolsScene(
                 .setDisplayName('${__series.name}')
                 .setThresholds({
                   mode: 'absolute',
-                  steps: [
-                    { color: 'red', value: 0 },
-                    { color: 'yellow', value: 50 },
-                    { color: 'green', value: 80 },
-                  ],
+                  // Base step neutral, so "No data" isn't shown in red.
+                  steps: ACCEPTANCE_RATE_STEPS,
                 } as never)
                 .build(),
             }),
