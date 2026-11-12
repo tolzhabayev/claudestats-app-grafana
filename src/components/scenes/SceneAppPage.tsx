@@ -9,6 +9,8 @@ import { getOverviewScene } from '../../scenes/pages/OverviewScene';
 import { getCostsScene } from '../../scenes/pages/CostsScene';
 import { getTokensScene } from '../../scenes/pages/TokensScene';
 import { getToolsScene } from '../../scenes/pages/ToolsScene';
+import { getReliabilityScene } from '../../scenes/pages/ReliabilityScene';
+import { buildLogQueries } from '../../scenes/logQueries';
 import { getProductivityScene } from '../../scenes/pages/ProductivityScene';
 import { ClaudeStatsSettings } from '../../types';
 
@@ -23,6 +25,7 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
   const dimensions = getFilterDimensions(settings.customLabels);
   const queries = buildQueries(metrics, dimensions);
   const variables = getSharedVariables(metrics, dimensions);
+  const logQueries = buildLogQueries(dimensions);
 
   const timeRange = new SceneTimeRange({ from: TIME_RANGES.LAST_7D, to: 'now' });
 
@@ -64,6 +67,12 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
             url: prefixRoute(ROUTES.Productivity),
             routePath: `/${ROUTES.Productivity}`,
             getScene: () => getProductivityScene(timeRange, variables, queries),
+          }),
+          new SceneAppPage({
+            title: 'Reliability',
+            url: prefixRoute(ROUTES.Reliability),
+            routePath: `/${ROUTES.Reliability}`,
+            getScene: () => getReliabilityScene(timeRange, variables, logQueries),
           }),
         ],
       }),

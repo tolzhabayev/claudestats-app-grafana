@@ -11,6 +11,7 @@ Claude Code Stats turns the OpenTelemetry metrics that Claude Code exports into 
 - **Tokens:** Token volume by type, including prompt cache reads and writes, by model and team member.
 - **Tools:** How often team members accept the file edits Claude Code proposes.
 - **Productivity:** Lines of code, commits, pull requests and active time.
+- **Reliability:** API errors by status code, model and retry attempts, exhausted retries and refusals by category, from the events Claude Code sends to Loki.
 
 Filter every tab by team member, repository, your own labels such as team or cost center, and time range, and the cost and token views by model.
 

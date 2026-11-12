@@ -58,21 +58,28 @@ function countStat(refId: string, expr: string, title: string, description: stri
 }
 
 function breakdown(refId: string, expr: string, label: string, title: string, description: string) {
-  return PanelBuilders.bargauge()
-    .setTitle(title)
-    .setDescription(description)
-    .setUnit('none')
-    .setDecimals(0)
-    .setData(runner(refId, expr, { instant: true, legendFormat: `{{${label}}}` }))
-    .setOption('displayMode', BarGaugeDisplayMode.Gradient)
-    .setColor(BAR_GAUGE_COLOR)
-    .setOption('orientation', VizOrientation.Horizontal)
-    .setOption('valueMode', BarGaugeValueMode.Text)
-    .setOption('showUnfilled', true)
-    .setOption('minVizWidth', 150)
-    .setOption('minVizHeight', 25)
-    .setDisplayName('${__series.name}')
-    .build();
+  return (
+    PanelBuilders.bargauge()
+      .setTitle(title)
+      .setDescription(description)
+      .setUnit('none')
+      .setDecimals(0)
+      .setData(runner(refId, expr, { instant: true }))
+      .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+      .setColor(BAR_GAUGE_COLOR)
+      .setOption('orientation', VizOrientation.Horizontal)
+      .setOption('valueMode', BarGaugeValueMode.Text)
+      .setOption('showUnfilled', true)
+      .setOption('minVizWidth', 150)
+      .setOption('minVizHeight', 25)
+      // Grafana's Loki data source turns instant metric results into one table
+      // (a row per label value, numbers in "Value #<refId>"), so show every row
+      // instead of reducing the column to one value, and name each bar by the
+      // row's label column.
+      .setOption('reduceOptions', { values: true, calcs: [], fields: '' })
+      .setDisplayName(`\${__data.fields.${label}}`)
+      .build()
+  );
 }
 
 /**
@@ -168,7 +175,13 @@ export function getReliabilityScene(
           height: PANEL_HEIGHTS.LARGE,
           children: [
             new SceneFlexItem({
-              body: breakdown('ErrorsByModel', queries.errorsByModel, 'model', 'Errors by Model', 'API errors per model.'),
+              body: breakdown(
+                'ErrorsByModel',
+                queries.errorsByModel,
+                'model',
+                'Errors by Model',
+                'API errors per model.'
+              ),
             }),
             new SceneFlexItem({
               body: breakdown(
