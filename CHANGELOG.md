@@ -48,6 +48,7 @@
 - The Cache Read stat was always empty (#57)
 - The Model picker is hidden on tabs whose metrics have no model label (#57)
 - Over Time charts no longer drop counter jumps between bars, and use a 1m minimum step (#76, #77)
+- The Traces tab no longer shows an error and sends failing Tempo queries before a trace is picked (#93)
 
 ## 1.1.0
 
