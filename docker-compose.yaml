@@ -19,6 +19,7 @@ services:
     depends_on:
       - prometheus
       - loki
+      - tempo
     restart: unless-stopped
 
   # OpenTelemetry Collector - receives OTLP data from Claude Code
@@ -61,7 +62,20 @@ services:
       - loki-data:/loki
     restart: unless-stopped
 
+  # Tempo - stores Claude Code traces (beta) for the Traces tab
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: claudestats-tempo
+    command: ['-config.file=/etc/tempo.yaml']
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+    restart: unless-stopped
+
 volumes:
   grafana-storage:
   prometheus-data:
   loki-data:
+  tempo-data:
