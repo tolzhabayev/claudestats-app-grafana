@@ -1,6 +1,6 @@
-import { PanelBuilders, SceneDataTransformer, SceneQueryRunner } from '@grafana/scenes';
+import { PanelBuilders, SceneDataTransformer, SceneQueryRunner, SceneVariableSet } from '@grafana/scenes';
 import { LABELS, PLUGIN_BASE_URL } from '../../constants';
-import { Queries } from '../queries';
+import { Queries, UNATTRIBUTED } from '../queries';
 
 // One column per query: [refId, column name, query key, unit, decimals].
 const COLUMNS = [
@@ -19,9 +19,18 @@ const COLUMNS = [
  * One sortable row per team member with their cost, tokens, sessions, active
  * time, lines, commits, pull requests and edit acceptance rate. Each column is
  * its own instant query in table format, merged on the `member` label.
- * Clicking a member filters the app to them.
+ * Clicking a member filters the app to them, keeping every other filter.
+ * Usage with no identity isn't a member, so its Unattributed bucket is left
+ * out here; the other by-member panels and the totals still include it.
  */
-export function teamLeaderboard(queries: Queries) {
+export function teamLeaderboard(queries: Queries, variables: SceneVariableSet) {
+  // Every other variable keeps its current value(s); only the member changes.
+  const keep = variables.state.variables
+    .map((v) => v.state.name)
+    .filter((name) => name !== 'member')
+    .map((name) => `\${${name}:queryparam}`)
+    .join('&');
+
   const runner = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
     queries: COLUMNS.map(([refId, , key]) => ({
@@ -36,6 +45,14 @@ export function teamLeaderboard(queries: Queries) {
     $data: runner,
     transformations: [
       { id: 'merge', options: {} },
+      {
+        id: 'filterByValue',
+        options: {
+          type: 'exclude',
+          match: 'any',
+          filters: [{ fieldName: LABELS.MEMBER, config: { id: 'equal', options: { value: UNATTRIBUTED } } }],
+        },
+      },
       {
         id: 'organize',
         options: {
@@ -72,7 +89,7 @@ export function teamLeaderboard(queries: Queries) {
         .overrideLinks([
           {
             title: 'Filter to this member',
-            url: `${PLUGIN_BASE_URL}?\${__url_time_range}&var-member=\${__value.raw:percentencode}`,
+            url: `${PLUGIN_BASE_URL}?\${__url_time_range}&${keep}&var-member=\${__value.raw:percentencode}`,
           },
         ]);
     })

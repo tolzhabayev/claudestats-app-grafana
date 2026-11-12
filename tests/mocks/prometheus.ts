@@ -145,7 +145,8 @@ const ACTIVE_TIME_BY_TYPE = { user: 27000, cli: 45000 };
 
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
-  Cost: COST.byMember,
+  // Unattributed usage (no identity) comes back from the query but isn't listed.
+  Cost: { ...COST.byMember, Unattributed: 3.2 } as Record<string, number>,
   Tokens: TOKENS.byMember,
   Sessions: { [MEMBERS[0]]: 26, [MEMBERS[1]]: 19, [MEMBERS[2]]: 13 },
   ActiveTime: ACTIVE_TIME_BY_MEMBER,

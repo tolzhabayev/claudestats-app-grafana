@@ -50,11 +50,14 @@ test.describe('Overview scene', () => {
       const row = table.getByRole('row').filter({ hasText: member });
       await expect(row).toContainText(`$${LEADERBOARD.Cost[member].toFixed(2)}`);
       await expect(row).toContainText(String(LEADERBOARD.Commits[member]));
-      await expect(row.getByRole('link', { name: member })).toHaveAttribute(
-        'href',
-        new RegExp(`var-member=${encodeURIComponent(member).replace('.', '\\.')}`)
-      );
+      const href = await row.getByRole('link', { name: member }).getAttribute('href');
+      expect(href).toContain(`var-member=${encodeURIComponent(member)}`);
+      // The other filters are kept, so following the link only changes the member.
+      for (const variable of ['prometheus_ds', 'model', 'repository']) {
+        expect(href).toContain(`var-${variable}=`);
+      }
     }
+    await expect(table).not.toContainText('Unattributed');
   });
 
   test('renders cost charts with model and member series', async ({ mockData, gotoPage, selectors }) => {

@@ -330,7 +330,7 @@ export function getOverviewScene(
         new SceneFlexLayout({
           direction: 'row',
           height: PANEL_HEIGHTS.LARGE,
-          children: [new SceneFlexItem({ body: teamLeaderboard(queries) })],
+          children: [new SceneFlexItem({ body: teamLeaderboard(queries, variables) })],
         }),
         // Row 3: Token and Session Charts
         new SceneFlexLayout({

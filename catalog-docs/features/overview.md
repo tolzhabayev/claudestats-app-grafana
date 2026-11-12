@@ -36,7 +36,7 @@ The second row shows three ratios for the period:
 
 ## Compare team members
 
-**Team Leaderboard** has one row per team member with their cost, tokens, sessions, active time, lines added and removed, commits, pull requests and edit acceptance rate. It's sorted by cost. Click a column header to sort by it, or click a member's name to filter every tab to that member.
+**Team Leaderboard** has one row per team member with their cost, tokens, sessions, active time, lines added and removed, commits, pull requests and edit acceptance rate. It's sorted by cost. Click a column header to sort by it, or click a member's name to filter every tab to that member, keeping your other filters. Usage that can't be attributed to anyone isn't listed, but still counts in the totals and the other per-member panels.
 
 ## See trends over time
 
