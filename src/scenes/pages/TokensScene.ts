@@ -11,64 +11,10 @@ import {
   SceneTimePicker,
   SceneRefreshPicker,
 } from '@grafana/scenes';
-import {
-  BigValueGraphMode,
-  BarGaugeDisplayMode,
-  BarGaugeValueMode,
-  LegendDisplayMode,
-  VizOrientation,
-} from '@grafana/schema';
+import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
-import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { attributionBarGauge, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
-
-/**
- * A horizontal bar gauge with one bar per attribution bucket, mirroring the
- * "Usage by Tool" gauge on the Tools page. The query is a plain instant
- * multi-series vector (`sort_desc(...)` in PromQL puts the biggest bucket
- * first); `legendFormat` names each series after `labelKey`, and
- * `${__series.name}` surfaces that name as the bar label.
- */
-function attributionBarGauge(
-  refId: string,
-  expr: string,
-  labelKey: string,
-  title: string,
-  unit: string,
-  {
-    legendFormat = `{{${labelKey}}}`,
-    noValue,
-    description,
-  }: {
-    /** Series name, when it's built from more than `labelKey`. */
-    legendFormat?: string;
-    /** Shown instead of "No data", to say what the panel needs. */
-    noValue?: string;
-    /** Panel description, shown as an (i) icon next to the title. */
-    description?: string;
-  } = {}
-) {
-  const data = new SceneQueryRunner({
-    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
-    queries: [{ refId, expr, legendFormat, instant: true }],
-  });
-
-  return PanelBuilders.bargauge()
-    .setTitle(title)
-    .setDescription(description)
-    .setUnit(unit)
-    .setData(data)
-    .setOption('displayMode', BarGaugeDisplayMode.Gradient)
-    .setColor(BAR_GAUGE_COLOR)
-    .setOption('orientation', VizOrientation.Horizontal)
-    .setOption('valueMode', BarGaugeValueMode.Text)
-    .setOption('showUnfilled', true)
-    .setOption('minVizWidth', 150)
-    .setOption('minVizHeight', 25)
-    .setDisplayName('${__series.name}')
-    .setNoValue(noValue)
-    .build();
-}
 
 // Repository attributes are off by default, so an empty panel usually means they aren't sent.
 const REPOSITORY_HINT = 'No data. Needs OTEL_METRICS_INCLUDE_REPOSITORY=true';
