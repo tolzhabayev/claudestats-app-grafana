@@ -58,8 +58,9 @@ export const PROMPT_LENGTH_BUCKETS = [
   { name: '2,000 or more', filter: '| prompt_length >= 2000' },
 ] as const;
 
-// Counts fall back to 0 only when there are API request events in the period: with
-// none at all (events not exported) they stay empty, so the panels can say so.
+// Counts fall back to 0 only when there are events in the period (API requests on
+// the Reliability tab, any event elsewhere): with none at all (events not
+// exported) they stay empty, so the panels can say so.
 export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensions()) {
   const dims = dimensions.map(dimensionMatcher);
   const filters = [MEMBER_FILTER, `${LABELS.MODEL}=~"$model"`, ...dims].join(' | ');
@@ -74,6 +75,12 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
   const skills = events('skill_activated', toolFilters);
   const mcp = events('mcp_server_connection', toolFilters);
   const hooks = events('hook_execution_complete', toolFilters);
+  /**
+   * 0 when Claude Code sent any event in the period, so a count with nothing to
+   * count reads 0. With no events at all it stays empty and the panel shows the
+   * OTEL_LOGS_EXPORTER setup hint.
+   */
+  const zeroIfAnyEvents = `sum(count_over_time(${events('.+', toolFilters)} [$__range])) * 0`;
   /** `numerator` as a share of `all`, by `by`; 0% where `all` has events but `numerator` none. */
   const share = (numerator: string, all: string, by = '') => {
     const g = by ? ` by (${by})` : '';
@@ -160,7 +167,7 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     // ---------- Prompts (user_prompt events) ----------
 
     /** Prompts in the period, typed prompts and slash commands */
-    prompts: `sum(count_over_time(${prompts} [$__range]))`,
+    prompts: `sum(count_over_time(${prompts} [$__range])) or ${zeroIfAnyEvents}`,
 
     /** Share of prompts that invoked a slash command; 0% with prompts but no commands */
     commandShare: `(sum(count_over_time(${commands} [$__range])) or sum(count_over_time(${prompts} [$__range])) * 0) / sum(count_over_time(${prompts} [$__range])) * 100`,
@@ -216,7 +223,7 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     subagentModelSwapShare: share(`${subagents} | model_swapped="true"`, subagents, 'agent_type'),
 
     /** Compactions in the period */
-    compactions: `sum(count_over_time(${compactions} [$__range]))`,
+    compactions: `sum(count_over_time(${compactions} [$__range])) or ${zeroIfAnyEvents}`,
     /** Share of compactions Claude Code triggered automatically (vs /compact) */
     compactionAutoShare: share(`${compactions} | trigger="auto"`, compactions),
     /** Share of compactions that failed */
@@ -246,7 +253,7 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     // ---------- Security ----------
 
     /** Switches to bypassPermissions or auto mode */
-    escalations: `sum(count_over_time(${escalations} [$__range])) or sum(count_over_time(${modeChanges} [$__range])) * 0`,
+    escalations: `sum(count_over_time(${escalations} [$__range])) or ${zeroIfAnyEvents}`,
     /** Escalations per team member */
     escalationsByMember: `sort_desc(sum by (member) (count_over_time(${escalations} | label_format member=\`${MEMBER_TEMPLATE}\` [$__range])))`,
     /** Permission mode changes as "from -> to" */
@@ -262,17 +269,17 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     rejectionsBySource: `sort_desc(sum by (source) (count_over_time(${decisions} | decision="reject" | label_format source=\`${sourceNameOf('source')}\` [$__range])))`,
 
     /** Failed logins */
-    loginFailures: `sum(count_over_time(${logins} | success="false" [$__range])) or sum(count_over_time(${logins} [$__range])) * 0`,
+    loginFailures: `sum(count_over_time(${logins} | success="false" [$__range])) or ${zeroIfAnyEvents}`,
     /** Failed logins by error category */
     authFailuresByCategory: `sort_desc(sum by (error_category) (count_over_time(${logins} | success="false" | label_format error_category=\`{{ if .error_category }}{{ .error_category }}{{ else }}Unknown{{ end }}\` [$__range])))`,
 
     /** Plugins installed from marketplaces that aren't official Anthropic ones */
-    unofficialPluginInstalls: `sum(count_over_time(${pluginInstalls} | marketplace_is_official="false" [$__range])) or sum(count_over_time(${pluginInstalls} [$__range])) * 0`,
+    unofficialPluginInstalls: `sum(count_over_time(${pluginInstalls} | marketplace_is_official="false" [$__range])) or ${zeroIfAnyEvents}`,
     /** Plugin installs by official vs unofficial marketplace */
     pluginInstallsByMarketplace: `sort_desc(sum by (marketplace) (count_over_time(${pluginInstalls} | label_format marketplace=\`{{ if eq .marketplace_is_official "true" }}Official{{ else }}Unofficial{{ end }}\` [$__range])))`,
 
     /** Sessions that a managed settings policy stopped */
-    refusedSessions: `sum(count_over_time(${managedSettings} | managed_settings_trigger="refused" [$__range])) or sum(count_over_time(${managedSettings} [$__range])) * 0`,
+    refusedSessions: `sum(count_over_time(${managedSettings} | managed_settings_trigger="refused" [$__range])) or ${zeroIfAnyEvents}`,
     /** Managed settings policy helper state, from session starts and later changes */
     managedSettingsHelperState: `sort_desc(sum by (managed_settings_helper_state) (count_over_time(${managedSettings} | managed_settings_helper_state!="" [$__range])))`,
 

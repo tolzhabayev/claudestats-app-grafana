@@ -148,7 +148,9 @@ export function getPromptsScene(
                 queries.topCommands,
                 'command_name',
                 'Top Slash Commands',
-                'The most-used slash commands. Built-in commands show their name; custom, plugin and MCP commands show as custom or mcp unless team members set OTEL_LOG_TOOL_DETAILS=1.'
+                'The most-used slash commands. Built-in commands show their name; custom, plugin and MCP commands show as custom or mcp unless team members set OTEL_LOG_TOOL_DETAILS=1.',
+                'none',
+                'No slash commands in this period.'
               ),
             }),
             new SceneFlexItem({
@@ -157,7 +159,9 @@ export function getPromptsScene(
                 queries.commandsBySource,
                 'command_source',
                 'Slash Commands by Source',
-                'Where the slash commands come from: builtin, custom (including plugins) or mcp.'
+                'Where the slash commands come from: builtin, custom (including plugins) or mcp.',
+                'none',
+                'No slash commands in this period.'
               ),
             }),
             new SceneFlexItem({ body: promptLengthPanel(queries) }),

@@ -27,7 +27,8 @@ export function toolPerformanceRows(queries: LogQueries) {
               },
               { refId: 'ToolP50', name: 'p50', expr: queries.toolLatencyP50, unit: 'ms', decimals: 1 },
               { refId: 'ToolP95', name: 'p95', expr: queries.toolLatencyP95, unit: 'ms', decimals: 1 },
-            ]
+            ],
+            'No tool results in this period.'
           ),
         }),
       ],
@@ -42,7 +43,9 @@ export function toolPerformanceRows(queries: LogQueries) {
             queries.toolErrorTypes,
             'error_type',
             'Failures by Error Type',
-            'Failed tool calls by error category, such as Error:ENOENT or ShellError. The full message needs OTEL_LOG_TOOL_DETAILS=1 and is not shown here.'
+            'Failed tool calls by error category, such as Error:ENOENT or ShellError. The full message needs OTEL_LOG_TOOL_DETAILS=1 and is not shown here.',
+            'none',
+            'No tool call failed in this period.'
           ),
         }),
         new SceneFlexItem({
@@ -52,7 +55,8 @@ export function toolPerformanceRows(queries: LogQueries) {
             'decision_source',
             'p95 Execution Time by Decision Source',
             '95th percentile tool execution time by who allowed the call: a config rule or hook (automatic) or the user.',
-            'ms'
+            'ms',
+            'No tool results in this period.'
           ),
         }),
       ],

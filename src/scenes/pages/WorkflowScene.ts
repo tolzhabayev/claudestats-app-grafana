@@ -10,7 +10,7 @@ import {
   SceneTimeRange,
   SceneVariableSet,
   VariableValueControl,
-  VizPanel,
+  SceneObject,
 } from '@grafana/scenes';
 import { LegendDisplayMode } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
@@ -20,7 +20,7 @@ import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
 /** A row of panels sharing the width equally. */
-function row(height: number, ...bodies: VizPanel[]) {
+function row(height: number, ...bodies: SceneObject[]) {
   return widthRow(
     height,
     bodies.map((body) => ({ body }))
@@ -28,7 +28,7 @@ function row(height: number, ...bodies: VizPanel[]) {
 }
 
 /** A row of panels, each with an optional width such as '50%'. */
-function widthRow(height: number, items: Array<{ body: VizPanel; width?: string }>) {
+function widthRow(height: number, items: Array<{ body: SceneObject; width?: string }>) {
   return new SceneFlexLayout({
     direction: 'row',
     height,
@@ -109,7 +109,8 @@ export function getWorkflowScene(
                 { refId: 'RequestsByModel', name: 'Requests', expr: q.requestsByModel, unit: 'none', decimals: 0 },
                 { refId: 'RequestLatencyP50', name: 'p50', expr: q.requestLatencyP50, unit: 'ms', decimals: 1 },
                 { refId: 'RequestLatencyP95', name: 'p95', expr: q.requestLatencyP95, unit: 'ms', decimals: 1 },
-              ]
+              ],
+              'No API requests in this period.'
             ),
           },
           {
@@ -120,7 +121,8 @@ export function getWorkflowScene(
               'effort',
               'p95 Latency by Effort',
               '95th percentile API request duration by effort level. Requests sent without an effort level show as default.',
-              'ms'
+              'ms',
+              'No API requests with an effort level in this period.'
             ),
           },
           { width: '25%', body: cacheLifetimePanel(q) },
@@ -163,7 +165,8 @@ export function getWorkflowScene(
                 unit: 'percent',
                 decimals: 0,
               },
-            ]
+            ],
+            'No subagent ran in this period.'
           )
         ),
         // Context compaction (compaction)
@@ -206,28 +209,36 @@ export function getWorkflowScene(
             q.skillActivations,
             'skill_name',
             'Skill Activations',
-            'Skill activations per skill. User-defined and third-party plugin skills show as custom_skill unless OTEL_LOG_TOOL_DETAILS=1.'
+            'Skill activations per skill. User-defined and third-party plugin skills show as custom_skill unless OTEL_LOG_TOOL_DETAILS=1.',
+            'none',
+            'No skill was activated in this period.'
           ),
           lokiBreakdown(
             'SkillTriggers',
             q.skillTriggers,
             'invocation_trigger',
             'Skills by Trigger',
-            'How skills were started: user-slash (a person ran it as a command), claude-proactive (Claude picked it up on its own) or nested-skill (another skill started it).'
+            'How skills were started: user-slash (a person ran it as a command), claude-proactive (Claude picked it up on its own) or nested-skill (another skill started it).',
+            'none',
+            'No skill was activated in this period.'
           ),
           lokiBreakdown(
             'McpConnections',
             q.mcpConnections,
             'status',
             'MCP Server Connections',
-            'MCP server connection events by status: connected, failed or disconnected.'
+            'MCP server connection events by status: connected, failed or disconnected.',
+            'none',
+            'No MCP server connections in this period.'
           ),
           lokiBreakdown(
             'McpFailures',
             q.mcpFailures,
             'error_code',
             'MCP Connection Failures',
-            'Failed MCP server connections by error code. Server names need OTEL_LOG_TOOL_DETAILS=1 and are not shown here.'
+            'Failed MCP server connections by error code. Server names need OTEL_LOG_TOOL_DETAILS=1 and are not shown here.',
+            'none',
+            'No MCP connection failed in this period.'
           )
         ),
         // Hooks (hook_execution_complete)
@@ -243,7 +254,8 @@ export function getWorkflowScene(
               { refId: 'HookDurationP95', name: 'p95 Time', expr: q.hookDurationP95, unit: 'ms', decimals: 1 },
               { refId: 'HookBlocking', name: 'Blocking', expr: q.hookBlocking, unit: 'none', decimals: 0 },
               { refId: 'HookErrors', name: 'Errors', expr: q.hookErrors, unit: 'none', decimals: 0 },
-            ]
+            ],
+            'No hooks ran in this period.'
           )
         ),
       ],

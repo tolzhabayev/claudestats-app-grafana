@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { legendItem, panelByTitle } from './mocks/panels';
-import { SECURITY } from './mocks/prometheus';
+import { mockEmptyPanels, SECURITY } from './mocks/prometheus';
 
 test.describe('Security scene', () => {
   test('renders the totals', async ({ mockData, gotoPage, selectors }) => {
@@ -52,5 +52,29 @@ test.describe('Security scene', () => {
     });
     await gotoPage('security');
     await query;
+  });
+
+  test('says what an empty breakdown means instead of drawing an empty bar', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    await mockEmptyPanels(page, ['EscalationsByMember', 'ClassifierBlocks', 'AuthFailuresByCategory']);
+    const app = await gotoPage('security');
+
+    for (const [title, hint] of [
+      ['Escalations by Team Member', 'Nobody switched to bypassPermissions or auto mode in this period.'],
+      ['Classifier Blocks by Rule', 'The classifier blocked no tool calls in this period.'],
+      ['Login Failures by Category', 'No failed logins in this period.'],
+    ]) {
+      const panel = panelByTitle(app, selectors, title);
+      await expect(panel).toContainText(hint);
+      await expect(panel.getByTestId('data-testid Bar gauge value')).toHaveCount(0);
+    }
+    // Panels with data still draw their bars.
+    await expect(
+      panelByTitle(app, selectors, 'Permission Mode Changes').getByTestId('data-testid Bar gauge value').first()
+    ).toBeVisible();
   });
 });

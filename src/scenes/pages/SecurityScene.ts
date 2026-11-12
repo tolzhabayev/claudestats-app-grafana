@@ -8,7 +8,7 @@ import {
   SceneTimeRange,
   SceneVariableSet,
   VariableValueControl,
-  VizPanel,
+  SceneObject,
 } from '@grafana/scenes';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries } from '../logQueries';
@@ -16,7 +16,7 @@ import { lokiBreakdown, lokiCountStat } from '../lokiPanels';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
-function row(height: number, ...bodies: VizPanel[]) {
+function row(height: number, ...bodies: SceneObject[]) {
   return new SceneFlexLayout({
     direction: 'row',
     height,
@@ -81,14 +81,18 @@ export function getSecurityScene(
             q.escalationsByMember,
             'member',
             'Escalations by Team Member',
-            'Who switched to bypassPermissions or auto mode.'
+            'Who switched to bypassPermissions or auto mode.',
+            'none',
+            'Nobody switched to bypassPermissions or auto mode in this period.'
           ),
           lokiBreakdown(
             'ModeChanges',
             q.modeChanges,
             'change',
             'Permission Mode Changes',
-            'Every permission mode change, as previous mode → new mode.'
+            'Every permission mode change, as previous mode → new mode.',
+            'none',
+            'No permission mode changes in this period.'
           )
         ),
         row(
@@ -98,28 +102,36 @@ export function getSecurityScene(
             q.decisionsByMode,
             'permission_mode',
             'Tool Decisions by Mode',
-            'Tool call permission checks by the permission mode they ran in. Needs Claude Code v2.1.301 or later.'
+            'Tool call permission checks by the permission mode they ran in. Needs Claude Code v2.1.301 or later.',
+            'none',
+            'No tool decisions with a permission mode in this period. Needs Claude Code v2.1.301 or later.'
           ),
           lokiBreakdown(
             'ClassifierVerdicts',
             q.classifierVerdicts,
             'classifier_verdict',
             'Auto Mode Classifier Verdicts',
-            'What the auto mode classifier decided: allow, block, no_verdict (no usable answer, so denied) or unavailable (the check failed, so denied).'
+            'What the auto mode classifier decided: allow, block, no_verdict (no usable answer, so denied) or unavailable (the check failed, so denied).',
+            'none',
+            'The auto mode classifier made no decisions in this period.'
           ),
           lokiBreakdown(
             'ClassifierBlocks',
             q.classifierBlocks,
             'classifier_category',
             'Classifier Blocks by Rule',
-            'Calls the classifier blocked, by the built-in rule it named, such as data_exfiltration. The rule is sent only with OTEL_LOG_TOOL_DETAILS=1.'
+            'Calls the classifier blocked, by the built-in rule it named, such as data_exfiltration. The rule is sent only with OTEL_LOG_TOOL_DETAILS=1.',
+            'none',
+            'The classifier blocked no tool calls in this period.'
           ),
           lokiBreakdown(
             'RejectionsBySource',
             q.rejectionsBySource,
             'source',
             'Rejected Tool Calls by Source',
-            'Rejected tool calls by who rejected them: a config rule, policy, mode or the classifier (Config rule), a hook, or the user.'
+            'Rejected tool calls by who rejected them: a config rule, policy, mode or the classifier (Config rule), a hook, or the user.',
+            'none',
+            'No tool calls were rejected in this period.'
           )
         ),
         row(
@@ -129,21 +141,27 @@ export function getSecurityScene(
             q.authFailuresByCategory,
             'error_category',
             'Login Failures by Category',
-            'Failed logins by error category. Logouts are not counted, and the raw error message is never sent.'
+            'Failed logins by error category. Logouts are not counted, and the raw error message is never sent.',
+            'none',
+            'No failed logins in this period.'
           ),
           lokiBreakdown(
             'PluginInstallsByMarketplace',
             q.pluginInstallsByMarketplace,
             'marketplace',
             'Plugin Installs by Marketplace',
-            'Plugin installs from official Anthropic marketplaces and from others.'
+            'Plugin installs from official Anthropic marketplaces and from others.',
+            'none',
+            'No plugins were installed in this period.'
           ),
           lokiBreakdown(
             'ManagedSettingsHelperState',
             q.managedSettingsHelperState,
             'managed_settings_helper_state',
             'Managed Settings Helper State',
-            'The state of the managed settings policy helper, reported at session start and when it changes. Shows whether machines run the expected managed settings.'
+            'The state of the managed settings policy helper, reported at session start and when it changes. Shows whether machines run the expected managed settings.',
+            'none',
+            'No managed settings reports in this period.'
           )
         ),
       ],

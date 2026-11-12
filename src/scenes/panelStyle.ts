@@ -8,6 +8,7 @@ import {
   VisibilityMode,
   VizOrientation,
 } from '@grafana/schema';
+import { withEmptyHint } from './HintWhenEmpty';
 
 /**
  * Query options for the "Over Time" panels. Each point is the amount for one
@@ -87,7 +88,7 @@ export function attributionBarGauge(
   }: {
     /** Series name, when it's built from more than `labelKey`. */
     legendFormat?: string;
-    /** Shown instead of "No data", to say what the panel needs. */
+    /** Shown in place of the bars when nothing matched, to say why or what the panel needs. */
     noValue?: string;
     /** Panel description, shown as an (i) icon next to the title. */
     description?: string;
@@ -98,11 +99,7 @@ export function attributionBarGauge(
     queries: [{ refId, expr, legendFormat, instant: true }],
   });
 
-  return horizontalBars()
-    .setTitle(title)
-    .setDescription(description)
-    .setUnit(unit)
-    .setData(data)
-    .setNoValue(noValue)
-    .build();
+  const panel = horizontalBars().setTitle(title).setDescription(description).setUnit(unit);
+  // With a hint, show it in place of an empty bar gauge (which draws a grey unfilled track).
+  return noValue ? withEmptyHint(panel.build(), data, noValue) : panel.setData(data).build();
 }

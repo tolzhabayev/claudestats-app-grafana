@@ -51,6 +51,20 @@ These issues occur when the app loads but panels show **No data**.
 | **Cost by Repository** or **Tokens by Repository** says to set `OTEL_METRICS_INCLUDE_REPOSITORY=true`.                  | Claude Code doesn't send repository attributes. Set the variable for team members. For details, refer to [Filter by repository](./index.md#filter-by-repository). |
 | Claude Code redacts user-defined subagent, third-party skill and plugin, and user-configured MCP server and tool names. | Set `OTEL_LOG_TOOL_DETAILS=1` for team members. For details, refer to [Optional telemetry settings](./index.md#optional-telemetry-settings).                      |
 
+### Event panels say to set `OTEL_LOGS_EXPORTER`
+
+**Symptoms:** On the **Prompts**, **Workflow**, **Reliability** or **Security** tab, or in the tool performance panels on **Tools**, panels show `No events. Needs OTEL_LOGS_EXPORTER=otlp`.
+
+The text means Loki has no Claude Code events at all for the period and filters. After events arrive, a count with nothing to count shows **0**, and a breakdown says what didn't happen, such as **No refusals in this period**.
+
+**Possible causes and solutions:**
+
+| Cause                                 | Solution                                                                                                                                             |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code isn't exporting events.   | Set `OTEL_LOGS_EXPORTER=otlp` for team members and restart Claude Code. For details, refer to [Send events to Loki](./index.md#send-events-to-loki). |
+| The wrong data source is selected.    | Pick the Loki data source that receives Claude Code events in the **Events** control at the top of the tab.                                          |
+| The filters or time range match none. | Set **Team Member** to **All** or widen the time range.                                                                                              |
+
 ### A team member shows as a random ID
 
 **Symptoms:** A team member appears in **Team Member** and the per-member panels as a long random string instead of an email address.

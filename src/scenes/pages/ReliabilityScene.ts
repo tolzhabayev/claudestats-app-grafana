@@ -115,7 +115,9 @@ export function getReliabilityScene(
                 queries.errorsByModel,
                 'model',
                 'Errors by Model',
-                'API errors per model.'
+                'API errors per model.',
+                'none',
+                'No API errors in this period.'
               ),
             }),
             new SceneFlexItem({
@@ -124,7 +126,9 @@ export function getReliabilityScene(
                 queries.errorsByAttempt,
                 'attempt',
                 'Errors by Attempts',
-                'API errors by how many attempts were made, including the first request. By default Claude Code gives up after 11.'
+                'API errors by how many attempts were made, including the first request. By default Claude Code gives up after 11.',
+                'none',
+                'No API errors in this period.'
               ),
             }),
           ],
@@ -140,7 +144,9 @@ export function getReliabilityScene(
                 queries.refusalsByCategory,
                 'category',
                 'Refusals by Category',
-                'Refusals the user saw, by category: cyber, bio, frontier_llm or reasoning_extraction. Claude Code sends the category only with OTEL_LOG_TOOL_DETAILS=1.'
+                'Refusals the user saw, by category: cyber, bio, frontier_llm or reasoning_extraction. Claude Code sends the category only with OTEL_LOG_TOOL_DETAILS=1.',
+                'none',
+                'No refusals in this period.'
               ),
             }),
             new SceneFlexItem({
@@ -149,7 +155,9 @@ export function getReliabilityScene(
                 queries.refusalsByModel,
                 'model',
                 'Refusals by Model',
-                'Refusals the user saw, per model.'
+                'Refusals the user saw, per model.',
+                'none',
+                'No refusals in this period.'
               ),
             }),
           ],
