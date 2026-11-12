@@ -1,0 +1,137 @@
+# Recommended Grafana alert rules on Claude Code events (OTel logs in Loki).
+#
+# Grafana loads this file from its provisioning directory (see the plugin docs,
+# "Set up alerts"). Before you use it, set `datasourceUid` to the uid of the
+# Loki data source with Claude Code events. Claude Code sends events only with
+# OTEL_LOGS_EXPORTER=otlp.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Claude Code events
+    folder: Claude Code
+    interval: 5m
+    rules:
+      - uid: claude-code-api-error-rate
+        title: Claude Code API error rate spike
+        condition: C
+        data:
+          # Errors as a share of API requests over the last 15 minutes.
+          - refId: RATE
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: loki
+            model:
+              refId: RATE
+              queryType: instant
+              expr: >-
+                sum(count_over_time({service_name="claude-code"} | event_name="api_error" [15m]))
+                / sum(count_over_time({service_name="claude-code"} | event_name=~"api_error|api_request" [15m])) * 100
+          # Number of errors, so a single failed request doesn't page anyone.
+          - refId: ERRORS
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: loki
+            model:
+              refId: ERRORS
+              queryType: instant
+              expr: sum(count_over_time({service_name="claude-code"} | event_name="api_error" [15m]))
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: math
+              expression: $RATE > 10 && $ERRORS >= 5
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        labels:
+          severity: warning
+          app: claude-code
+        annotations:
+          summary: Claude Code API error rate above 10%
+          description: >-
+            {{ printf "%.1f" $values.RATE.Value }}% of Claude Code API requests failed in the last 15 minutes
+            ({{ $values.ERRORS.Value }} errors). Check the Reliability tab for status codes and models.
+
+      - uid: claude-code-refusal-spike
+        title: Claude Code refusal spike
+        condition: C
+        data:
+          # Refusals the user saw (the API didn't already retry them on another model).
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: loki
+            model:
+              refId: A
+              queryType: instant
+              expr: >-
+                sum(count_over_time({service_name="claude-code"} | event_name="api_refusal" | server_fallback_hop!="true" [1h]))
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [5]
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: warning
+          app: claude-code
+        annotations:
+          summary: Claude Code refusals spiked
+          description: >-
+            The model refused {{ $values.A.Value }} Claude Code requests in the last hour. Check the Reliability
+            tab for refusal categories and models.
+
+      - uid: claude-code-bypass-permissions
+        title: Claude Code switched to bypassPermissions
+        condition: C
+        data:
+          # Switches to bypassPermissions in the last 10 minutes, per member (email,
+          # else enduser.id, else user.id, like in the app). The window is twice the
+          # evaluation interval, so an event that reaches Loki late isn't missed.
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: loki
+            model:
+              refId: A
+              queryType: instant
+              expr: >-
+                sum by (member) (count_over_time({service_name="claude-code"} | event_name="permission_mode_changed"
+                | to_mode="bypassPermissions"
+                | label_format member=`{{ if .user_email }}{{ .user_email }}{{ else if .enduser_id }}{{ .enduser_id }}{{ else if .user_id }}{{ .user_id }}{{ else }}Unattributed{{ end }}`
+                [10m]))
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: critical
+          app: claude-code
+        annotations:
+          summary: 'Claude Code bypassPermissions: {{ $labels.member }}'
+          description: >-
+            {{ $labels.member }} switched Claude Code to bypassPermissions, which allows every tool call
+            without a check. Investigate on the Claude Code Stats Security tab, or query
+            permission_mode_changed events for this member in Loki.
