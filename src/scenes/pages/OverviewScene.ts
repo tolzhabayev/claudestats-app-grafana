@@ -12,12 +12,45 @@ import {
   SceneRefreshPicker,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
-import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
+import { ACTIVE_TIME_TYPE_NAMES, changeVsPrevious, QUERIES, Queries } from '../queries';
 import { OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 import { teamLeaderboard } from './leaderboard';
 
 /** A single-value stat for an efficiency ratio. */
+// The totals compared against the previous period of the same length.
+const TRENDS = [
+  ['TotalCostChange', 'Cost', 'totalCost'],
+  ['TotalTokensChange', 'Tokens', 'totalTokens'],
+  ['TotalSessionsChange', 'Sessions', 'totalSessions'],
+  ['ActiveUsersChange', 'Active Users', 'activeUsers'],
+] as const;
+
+/**
+ * The change of one total against the previous period of the same length,
+ * such as the 7 days before the last 7 days. One small stat per total, each
+ * under its total, so an empty comparison keeps its slot and its own message.
+ */
+function trendStat(refId: string, name: string, expr: string) {
+  return PanelBuilders.stat()
+    .setTitle(`${name} vs Previous Period`)
+    .setDescription(
+      `How ${name.toLowerCase()} compares with the previous period of the same length, such as the 7 days before the last 7 days. Empty when the previous period had none.`
+    )
+    .setUnit('percent')
+    .setDecimals(0)
+    .setData(
+      new SceneQueryRunner({
+        datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+        queries: [{ refId, expr: changeVsPrevious(expr), instant: true }],
+      })
+    )
+    .setOption('graphMode', BigValueGraphMode.None)
+    .setColor({ mode: 'fixed', fixedColor: 'text' })
+    .setNoValue('No previous period')
+    .build();
+}
+
 function ratioStat(refId: string, expr: string, title: string, unit: string, description: string) {
   return PanelBuilders.stat()
     .setTitle(title)
@@ -259,6 +292,14 @@ export function getOverviewScene(
                 .build(),
             }),
           ],
+        }),
+        // Row 1a: Change of the totals against the previous period
+        new SceneFlexLayout({
+          direction: 'row',
+          height: 80,
+          children: TRENDS.map(
+            ([refId, name, key]) => new SceneFlexItem({ body: trendStat(refId, name, queries[key]) })
+          ),
         }),
         // Row 1b: Efficiency ratios
         new SceneFlexLayout({
