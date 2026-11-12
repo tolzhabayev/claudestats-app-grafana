@@ -297,8 +297,12 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     /** Tool acceptance rate per member; members with decisions but no accepts stay at 0% */
     toolAcceptanceRateByMember: `(sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.TOOL_DECISION, `${LABELS.DECISION}="accept"`)}[$__range])`)}) or sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.TOOL_DECISION)}[$__range])`)}) * 0) / clamp_min(sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.TOOL_DECISION)}[$__range])`)}), 1) * 100`,
 
-    /** Share of prompt tokens served from the cache: cacheRead / (input + cacheRead + cacheCreation) */
-    cacheHitRate: `sum(${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cacheRead"`)}) / clamp_min(sum(${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}=~"input|cacheRead|cacheCreation"`)}), 1) * 100`,
+    /**
+     * Share of prompt tokens served from the cache: cacheRead / (input + cacheRead + cacheCreation).
+     * With prompt tokens but no cache reads the numerator falls back to 0 (0%, not "No data");
+     * with no prompt tokens at all the result stays empty.
+     */
+    cacheHitRate: `(sum(${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}="cacheRead"`)}) or sum(${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}=~"input|cacheRead|cacheCreation"`)}) * 0) / clamp_min(sum(${scoped('increase', m.TOKEN_USAGE, '$__range', `${LABELS.MODEL}=~"$model", ${LABELS.TOKEN_TYPE}=~"input|cacheRead|cacheCreation"`)}), 1) * 100`,
 
     /** Estimated cost per session (sessions exclude agents_view launches) */
     costPerSession: `sum(${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.MODEL}=~"$model"`)}) / clamp_min(count(count by (${LABELS.SESSION_ID}) (${scoped('max_over_time', m.SESSION_COUNT, '$__range', `${LABELS.START_TYPE}!="agents_view"`)})), 1)`,
