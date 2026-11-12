@@ -22,7 +22,7 @@ import { DECISION_SOURCE_COLORS, DECISION_SOURCE_NAMES, QUERIES, Queries } from 
 import { getControlsWithoutModel, LOKI_DS_VARIABLE } from '../variables';
 import { buildLogQueries, LogQueries } from '../logQueries';
 import { toolPerformanceRows } from './toolPerformance';
-import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { horizontalBars, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 // A low acceptance rate means many proposed edits are rejected, so red/yellow/green
@@ -180,19 +180,11 @@ export function getToolsScene(
             }),
             new SceneFlexItem({
               width: '40%',
-              body: PanelBuilders.bargauge()
+              body: horizontalBars()
                 .setTitle('Usage by Tool')
                 .setDescription('Edit decisions per tool: Edit, Write or NotebookEdit.')
                 .setUnit('short')
                 .setData(toolDecisionsByToolQuery)
-                .setOption('displayMode', BarGaugeDisplayMode.Gradient)
-                .setColor(BAR_GAUGE_COLOR)
-                .setOption('orientation', VizOrientation.Horizontal)
-                .setOption('valueMode', BarGaugeValueMode.Text)
-                .setOption('showUnfilled', true)
-                .setOption('minVizWidth', 150)
-                .setOption('minVizHeight', 25)
-                .setDisplayName('${__series.name}')
                 .build(),
             }),
           ],

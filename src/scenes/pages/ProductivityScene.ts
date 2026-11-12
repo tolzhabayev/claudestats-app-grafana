@@ -10,17 +10,10 @@ import {
   SceneTimePicker,
   SceneRefreshPicker,
 } from '@grafana/scenes';
-import {
-  BigValueGraphMode,
-  LegendDisplayMode,
-  GraphDrawStyle,
-  BarGaugeDisplayMode,
-  BarGaugeValueMode,
-  VizOrientation,
-} from '@grafana/schema';
+import { BigValueGraphMode, LegendDisplayMode, GraphDrawStyle } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
-import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { horizontalBars, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getProductivityScene(
@@ -324,19 +317,13 @@ export function getProductivityScene(
             }),
             new SceneFlexItem({
               width: '65%',
-              body: PanelBuilders.bargauge()
+              body: horizontalBars()
                 .setTitle('Active Time by Team Member')
                 .setDescription('Active time per team member. Shows every member regardless of the Team Member filter.')
                 .setUnit('s')
                 .setData(activeTimeByMemberQuery)
-                .setOption('orientation', VizOrientation.Horizontal)
-                .setOption('displayMode', BarGaugeDisplayMode.Gradient)
-                .setColor(BAR_GAUGE_COLOR)
-                .setOption('valueMode', BarGaugeValueMode.Text)
-                .setOption('showUnfilled', true)
                 .setOption('minVizWidth', 200)
                 .setOption('minVizHeight', 50)
-                .setDisplayName('${__series.name}')
                 .build(),
             }),
           ],
