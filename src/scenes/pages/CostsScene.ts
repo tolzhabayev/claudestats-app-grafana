@@ -16,10 +16,10 @@ import {
   BarGaugeDisplayMode,
   BarGaugeValueMode,
   LegendDisplayMode,
-  StackingMode,
   VizOrientation,
 } from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
+import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 /**
@@ -38,11 +38,14 @@ function attributionBarGauge(
   {
     legendFormat = `{{${labelKey}}}`,
     noValue,
+    description,
   }: {
     /** Series name, when it's built from more than `labelKey`. */
     legendFormat?: string;
     /** Shown instead of "No data", to say what the panel needs. */
     noValue?: string;
+    /** Panel description, shown as an (i) icon next to the title. */
+    description?: string;
   } = {}
 ) {
   const data = new SceneQueryRunner({
@@ -52,9 +55,11 @@ function attributionBarGauge(
 
   return PanelBuilders.bargauge()
     .setTitle(title)
+    .setDescription(description)
     .setUnit(unit)
     .setData(data)
     .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+    .setColor(BAR_GAUGE_COLOR)
     .setOption('orientation', VizOrientation.Horizontal)
     .setOption('valueMode', BarGaugeValueMode.Text)
     .setOption('showUnfilled', true)
@@ -98,6 +103,7 @@ export function getCostsScene(
 
   const costOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'CostOverTime',
@@ -109,6 +115,7 @@ export function getCostsScene(
 
   const costOverTimeByMemberQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'CostOverTimeByMember',
@@ -157,20 +164,24 @@ export function getCostsScene(
         // Row 1: Stats
         new SceneFlexLayout({
           direction: 'row',
-          height: PANEL_HEIGHTS.STAT,
+          height: PANEL_HEIGHTS.MEDIUM, // room for the pie next to the stat
           children: [
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Total Cost')
+                .setDescription('Estimated cost in US dollars, as reported by Claude Code.')
                 .setUnit('currencyUSD')
                 .setData(totalCostQuery)
                 .setOption('graphMode', BigValueGraphMode.Area)
-                .setColor({ mode: 'thresholds' })
+                .setColor({ mode: 'fixed', fixedColor: 'blue' })
                 .build(),
             }),
             new SceneFlexItem({
               body: PanelBuilders.piechart()
                 .setTitle('Cost by Model')
+                .setDescription(
+                  "Each model's share of estimated cost. Shows every model regardless of the Model filter."
+                )
                 .setUnit('currencyUSD')
                 .setData(costByModelQuery)
                 .setOption('legend', {
@@ -189,24 +200,26 @@ export function getCostsScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Cost Over Time by Model')
+                .setDescription(
+                  'Estimated cost per interval, one series per model. Each bar is the total for one interval.'
+                )
                 .setUnit('currencyUSD')
                 .setData(costOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
-                .setCustomFieldConfig('fillOpacity', 30)
                 .build(),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Cost Over Time by Team Member')
+                .setDescription(
+                  'Estimated cost per interval, one series per team member. Each bar is the total for one interval.'
+                )
                 .setUnit('currencyUSD')
                 .setData(costOverTimeByMemberQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
-                .setCustomFieldConfig('fillOpacity', 30)
                 .build(),
             }),
           ],
@@ -220,6 +233,9 @@ export function getCostsScene(
               width: '40%',
               body: PanelBuilders.piechart()
                 .setTitle('Cost Distribution by Member')
+                .setDescription(
+                  "Each member's share of estimated cost. Shows every member regardless of the Team Member filter."
+                )
                 .setUnit('currencyUSD')
                 .setData(costByMemberQuery)
                 .setOption('legend', {
@@ -234,6 +250,7 @@ export function getCostsScene(
               width: '60%',
               body: PanelBuilders.table()
                 .setTitle('Cost Breakdown')
+                .setDescription('Estimated cost per team member and model, in US dollars.')
                 .setData(costTableQuery)
                 .setOption('sortBy', [{ displayName: 'Value', desc: true }])
                 .setOverrides((b) => b.matchFieldsWithName('member').overrideDisplayName('Team Member'))
@@ -253,7 +270,8 @@ export function getCostsScene(
                 queries.costByQuerySource,
                 'query_source',
                 'Cost by Query Source',
-                'currencyUSD'
+                'currencyUSD',
+                { description: 'Estimated cost by what issued the request: main conversation, subagent or auxiliary.' }
               ),
             }),
             new SceneFlexItem({
@@ -263,7 +281,11 @@ export function getCostsScene(
                 queries.costByAgent,
                 'agent_name',
                 'Cost by Subagent',
-                'currencyUSD'
+                'currencyUSD',
+                {
+                  description:
+                    'Estimated cost by the subagent type that issued the request. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
           ],
@@ -280,7 +302,11 @@ export function getCostsScene(
                 queries.costBySkill,
                 'skill_name',
                 'Cost by Skill',
-                'currencyUSD'
+                'currencyUSD',
+                {
+                  description:
+                    'Estimated cost by the skill that was active. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
             new SceneFlexItem({
@@ -290,7 +316,11 @@ export function getCostsScene(
                 queries.costByMcpServer,
                 'mcp_server_name',
                 'Cost by MCP Server',
-                'currencyUSD'
+                'currencyUSD',
+                {
+                  description:
+                    'Estimated cost by the MCP server whose tool result the request used. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
           ],
@@ -307,7 +337,11 @@ export function getCostsScene(
                 queries.costByPlugin,
                 'plugin_name',
                 'Cost by Plugin',
-                'currencyUSD'
+                'currencyUSD',
+                {
+                  description:
+                    'Estimated cost by the plugin that owns the active skill or subagent. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
             new SceneFlexItem({
@@ -318,7 +352,11 @@ export function getCostsScene(
                 'mcp_tool_name',
                 'Cost by MCP Tool',
                 'currencyUSD',
-                { legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}' }
+                {
+                  legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}',
+                  description:
+                    'Estimated cost by MCP tool, shown as server / tool, for requests that used an MCP tool result. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
           ],
@@ -335,7 +373,8 @@ export function getCostsScene(
                 queries.costBySpeed,
                 'speed',
                 'Cost by Speed (Fast Mode)',
-                'currencyUSD'
+                'currencyUSD',
+                { description: 'Estimated cost by request speed: fast for fast mode, normal otherwise.' }
               ),
             }),
             new SceneFlexItem({
@@ -345,7 +384,8 @@ export function getCostsScene(
                 queries.costByEffort,
                 'effort',
                 'Cost by Effort',
-                'currencyUSD'
+                'currencyUSD',
+                { description: 'Estimated cost by effort level, or default when the model does not use one.' }
               ),
             }),
           ],
@@ -363,7 +403,11 @@ export function getCostsScene(
                 'vcs_repository_name',
                 'Cost by Repository',
                 'currencyUSD',
-                { noValue: REPOSITORY_HINT }
+                {
+                  noValue: REPOSITORY_HINT,
+                  description:
+                    'Estimated cost by the Git repository Claude Code was working in. Needs OTEL_METRICS_INCLUDE_REPOSITORY=true.',
+                }
               ),
             }),
           ],

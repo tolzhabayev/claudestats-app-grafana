@@ -16,10 +16,10 @@ import {
   BarGaugeDisplayMode,
   BarGaugeValueMode,
   LegendDisplayMode,
-  StackingMode,
   VizOrientation,
 } from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
+import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 /**
@@ -38,11 +38,14 @@ function attributionBarGauge(
   {
     legendFormat = `{{${labelKey}}}`,
     noValue,
+    description,
   }: {
     /** Series name, when it's built from more than `labelKey`. */
     legendFormat?: string;
     /** Shown instead of "No data", to say what the panel needs. */
     noValue?: string;
+    /** Panel description, shown as an (i) icon next to the title. */
+    description?: string;
   } = {}
 ) {
   const data = new SceneQueryRunner({
@@ -52,9 +55,11 @@ function attributionBarGauge(
 
   return PanelBuilders.bargauge()
     .setTitle(title)
+    .setDescription(description)
     .setUnit(unit)
     .setData(data)
     .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+    .setColor(BAR_GAUGE_COLOR)
     .setOption('orientation', VizOrientation.Horizontal)
     .setOption('valueMode', BarGaugeValueMode.Text)
     .setOption('showUnfilled', true)
@@ -131,6 +136,7 @@ export function getTokensScene(
 
   const tokensOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'TokensOverTime',
@@ -184,14 +190,17 @@ export function getTokensScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Total Tokens')
+                .setDescription('All tokens in the period: input, output, cache reads and cache writes.')
                 .setUnit('short')
                 .setData(totalTokensQuery)
                 .setOption('graphMode', BigValueGraphMode.Area)
+                .setColor({ mode: 'fixed', fixedColor: 'text' })
                 .build(),
             }),
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Input Tokens')
+                .setDescription('Input tokens, not counting tokens read from or written to the prompt cache.')
                 .setUnit('short')
                 .setData(inputTokensQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
@@ -201,6 +210,7 @@ export function getTokensScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Output Tokens')
+                .setDescription('Tokens the model generated.')
                 .setUnit('short')
                 .setData(outputTokensQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
@@ -210,6 +220,9 @@ export function getTokensScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Cache Read')
+                .setDescription(
+                  'Tokens read from the prompt cache. A high share is normal, because Claude Code reuses the cache across turns.'
+                )
                 .setUnit('short')
                 .setData(cacheReadTokensQuery)
                 .setOption('graphMode', BigValueGraphMode.None)
@@ -227,6 +240,7 @@ export function getTokensScene(
               width: '35%',
               body: PanelBuilders.piechart()
                 .setTitle('Token Distribution by Type')
+                .setDescription("Each token type's share: input, output, cacheRead and cacheCreation.")
                 .setUnit('short')
                 .setData(tokensByTypeQuery)
                 .setOption('legend', {
@@ -239,13 +253,12 @@ export function getTokensScene(
             }),
             new SceneFlexItem({
               width: '65%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Token Usage Over Time')
+                .setDescription('Tokens per interval, stacked by token type. Each bar is the total for one interval.')
                 .setUnit('short')
                 .setData(tokensOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
-                .setCustomFieldConfig('fillOpacity', 30)
                 .build(),
             }),
           ],
@@ -259,6 +272,7 @@ export function getTokensScene(
               width: '50%',
               body: PanelBuilders.piechart()
                 .setTitle('Tokens by Model')
+                .setDescription("Each model's share of tokens. Shows every model regardless of the Model filter.")
                 .setUnit('short')
                 .setData(tokensByModelQuery)
                 .setOption('legend', {
@@ -272,6 +286,9 @@ export function getTokensScene(
               width: '50%',
               body: PanelBuilders.piechart()
                 .setTitle('Tokens by Team Member')
+                .setDescription(
+                  "Each member's share of tokens. Shows every member regardless of the Team Member filter."
+                )
                 .setUnit('short')
                 .setData(tokensByMemberQuery)
                 .setOption('legend', {
@@ -295,7 +312,8 @@ export function getTokensScene(
                 queries.tokensByQuerySource,
                 'query_source',
                 'Tokens by Query Source',
-                'short'
+                'short',
+                { description: 'Tokens by what issued the request: main conversation, subagent or auxiliary.' }
               ),
             }),
             new SceneFlexItem({
@@ -305,7 +323,11 @@ export function getTokensScene(
                 queries.tokensByAgent,
                 'agent_name',
                 'Tokens by Subagent',
-                'short'
+                'short',
+                {
+                  description:
+                    'Tokens by the subagent type that issued the request. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
           ],
@@ -322,7 +344,11 @@ export function getTokensScene(
                 queries.tokensBySkill,
                 'skill_name',
                 'Tokens by Skill',
-                'short'
+                'short',
+                {
+                  description:
+                    'Tokens by the skill that was active. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
             new SceneFlexItem({
@@ -332,7 +358,11 @@ export function getTokensScene(
                 queries.tokensByMcpServer,
                 'mcp_server_name',
                 'Tokens by MCP Server',
-                'short'
+                'short',
+                {
+                  description:
+                    'Tokens by the MCP server whose tool result the request used. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
           ],
@@ -349,7 +379,11 @@ export function getTokensScene(
                 queries.tokensByPlugin,
                 'plugin_name',
                 'Tokens by Plugin',
-                'short'
+                'short',
+                {
+                  description:
+                    'Tokens by the plugin that owns the active skill or subagent. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
             new SceneFlexItem({
@@ -360,7 +394,11 @@ export function getTokensScene(
                 'mcp_tool_name',
                 'Tokens by MCP Tool',
                 'short',
-                { legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}' }
+                {
+                  legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}',
+                  description:
+                    'Tokens by MCP tool, shown as server / tool, for requests that used an MCP tool result. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                }
               ),
             }),
           ],
@@ -377,7 +415,8 @@ export function getTokensScene(
                 queries.tokensBySpeed,
                 'speed',
                 'Tokens by Speed (Fast Mode)',
-                'short'
+                'short',
+                { description: 'Tokens by request speed: fast for fast mode, normal otherwise.' }
               ),
             }),
             new SceneFlexItem({
@@ -387,7 +426,8 @@ export function getTokensScene(
                 queries.tokensByEffort,
                 'effort',
                 'Tokens by Effort',
-                'short'
+                'short',
+                { description: 'Tokens by effort level, or default when the model does not use one.' }
               ),
             }),
           ],
@@ -405,7 +445,11 @@ export function getTokensScene(
                 'vcs_repository_name',
                 'Tokens by Repository',
                 'short',
-                { noValue: REPOSITORY_HINT }
+                {
+                  noValue: REPOSITORY_HINT,
+                  description:
+                    'Tokens by the Git repository Claude Code was working in. Needs OTEL_METRICS_INCLUDE_REPOSITORY=true.',
+                }
               ),
             }),
           ],

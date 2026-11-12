@@ -13,7 +13,6 @@ import {
 import {
   BigValueGraphMode,
   LegendDisplayMode,
-  StackingMode,
   GraphDrawStyle,
   BarGaugeDisplayMode,
   BarGaugeValueMode,
@@ -21,6 +20,7 @@ import {
 } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
+import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getProductivityScene(
@@ -98,6 +98,7 @@ export function getProductivityScene(
 
   const linesOfCodeOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'LinesOfCodeOverTime',
@@ -109,6 +110,7 @@ export function getProductivityScene(
 
   const commitsOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'CommitsOverTime',
@@ -120,6 +122,7 @@ export function getProductivityScene(
 
   const pullRequestsOverTimeQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    ...OVER_TIME_QUERY_OPTIONS,
     queries: [
       {
         refId: 'PullRequestsOverTime',
@@ -173,6 +176,7 @@ export function getProductivityScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Lines of Code')
+                .setDescription('Lines Claude Code added plus lines it removed in the period.')
                 .setUnit('short')
                 .setData(totalLinesOfCodeQuery)
                 .setOption('graphMode', BigValueGraphMode.Area)
@@ -182,6 +186,7 @@ export function getProductivityScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Commits')
+                .setDescription('Git commits Claude Code created in the period.')
                 .setUnit('short')
                 .setData(totalCommitsQuery)
                 .setOption('graphMode', BigValueGraphMode.Area)
@@ -191,6 +196,7 @@ export function getProductivityScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Pull Requests')
+                .setDescription('Pull requests or merge requests Claude Code created in the period.')
                 .setUnit('short')
                 .setData(totalPullRequestsQuery)
                 .setOption('graphMode', BigValueGraphMode.Area)
@@ -200,6 +206,9 @@ export function getProductivityScene(
             new SceneFlexItem({
               body: PanelBuilders.stat()
                 .setTitle('Active Time')
+                .setDescription(
+                  'Time spent actively using Claude Code, not counting idle time. It is the sum of User and CLI time.'
+                )
                 .setUnit('s')
                 .setData(totalActiveTimeQuery)
                 .setOption('graphMode', BigValueGraphMode.Area)
@@ -217,6 +226,7 @@ export function getProductivityScene(
               width: '30%',
               body: PanelBuilders.piechart()
                 .setTitle('Lines Added vs Removed')
+                .setDescription('The split between lines added and lines removed.')
                 .setUnit('short')
                 .setData(linesOfCodeByTypeQuery)
                 .setOption('legend', {
@@ -245,13 +255,12 @@ export function getProductivityScene(
             }),
             new SceneFlexItem({
               width: '35%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Lines of Code Over Time')
+                .setDescription('Lines added and removed per interval. Each bar is the total for one interval.')
                 .setUnit('short')
                 .setData(linesOfCodeOverTimeQuery)
                 .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
-                .setCustomFieldConfig('fillOpacity', 30)
                 .build(),
             }),
           ],
@@ -263,21 +272,21 @@ export function getProductivityScene(
           children: [
             new SceneFlexItem({
               width: '50%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Commits Over Time')
+                .setDescription('Commits per interval. Each bar is the total for one interval.')
                 .setUnit('short')
                 .setData(commitsOverTimeQuery)
-                .setCustomFieldConfig('fillOpacity', 30)
                 .setCustomFieldConfig('drawStyle', GraphDrawStyle.Bars)
                 .build(),
             }),
             new SceneFlexItem({
               width: '50%',
-              body: PanelBuilders.timeseries()
+              body: overTimeBars()
                 .setTitle('Pull Requests Over Time')
+                .setDescription('Pull requests per interval. Each bar is the total for one interval.')
                 .setUnit('short')
                 .setData(pullRequestsOverTimeQuery)
-                .setCustomFieldConfig('fillOpacity', 30)
                 .setCustomFieldConfig('drawStyle', GraphDrawStyle.Bars)
                 .build(),
             }),
@@ -314,10 +323,12 @@ export function getProductivityScene(
               width: '65%',
               body: PanelBuilders.bargauge()
                 .setTitle('Active Time by Team Member')
+                .setDescription('Active time per team member. Shows every member regardless of the Team Member filter.')
                 .setUnit('s')
                 .setData(activeTimeByMemberQuery)
                 .setOption('orientation', VizOrientation.Horizontal)
                 .setOption('displayMode', BarGaugeDisplayMode.Gradient)
+                .setColor(BAR_GAUGE_COLOR)
                 .setOption('valueMode', BarGaugeValueMode.Text)
                 .setOption('showUnfilled', true)
                 .setOption('minVizWidth', 200)
