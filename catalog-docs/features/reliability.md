@@ -39,3 +39,5 @@ Claude Code sends the refusal category only when team members set `OTEL_LOG_TOOL
 ## Filters on this tab
 
 **Events** picks the Loki data source with Claude Code events. **Team Member**, **Model**, **Repository** and any [filter labels](../configure.md#filters) apply to every panel.
+
+The filters are shared with the other tabs, so their options come from the Claude Code metrics, not from the events. When team members send both, which is the usual setup, the options match. If Claude Code sends only events, the pickers offer only **All**.
