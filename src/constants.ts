@@ -10,6 +10,7 @@ export const ROUTES = {
   Tokens: 'tokens',
   Tools: 'tools',
   Reliability: 'reliability',
+  Prompts: 'prompts',
   Productivity: 'productivity',
 } as const;
 

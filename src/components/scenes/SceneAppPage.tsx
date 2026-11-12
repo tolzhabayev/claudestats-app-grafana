@@ -10,6 +10,7 @@ import { getCostsScene } from '../../scenes/pages/CostsScene';
 import { getTokensScene } from '../../scenes/pages/TokensScene';
 import { getToolsScene } from '../../scenes/pages/ToolsScene';
 import { getReliabilityScene } from '../../scenes/pages/ReliabilityScene';
+import { getPromptsScene } from '../../scenes/pages/PromptsScene';
 import { buildLogQueries } from '../../scenes/logQueries';
 import { getProductivityScene } from '../../scenes/pages/ProductivityScene';
 import { ClaudeStatsSettings } from '../../types';
@@ -67,6 +68,12 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
             url: prefixRoute(ROUTES.Productivity),
             routePath: `/${ROUTES.Productivity}`,
             getScene: () => getProductivityScene(timeRange, variables, queries),
+          }),
+          new SceneAppPage({
+            title: 'Prompts',
+            url: prefixRoute(ROUTES.Prompts),
+            routePath: `/${ROUTES.Prompts}`,
+            getScene: () => getPromptsScene(timeRange, variables, logQueries),
           }),
           new SceneAppPage({
             title: 'Reliability',

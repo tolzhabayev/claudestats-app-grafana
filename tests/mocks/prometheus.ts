@@ -166,6 +166,18 @@ export const TOOL_PERFORMANCE = {
   p95BySource: { 'Config rule (auto)': 4100, 'User: allow once': 9800, 'User: always allow': 6200 },
 };
 
+// Prompts tab (user_prompt events in Loki).
+export const PROMPTS = {
+  total: 1284,
+  commandShare: 18.4,
+  perSession: 22.1,
+  lengthP50: 186,
+  byKind: { 'Typed prompt': 1048, 'Slash command': 236 },
+  topCommands: { compact: 96, clear: 61, review: 38, custom: 27, mcp: 14 },
+  bySource: { builtin: 195, custom: 27, mcp: 14 },
+  lengthBuckets: [412, 437, 151, 48],
+};
+
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
   // Unattributed usage (no identity) comes back from the query but isn't listed.
@@ -492,6 +504,17 @@ Object.assign(DATASET, {
   RefusalsByCategory: (id: string) => lokiInstantFrames(id, 'category', RELIABILITY.refusalsByCategory),
   RefusalsByModel: (id: string) => lokiInstantFrames(id, 'model', RELIABILITY.refusalsByModel),
   ToolCalls: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.calls),
+  Prompts: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.total }),
+  CommandShare: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.commandShare }),
+  PromptsPerSession: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.perSession }),
+  PromptLengthP50: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.lengthP50 }),
+  PromptsOverTime: (id: string, r: { from: number; to: number; step?: number }) =>
+    lokiRangeFrames(id, 'kind', PROMPTS.byKind, r),
+  TopCommands: (id: string) => lokiInstantFrames(id, 'command_name', PROMPTS.topCommands),
+  CommandsBySource: (id: string) => lokiInstantFrames(id, 'command_source', PROMPTS.bySource),
+  ...Object.fromEntries(
+    PROMPTS.lengthBuckets.map((n, i) => [`PromptLength${i}`, (id: string) => lokiInstantFrames(id, null, { total: n })])
+  ),
   ToolFailureRate: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.failureRate),
   ToolP50: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.p50),
   ToolP95: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.p95),
