@@ -49,6 +49,7 @@
 - The Model picker is hidden on tabs whose metrics have no model label (#57)
 - Over Time charts no longer drop counter jumps between bars, and use a 1m minimum step (#76, #77)
 - Bar gauges start at zero, so the smallest bar or a single bar is no longer drawn empty (#91)
+- The Traces tables show their key columns with readable names, and a Model Requests trace ID opens the trace (#92)
 
 ## 1.1.0
 
