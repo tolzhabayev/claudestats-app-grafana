@@ -131,9 +131,9 @@ const LIST_POSITIONS = 5;
  * to LIST_POSITIONS) copies that item into an `item` label.
  */
 function listItemsQuery(label: string): string {
-  // last_over_time keeps the metric name; max_over_time would drop it and make series of
-  // different metrics with the same labels collide ("same labelset") in label_replace.
-  const series = `last_over_time({__name__=~"${CLAUDE_CODE_METRICS}", ${label}!=""}[$__range])`;
+  // Aggregate down to the list label first so no other label (such as an existing `item`)
+  // survives into the options when a position doesn't match.
+  const series = `count by (${label}) (last_over_time({__name__=~"${CLAUDE_CODE_METRICS}", ${label}!=""}[$__range]))`;
   const positions = Array.from(
     { length: LIST_POSITIONS },
     (_, n) => `label_replace(${series}, "item", "$1", "${label}", "(?:[^,]+,){${n}}([^,]+).*")`
