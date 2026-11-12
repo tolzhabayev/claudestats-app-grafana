@@ -9,7 +9,7 @@ keywords:
 sidebar_position: 2
 ---
 
-This document explains how to configure Claude Code Stats after you enable it.
+This document explains how to configure Claude Code Stats after you enable it, and how to set up the recommended alert rule.
 
 ## Before you begin
 
@@ -109,3 +109,23 @@ apps:
 | `jsonData.customLabels` | The **Filter labels**, as a list.                                                                                                                         |
 
 The app has no secure settings, so it doesn't use `secureJsonData`.
+
+## Set up alerts
+
+The plugin repository includes a recommended alert rule as a Grafana provisioning file, [`examples/alerting/claude-code-alerts.yaml`](https://github.com/tolzhabayev/claudestats-app-grafana/blob/main/examples/alerting/claude-code-alerts.yaml). It adds the rule to a **Claude Code** folder:
+
+| Alert rule                            | Fires when                                                                                                                                                       |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Claude Code cost spike per member** | A team member's estimated spend in the last hour is over $5 and more than 3 times their average hourly spend over the last 7 days. It's checked every 5 minutes. |
+
+Team members are identified the same way as in the app: by email address, else `enduser.id`, else the anonymous Claude Code user ID.
+
+To add the rule:
+
+1. Copy the file into the `provisioning/alerting` directory of your Grafana server.
+1. Set `datasourceUid` to the UID of the Prometheus data source that has your Claude Code metrics. It's the last part of the URL when you open the data source under **Connections** > **Data sources**.
+1. If **Ingestion path** is **Direct OTLP**, replace `claude_code_cost_usage_USD_total` with `claude_code_cost_usage` in the query.
+1. Change the thresholds in the query if $5 or 3 times don't fit your team.
+1. Restart Grafana.
+
+Alerts go to your default contact point. For more information, refer to [Provision alert rules](https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/file-provisioning/).
