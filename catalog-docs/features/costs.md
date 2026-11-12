@@ -39,7 +39,7 @@ The bar gauges attribute cost to what issued each request, largest first:
 | **Cost by Speed (Fast Mode)** | `fast` for fast mode, `normal` otherwise.                      |
 | **Cost by Effort**            | The effort level, or `default` when the model doesn't use one. |
 
-**Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server**, **Cost by Plugin** and **Cost by MCP Tool** show no data when no request in the period used one. User-defined subagents, third-party skills and plugins, and user-configured MCP servers and their tools show as `custom` or `third-party` unless team members set `OTEL_LOG_TOOL_DETAILS=1`. **Cost by Repository** needs `OTEL_METRICS_INCLUDE_REPOSITORY=true`. For details, refer to [Optional telemetry settings](../index.md#optional-telemetry-settings).
+**Cost by Subagent**, **Cost by Skill**, **Cost by MCP Server**, **Cost by Plugin** and **Cost by MCP Tool** say so when nothing in the period used one, such as **No skill was active in this period**. User-defined subagents, third-party skills and plugins, and user-configured MCP servers and their tools show as `custom` or `third-party` unless team members set `OTEL_LOG_TOOL_DETAILS=1`. **Cost by Repository** needs `OTEL_METRICS_INCLUDE_REPOSITORY=true`. For details, refer to [Optional telemetry settings](../index.md#optional-telemetry-settings).
 
 ## Filters on this tab
 

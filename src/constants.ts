@@ -89,6 +89,7 @@ export const LABELS = {
   HOST_ARCH: 'host_arch',
   SERVICE_VERSION: 'service_version',
   TERMINAL_TYPE: 'terminal_type',
+  ENTRYPOINT: 'app_entrypoint', // cli, vscode, desktop, sdk...; needs OTEL_METRICS_INCLUDE_ENTRYPOINT=true
 } as const;
 
 // Default time ranges

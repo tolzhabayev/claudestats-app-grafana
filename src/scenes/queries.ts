@@ -336,6 +336,9 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
 
     /** Usage by service version */
     usageByServiceVersion: `sum by (${LABELS.SERVICE_VERSION}) (${scoped('increase', m.COST_USAGE, '$__range')})`,
+
+    /** Usage by entrypoint (CLI, VS Code, desktop app, SDK...); needs OTEL_METRICS_INCLUDE_ENTRYPOINT=true */
+    usageByEntrypoint: `sum by (${LABELS.ENTRYPOINT}) (${scoped('increase', m.COST_USAGE, '$__range', `${LABELS.ENTRYPOINT}=~".+"`)})`,
   };
 }
 
