@@ -19,7 +19,7 @@ import {
 } from '@grafana/schema';
 import { DECISION_SOURCE_COLORS, DECISION_SOURCE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
-import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 // A low acceptance rate means many proposed edits are rejected, so red/yellow/green
@@ -77,6 +77,7 @@ export function getToolsScene(
     queries: [
       {
         refId: 'ToolDecisionsOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.toolDecisionsOverTime,
         legendFormat: '{{decision}}',
       },

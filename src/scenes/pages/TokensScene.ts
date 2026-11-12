@@ -19,7 +19,7 @@ import {
   VizOrientation,
 } from '@grafana/schema';
 import { QUERIES, Queries } from '../queries';
-import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 /**
@@ -140,6 +140,7 @@ export function getTokensScene(
     queries: [
       {
         refId: 'TokensOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.tokensOverTime,
         legendFormat: '{{type}}',
       },
