@@ -37,7 +37,7 @@ test.describe('Traces scene', () => {
         (q) =>
           q.datasource?.type === 'tempo' &&
           (q.query ?? '').includes('name="claude_code.interaction"') &&
-          (q.query ?? '').includes('.user.email =~')
+          (q.query ?? '').includes('!(.user.email != nil)')
       );
     });
     await gotoPage('traces');

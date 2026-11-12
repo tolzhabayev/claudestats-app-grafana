@@ -10,12 +10,15 @@
 const SERVICE = 'resource.service.name="claude-code"';
 
 /**
- * Member filter: the email, `enduser.id` or `user.id` matches the selected
- * members. `.attr` looks at both span and resource attributes, and a missing
- * attribute never matches, so the anonymous `user.id` keeps every span
- * selectable under "All".
+ * Member filter with the same identity fallback as the metrics and events: a
+ * span belongs to its email, else its `enduser.id`, else its `user.id`. Tempo
+ * doesn't support `= nil` yet, so "missing" is written as `!(attr != nil)`.
+ * `.attr` looks at both span and resource attributes.
  */
-const MEMBER = '(.user.email =~ "$member" || .enduser.id =~ "$member" || .user.id =~ "$member")';
+const MEMBER =
+  '((.user.email =~ "$member")' +
+  ' || (!(.user.email != nil) && .enduser.id =~ "$member")' +
+  ' || (!(.user.email != nil) && !(.enduser.id != nil) && .user.id =~ "$member"))';
 
 export function buildTraceQueries() {
   return {
