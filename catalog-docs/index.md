@@ -151,4 +151,5 @@ For every Claude Code telemetry setting, refer to [Monitoring usage](https://cod
 - [Find what drives token usage](./features/tokens.md)
 - [Check how often Claude's edits are accepted](./features/tools.md)
 - [Track commits, pull requests and active time](./features/productivity.md)
+- [Get alerted when a team member's spend spikes](./configure.md#set-up-alerts)
 - [Fix panels that show no data](./troubleshooting.md)

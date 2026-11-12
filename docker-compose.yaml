@@ -56,8 +56,12 @@ services:
     command: ['-config.file=/etc/loki/local-config.yaml']
     ports:
       - "3100:3100"
+    volumes:
+      # local-config.yaml keeps chunks, index, rules and the WAL under /loki
+      - loki-data:/loki
     restart: unless-stopped
 
 volumes:
   grafana-storage:
   prometheus-data:
+  loki-data:
