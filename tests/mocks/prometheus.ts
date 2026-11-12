@@ -309,6 +309,14 @@ export const SCALARS = {
   CostPerActiveHour: sum(COST.byMember) / (sum(ACTIVE_TIME_BY_MEMBER) / 3600),
 } as const;
 
+// Change against the previous period for the Overview totals (percent).
+export const TRENDS = {
+  TotalCostChange: 24,
+  TotalTokensChange: 18,
+  TotalSessionsChange: -6,
+  ActiveUsersChange: 0,
+} as const;
+
 // How the stat panels render SCALARS, for spec assertions.
 export const DISPLAY = {
   TotalCost: '487',
@@ -667,6 +675,11 @@ for (const [column, byMember] of Object.entries(LEADERBOARD)) {
       ])
     );
 }
+
+Object.assign(
+  DATASET,
+  Object.fromEntries(Object.entries(TRENDS).map(([refId, value]) => [refId, (id: string) => scalarFrame(id, value)]))
+);
 
 // --- traces (Tempo) ---
 // A TraceQL search as a table (one row per trace), and a single trace for the waterfall.
