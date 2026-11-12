@@ -203,7 +203,7 @@ export function getCostsScene(
               body: overTimeBars()
                 .setTitle('Cost Over Time by Model')
                 .setDescription(
-                  'Estimated cost per interval, one series per model. Each bar is the total for one interval.'
+                  'Estimated cost per interval, one series per model. Each bar is an estimate for one interval.'
                 )
                 .setUnit('currencyUSD')
                 .setData(costOverTimeQuery)
@@ -215,7 +215,7 @@ export function getCostsScene(
               body: overTimeBars()
                 .setTitle('Cost Over Time by Team Member')
                 .setDescription(
-                  'Estimated cost per interval, one series per team member. Each bar is the total for one interval.'
+                  'Estimated cost per interval, one series per team member. Each bar is an estimate for one interval.'
                 )
                 .setUnit('currencyUSD')
                 .setData(costOverTimeByMemberQuery)
