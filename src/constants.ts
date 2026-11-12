@@ -78,6 +78,8 @@ export const LABELS = {
   MCP_SERVER_NAME: 'mcp_server_name',
   // Repository attributes (OTEL_METRICS_INCLUDE_REPOSITORY=true, Claude Code v2.1.269+)
   REPOSITORY: 'vcs_repository_name',
+  // Identity-provider groups of gateway (OIDC) sessions, comma-separated
+  USER_GROUPS: 'user_groups',
   MCP_TOOL_NAME: 'mcp_tool_name', // user-configured servers' tools collapse to "custom"
   PLUGIN_NAME: 'plugin_name', // plugin owning the active skill/subagent; third-party → "third-party"
   SPEED: 'speed', // "fast" when fast mode is active; absent on normal requests

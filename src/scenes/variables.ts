@@ -88,6 +88,23 @@ export function getModelVariable(metrics: MetricNames = getMetrics()) {
   });
 }
 
+/** How many items of a comma-separated label the Team picker lists per value. */
+const LIST_POSITIONS = 5;
+
+/**
+ * Query listing the individual items of a comma-separated label, such as each
+ * group in `user_groups="eng,platform"`: one `label_replace` per position (up
+ * to LIST_POSITIONS) copies that item into an `item` label.
+ */
+function listItemsQuery(label: string): string {
+  const series = `max_over_time({__name__=~"${CLAUDE_CODE_METRICS}", ${label}!=""}[$__range])`;
+  const positions = Array.from(
+    { length: LIST_POSITIONS },
+    (_, n) => `label_replace(${series}, "item", "$1", "${label}", "(?:[^,]+,){${n}}([^,]+).*")`
+  );
+  return `query_result(count by (item) (${positions.join(' or ')}))`;
+}
+
 /**
  * Creates the picker for a filter dimension (Repository or a configured label).
  * A dimension with `hideWhenEmpty` stays hidden until its label has values, so
@@ -104,9 +121,12 @@ export function getDimensionVariable(dimension: FilterDimension) {
     query: {
       // Every Claude Code metric in either naming format, not just cost: the filter applies to
       // sessions, tools and productivity too. Other apps' metrics with the same label stay out.
-      query: `label_values({__name__=~"${CLAUDE_CODE_METRICS}"}, ${dimension.label})`,
+      query: dimension.listValued
+        ? listItemsQuery(dimension.label)
+        : `label_values({__name__=~"${CLAUDE_CODE_METRICS}"}, ${dimension.label})`,
       refId: `${dimension.variable}Query`,
     },
+    ...(dimension.listValued ? { regex: '/item="([^"]+)"/' } : {}),
     sort: 1,
     refresh: VariableRefresh.onTimeRangeChanged,
     includeAll: true,
