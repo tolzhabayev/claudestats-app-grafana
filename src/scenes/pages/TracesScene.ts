@@ -14,10 +14,17 @@ import {
 import { PANEL_HEIGHTS, PLUGIN_BASE_URL, ROUTES } from '../../constants';
 import { buildTraceQueries, TraceQueries } from '../traceQueries';
 import { TEMPO_DS_VARIABLE, TRACE_VARIABLE } from '../variables';
+import { WhenVariableSet } from '../WhenVariableSet';
 
 const TEMPO = { type: 'tempo', uid: `\${${TEMPO_DS_VARIABLE}}` };
 
 /** Shown when Tempo has no Claude Code traces for the period. */
+const TRACE_DESCRIPTION =
+  'The trace picked above, as a waterfall: the prompt, its model requests, and each tool call with the time spent waiting for permission and running the tool.';
+
+/** Shown in place of the waterfall until a trace is picked. */
+const PICK_A_TRACE = 'Click a trace ID above, or enter one in **Trace ID**, to see the trace.';
+
 const NO_TRACES = 'No traces. Needs CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1 and OTEL_TRACES_EXPORTER=otlp';
 
 function search(refId: string, query: string, tableType: 'traces' | 'spans') {
@@ -103,19 +110,25 @@ export function getTracesScene(
           height: 520,
           children: [
             new SceneFlexItem({
-              body: PanelBuilders.traces()
-                .setTitle('Trace')
-                .setDescription(
-                  'The trace picked above, as a waterfall: the prompt, its model requests, and each tool call with the time spent waiting for permission and running the tool.'
-                )
-                .setData(
-                  new SceneQueryRunner({
-                    datasource: TEMPO,
-                    queries: [{ refId: 'Trace', queryType: 'traceql', query: q.trace }],
-                  })
-                )
-                .setNoValue('Click a trace ID above, or enter one in Trace ID, to see the trace.')
-                .build(),
+              // Only query Tempo once a trace is picked: it rejects an empty trace query.
+              body: new WhenVariableSet({
+                variableName: TRACE_VARIABLE,
+                body: PanelBuilders.traces()
+                  .setTitle('Trace')
+                  .setDescription(TRACE_DESCRIPTION)
+                  .setData(
+                    new SceneQueryRunner({
+                      datasource: TEMPO,
+                      queries: [{ refId: 'Trace', queryType: 'traceql', query: q.trace }],
+                    })
+                  )
+                  .build(),
+                placeholder: PanelBuilders.text()
+                  .setTitle('Trace')
+                  .setDescription(TRACE_DESCRIPTION)
+                  .setOption('content', PICK_A_TRACE)
+                  .build(),
+              }),
             }),
           ],
         }),

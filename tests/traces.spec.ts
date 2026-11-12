@@ -44,6 +44,32 @@ test.describe('Traces scene', () => {
     await search;
   });
 
+  test('asks for a trace and sends no trace query until one is picked', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    const traceQueries: string[] = [];
+    page.on('request', (request) => {
+      if (!request.url().includes('/api/ds/query')) {
+        return;
+      }
+      const body = request.postDataJSON() as { queries?: Array<{ refId?: string; query?: string }> };
+      for (const q of body.queries ?? []) {
+        if (q.refId === 'Trace') {
+          traceQueries.push(q.query ?? '');
+        }
+      }
+    });
+    const app = await gotoPage('traces');
+    const trace = panelByTitle(app, selectors, 'Trace');
+    await expect(trace).toContainText('Click a trace ID above');
+    // The lists have loaded, so any trace query would have been sent by now.
+    await expect(panelByTitle(app, selectors, 'Interactions')).toContainText(TRACES.interactions[0].traceID);
+    expect(traceQueries).toEqual([]);
+  });
+
   test('shows the picked trace as a waterfall', async ({ mockData, gotoPage, page, selectors }) => {
     await gotoPage(`traces?var-trace=${TRACES.interactions[0].traceID}`);
     const app = await gotoPage(`traces?var-trace=${TRACES.interactions[0].traceID}`);

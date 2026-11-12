@@ -49,6 +49,7 @@
 - The Model picker is hidden on tabs whose metrics have no model label (#57)
 - Over Time charts no longer drop counter jumps between bars, and use a 1m minimum step (#76, #77)
 - Bar gauges start at zero, so the smallest bar or a single bar is no longer drawn empty (#91)
+- The Traces tab no longer shows an error and sends failing Tempo queries before a trace is picked (#93)
 - Event tabs no longer say telemetry is missing when there is simply nothing to show: counts show 0 and breakdowns say what didn't happen, such as "No refusals in this period" (#94)
 
 ## 1.1.0
