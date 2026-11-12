@@ -8,7 +8,7 @@ keywords:
 sidebar_position: 3
 ---
 
-Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has seven tabs. Each one answers a different question about how your team uses Claude Code:
+Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has eight tabs. Each one answers a different question about how your team uses Claude Code:
 
 | Tab                               | Read it to                                                                             |
 | --------------------------------- | -------------------------------------------------------------------------------------- |
@@ -18,6 +18,7 @@ Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under
 | [Tools](./tools.md)               | Check how often team members accept Claude's file edits.                               |
 | [Productivity](./productivity.md) | Track lines of code, commits, pull requests and active time.                           |
 | [Prompts](./prompts.md)           | See how the team prompts: volume, slash commands and prompt length.                    |
+| [Workflow](./workflow.md)         | Check model latency, subagents, compaction, skills, MCP servers and hooks.             |
 | [Reliability](./reliability.md)   | Track API errors, exhausted retries and refusals.                                      |
 
 ## Filter the data

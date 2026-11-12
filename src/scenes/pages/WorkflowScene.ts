@@ -19,11 +19,20 @@ import { LOKI, lokiBreakdown, lokiCountStat, lokiTable, NO_EVENTS } from '../lok
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
+/** A row of panels sharing the width equally. */
 function row(height: number, ...bodies: VizPanel[]) {
+  return widthRow(
+    height,
+    bodies.map((body) => ({ body }))
+  );
+}
+
+/** A row of panels, each with an optional width such as '50%'. */
+function widthRow(height: number, items: Array<{ body: VizPanel; width?: string }>) {
   return new SceneFlexLayout({
     direction: 'row',
     height,
-    children: bodies.map((body) => new SceneFlexItem({ body })),
+    children: items.map((item) => new SceneFlexItem(item)),
   });
 }
 
@@ -47,7 +56,7 @@ function cacheLifetimePanel(queries: LogQueries) {
     .setOption('pieType', 'donut' as never)
     .setOption('legend', {
       displayMode: LegendDisplayMode.Table,
-      placement: 'right',
+      placement: 'bottom',
       values: ['value', 'percent'] as never,
     })
     .setNoValue(NO_EVENTS)
@@ -87,29 +96,35 @@ export function getWorkflowScene(
       direction: 'column',
       children: [
         // Model request latency (api_request)
-        row(
-          PANEL_HEIGHTS.LARGE,
-          lokiTable(
-            'Request Latency by Model',
-            'API requests per model with their median (p50) and 95th percentile (p95) duration. Time to first token is not in these events.',
-            'model',
-            'Model',
-            [
-              { refId: 'RequestsByModel', name: 'Requests', expr: q.requestsByModel, unit: 'none', decimals: 0 },
-              { refId: 'RequestLatencyP50', name: 'p50', expr: q.requestLatencyP50, unit: 'ms', decimals: 1 },
-              { refId: 'RequestLatencyP95', name: 'p95', expr: q.requestLatencyP95, unit: 'ms', decimals: 1 },
-            ]
-          ),
-          lokiBreakdown(
-            'RequestLatencyByEffort',
-            q.requestLatencyP95ByEffort,
-            'effort',
-            'p95 Latency by Effort',
-            '95th percentile API request duration by effort level. Requests sent without an effort level show as default.',
-            'ms'
-          ),
-          cacheLifetimePanel(q)
-        ),
+        widthRow(PANEL_HEIGHTS.LARGE, [
+          {
+            // Wider, so the p50 and p95 columns fit.
+            width: '50%',
+            body: lokiTable(
+              'Request Latency by Model',
+              'API requests per model with their median (p50) and 95th percentile (p95) duration. Time to first token is not in these events.',
+              'model',
+              'Model',
+              [
+                { refId: 'RequestsByModel', name: 'Requests', expr: q.requestsByModel, unit: 'none', decimals: 0 },
+                { refId: 'RequestLatencyP50', name: 'p50', expr: q.requestLatencyP50, unit: 'ms', decimals: 1 },
+                { refId: 'RequestLatencyP95', name: 'p95', expr: q.requestLatencyP95, unit: 'ms', decimals: 1 },
+              ]
+            ),
+          },
+          {
+            width: '25%',
+            body: lokiBreakdown(
+              'RequestLatencyByEffort',
+              q.requestLatencyP95ByEffort,
+              'effort',
+              'p95 Latency by Effort',
+              '95th percentile API request duration by effort level. Requests sent without an effort level show as default.',
+              'ms'
+            ),
+          },
+          { width: '25%', body: cacheLifetimePanel(q) },
+        ]),
         // Subagents (subagent_completed)
         row(
           PANEL_HEIGHTS.LARGE,
