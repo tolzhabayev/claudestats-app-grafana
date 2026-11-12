@@ -12,6 +12,16 @@ import { BarAlignment, GraphDrawStyle, StackingMode, VisibilityMode } from '@gra
 export const OVER_TIME_QUERY_OPTIONS = { maxDataPoints: 60, minInterval: '2m' } as const;
 
 /**
+ * Min step for each "Over Time" query. Grafana derives `$__rate_interval` from a
+ * query's Min step when set, else from the data source's scrape interval
+ * (15s by default). Claude Code exports once a minute, so with the default the
+ * rate window barely overlaps the previous bar and a jump between two exports
+ * can fall between windows. With a 1m Min step the window is
+ * max(bar + 1m, 4m), which always reaches back past the previous export.
+ */
+export const OVER_TIME_MIN_STEP = '1m';
+
+/**
  * A time series drawn as stacked bars, one per interval: spend, tokens or
  * events per hour or day. Bursty usage drawn as lines showed up as thin
  * needles.

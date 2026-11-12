@@ -13,7 +13,7 @@ import {
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
-import { OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getOverviewScene(
@@ -72,6 +72,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'CostOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.costOverTime,
         legendFormat: '{{model}}',
       },
@@ -96,6 +97,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'TokensOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.tokensOverTime,
         legendFormat: '{{type}}',
       },
@@ -108,6 +110,7 @@ export function getOverviewScene(
     queries: [
       {
         refId: 'ActiveTimeOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.activeTimeOverTime,
         legendFormat: '{{type}}',
       },

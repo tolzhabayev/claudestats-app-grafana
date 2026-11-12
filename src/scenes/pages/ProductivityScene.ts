@@ -20,7 +20,7 @@ import {
 } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
 import { getControlsWithoutModel } from '../variables';
-import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 export function getProductivityScene(
@@ -102,6 +102,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'LinesOfCodeOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.linesOfCodeOverTime,
         legendFormat: '{{type}}',
       },
@@ -114,6 +115,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'CommitsOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.commitsOverTime,
         legendFormat: 'Commits',
       },
@@ -126,6 +128,7 @@ export function getProductivityScene(
     queries: [
       {
         refId: 'PullRequestsOverTime',
+        interval: OVER_TIME_MIN_STEP,
         expr: queries.pullRequestsOverTime,
         legendFormat: 'Pull requests',
       },
