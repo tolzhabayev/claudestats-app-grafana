@@ -43,6 +43,17 @@ function resolveMember(expr: string): string {
 }
 
 /**
+ * Percent change of a period total against the previous period of the same
+ * length: the same query with every `[$__range]` window shifted back by
+ * `offset $__range`. Empty when the previous period total was 0 or missing:
+ * there is nothing to compare with, and dividing by 0 would show infinity.
+ */
+export function changeVsPrevious(expr: string): string {
+  const previous = expr.split('[$__range])').join('[$__range] offset $__range)');
+  return `(${expr} - ${previous}) / (${previous} > 0) * 100`;
+}
+
+/**
  * Query for the Team Member variable: every identifiable member with spend in
  * the range. The variable extracts the `member` label from the result, so usage
  * with no identity (nothing to filter on) is not offered as an option.

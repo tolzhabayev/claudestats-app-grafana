@@ -4,6 +4,7 @@ import {
   ACTIVE_TIME_TYPES,
   DISPLAY,
   LEADERBOARD,
+  TRENDS,
   MODELS,
   MEMBERS,
   TOKEN_TYPES,
@@ -22,6 +23,21 @@ test.describe('Overview scene', () => {
     await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText(DISPLAY.TotalTokens);
     await expect(panelByTitle(app, selectors, 'Sessions')).toContainText(DISPLAY.TotalSessions);
     await expect(panelByTitle(app, selectors, 'Active Users')).toContainText(DISPLAY.ActiveUsers);
+  });
+
+  test('shows how each total changed against the previous period', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage();
+    const panel = panelByTitle(app, selectors, 'Change vs Previous Period');
+
+    for (const [refId, name] of [
+      ['TotalCostChange', 'Cost'],
+      ['TotalTokensChange', 'Tokens'],
+      ['TotalSessionsChange', 'Sessions'],
+      ['ActiveUsersChange', 'Active Users'],
+    ] as const) {
+      await expect(panel).toContainText(name);
+      await expect(panel).toContainText(`${TRENDS[refId]}%`);
+    }
   });
 
   test('renders the efficiency ratios', async ({ mockData, gotoPage, selectors }) => {

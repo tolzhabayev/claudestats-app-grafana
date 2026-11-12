@@ -24,6 +24,8 @@ The top row shows four totals:
 
 Cost is the estimate Claude Code reports. For billing data, use your Anthropic or cloud provider console.
 
+**Change vs Previous Period**, under the totals, compares cost, tokens, sessions and active users with the previous period of the same length, such as the 7 days before the last 7 days. A value is empty when the previous period had none to compare with.
+
 ## Check efficiency
 
 The second row shows three ratios for the period:
