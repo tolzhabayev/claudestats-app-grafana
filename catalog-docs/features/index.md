@@ -8,18 +8,19 @@ keywords:
 sidebar_position: 3
 ---
 
-Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has eight tabs. Each one answers a different question about how your team uses Claude Code:
+Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has nine tabs. Each one answers a different question about how your team uses Claude Code:
 
-| Tab                               | Read it to                                                                             |
-| --------------------------------- | -------------------------------------------------------------------------------------- |
-| [Overview](./overview.md)         | Check spend, efficiency and active users at a glance, and compare team members.        |
-| [Costs](./costs.md)               | See where cost goes: models, team members, subagents, skills, plugins and MCP servers. |
-| [Tokens](./tokens.md)             | See token volume by type, model and team member, and what drives it.                   |
-| [Tools](./tools.md)               | Check how often team members accept Claude's file edits.                               |
-| [Productivity](./productivity.md) | Track lines of code, commits, pull requests and active time.                           |
-| [Prompts](./prompts.md)           | See how the team prompts: volume, slash commands and prompt length.                    |
-| [Workflow](./workflow.md)         | Check model latency, subagents, compaction, skills, MCP servers and hooks.             |
-| [Reliability](./reliability.md)   | Track API errors, exhausted retries and refusals.                                      |
+| Tab                               | Read it to                                                                               |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| [Overview](./overview.md)         | Check spend, efficiency and active users at a glance, and compare team members.          |
+| [Costs](./costs.md)               | See where cost goes: models, team members, subagents, skills, plugins and MCP servers.   |
+| [Tokens](./tokens.md)             | See token volume by type, model and team member, and what drives it.                     |
+| [Tools](./tools.md)               | Check how often team members accept Claude's file edits.                                 |
+| [Productivity](./productivity.md) | Track lines of code, commits, pull requests and active time.                             |
+| [Prompts](./prompts.md)           | See how the team prompts: volume, slash commands and prompt length.                      |
+| [Workflow](./workflow.md)         | Check model latency, subagents, compaction, skills, MCP servers and hooks.               |
+| [Reliability](./reliability.md)   | Track API errors, exhausted retries and refusals.                                        |
+| [Security](./security-audit.md)   | Audit permission escalations, rejected tool calls, logins, plugins and managed settings. |
 
 ## Filter the data
 
