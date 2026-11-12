@@ -143,6 +143,20 @@ const ACTIVE_TIME_BY_MEMBER = { [MEMBERS[0]]: 30600, [MEMBERS[1]]: 25200, [MEMBE
 // The same 20 hours split into interaction (user) and processing (cli) time.
 const ACTIVE_TIME_BY_TYPE = { user: 27000, cli: 45000 };
 
+// Per-member values for the Team Leaderboard (each column sums to its tab's total).
+export const LEADERBOARD = {
+  // Unattributed usage (no identity) comes back from the query but isn't listed.
+  Cost: { ...COST.byMember, Unattributed: 3.2 } as Record<string, number>,
+  Tokens: TOKENS.byMember,
+  Sessions: { [MEMBERS[0]]: 26, [MEMBERS[1]]: 19, [MEMBERS[2]]: 13 },
+  ActiveTime: ACTIVE_TIME_BY_MEMBER,
+  LinesAdded: { [MEMBERS[0]]: 2210, [MEMBERS[1]]: 1640, [MEMBERS[2]]: 970 },
+  LinesRemoved: { [MEMBERS[0]]: 880, [MEMBERS[1]]: 690, [MEMBERS[2]]: 390 },
+  Commits: { [MEMBERS[0]]: 11, [MEMBERS[1]]: 8, [MEMBERS[2]]: 4 },
+  PullRequests: { [MEMBERS[0]]: 3, [MEMBERS[1]]: 2, [MEMBERS[2]]: 1 },
+  AcceptanceRate: { [MEMBERS[0]]: 78.4, [MEMBERS[1]]: 73.9, [MEMBERS[2]]: 69.2 },
+};
+
 // Scalar values rendered by stat panels.
 export const SCALARS = {
   TotalCost: sum(COST.byMember),
@@ -157,6 +171,10 @@ export const SCALARS = {
   TotalCommits: 23,
   TotalPullRequests: 6,
   TotalActiveTime: sum(ACTIVE_TIME_BY_MEMBER),
+  CacheHitRate:
+    (TOKENS.byType.cacheRead / (TOKENS.byType.input + TOKENS.byType.cacheRead + TOKENS.byType.cacheCreation)) * 100,
+  CostPerSession: sum(COST.byMember) / (sum(SESSIONS_BY_START_TYPE) - SESSIONS_BY_START_TYPE.agents_view),
+  CostPerActiveHour: sum(COST.byMember) / (sum(ACTIVE_TIME_BY_MEMBER) / 3600),
 } as const;
 
 // How the stat panels render SCALARS, for spec assertions.
@@ -173,6 +191,9 @@ export const DISPLAY = {
   TotalCommits: '23',
   TotalPullRequests: '6',
   TotalActiveTime: '20',
+  CacheHitRate: '92.5%',
+  CostPerSession: '$8.40',
+  CostPerActiveHour: '$24.36',
 } as const;
 
 // ==================== Dataframe builders ====================
@@ -382,6 +403,17 @@ const DATASET: Record<string, FrameBuilder> = {
   ActiveTimeByType: (id) => instantSeriesFrames(id, 'type', ACTIVE_TIME_BY_TYPE),
   ActiveTimeByMember: (id) => instantSeriesFrames(id, 'member', ACTIVE_TIME_BY_MEMBER),
 };
+
+// Team Leaderboard columns: one table-format frame per member, labelled with `member`.
+for (const [column, byMember] of Object.entries(LEADERBOARD)) {
+  DATASET[`Leaderboard${column}`] = (id, r) =>
+    Object.entries(byMember).map(([member, value]) =>
+      makeFrame(id, [
+        { name: 'Time', type: 'time', values: [r.to] },
+        { name: 'Value', type: 'number', labels: { member }, values: [value] },
+      ])
+    );
+}
 
 // ==================== Route handlers ====================
 
