@@ -11,7 +11,7 @@ import {
   SceneTimePicker,
   SceneRefreshPicker,
 } from '@grafana/scenes';
-import { BigValueGraphMode, BigValueTextMode, LegendDisplayMode, VizOrientation } from '@grafana/schema';
+import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, changeVsPrevious, QUERIES, Queries } from '../queries';
 import { OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
@@ -27,37 +27,28 @@ const TRENDS = [
 ] as const;
 
 /**
- * One compact panel with the change of each total against the previous period
- * of the same length, such as the 7 days before the last 7 days.
+ * The change of one total against the previous period of the same length,
+ * such as the 7 days before the last 7 days. One small stat per total, each
+ * under its total, so an empty comparison keeps its slot and its own message.
  */
-function trendsPanel(queries: Queries) {
-  return (
-    PanelBuilders.stat()
-      .setTitle('Change vs Previous Period')
-      .setDescription(
-        'How each total compares with the previous period of the same length, such as the 7 days before the last 7 days. Empty when the previous period had none.'
-      )
-      .setUnit('percent')
-      .setDecimals(0)
-      .setData(
-        new SceneQueryRunner({
-          datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
-          queries: TRENDS.map(([refId, , key]) => ({ refId, expr: changeVsPrevious(queries[key]), instant: true })),
-        })
-      )
-      .setOption('graphMode', BigValueGraphMode.None)
-      .setOption('textMode', BigValueTextMode.ValueAndName)
-      // Vertical lays the four values out side by side.
-      .setOption('orientation', VizOrientation.Vertical)
-      .setColor({ mode: 'fixed', fixedColor: 'text' })
-      .setNoValue('No previous period to compare')
-      .setOverrides((b) => {
-        for (const [refId, name] of TRENDS) {
-          b.matchFieldsByQuery(refId).overrideDisplayName(name);
-        }
+function trendStat(refId: string, name: string, expr: string) {
+  return PanelBuilders.stat()
+    .setTitle(`${name} vs Previous Period`)
+    .setDescription(
+      `How ${name.toLowerCase()} compares with the previous period of the same length, such as the 7 days before the last 7 days. Empty when the previous period had none.`
+    )
+    .setUnit('percent')
+    .setDecimals(0)
+    .setData(
+      new SceneQueryRunner({
+        datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+        queries: [{ refId, expr: changeVsPrevious(expr), instant: true }],
       })
-      .build()
-  );
+    )
+    .setOption('graphMode', BigValueGraphMode.None)
+    .setColor({ mode: 'fixed', fixedColor: 'text' })
+    .setNoValue('No previous period')
+    .build();
 }
 
 function ratioStat(refId: string, expr: string, title: string, unit: string, description: string) {
@@ -306,7 +297,9 @@ export function getOverviewScene(
         new SceneFlexLayout({
           direction: 'row',
           height: 80,
-          children: [new SceneFlexItem({ body: trendsPanel(queries) })],
+          children: TRENDS.map(
+            ([refId, name, key]) => new SceneFlexItem({ body: trendStat(refId, name, queries[key]) })
+          ),
         }),
         // Row 1b: Efficiency ratios
         new SceneFlexLayout({
