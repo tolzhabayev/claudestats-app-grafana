@@ -26,7 +26,7 @@ Click a trace ID and choose **Show this trace**, or enter a trace ID in **Trace 
 
 ## Read the waterfall
 
-**Trace** shows the picked trace as a waterfall. The prompt is the top span. Under it are its model requests and tool calls. Each tool call has two parts: the time spent waiting for a permission decision and the time spent running the tool. Subagent requests and tool calls nest under the tool call that started the subagent.
+**Trace** shows the picked trace as a waterfall. Until you pick one, it asks you to and doesn't query Tempo. The prompt is the top span. Under it are its model requests and tool calls. Each tool call has two parts: the time spent waiting for a permission decision and the time spent running the tool. Subagent requests and tool calls nest under the tool call that started the subagent.
 
 Prompt text, tool input and tool output stay redacted unless team members set `OTEL_LOG_USER_PROMPTS=1`, `OTEL_LOG_TOOL_DETAILS=1` or `OTEL_LOG_TOOL_CONTENT=1`.
 
