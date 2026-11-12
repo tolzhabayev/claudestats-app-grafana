@@ -24,6 +24,8 @@ Filter the metrics and events tabs by team member, team (identity-provider group
 - Grafana 13.2.0 or later
 - A Prometheus-compatible data source. Grafana Cloud includes one by default.
 - Claude Code with telemetry enabled, exporting metrics to Grafana Cloud or through an OpenTelemetry Collector to Prometheus
+- For the **Prompts**, **Workflow**, **Reliability** and **Security** tabs and tool performance on the **Tools** tab: a Loki data source and Claude Code events (`OTEL_LOGS_EXPORTER=otlp`)
+- For the **Traces** tab: a Tempo data source and Claude Code traces (`CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` and `OTEL_TRACES_EXPORTER=otlp`)
 
 ## Get started
 
