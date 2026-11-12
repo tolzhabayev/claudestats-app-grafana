@@ -32,6 +32,12 @@ test.describe('App Navigation', () => {
     await expect(page).toHaveURL(/.*\/productivity/);
   });
 
+  test('should navigate to Prompts tab', async ({ gotoPage, page }) => {
+    await gotoPage();
+    await page.getByRole('tab', { name: 'Prompts' }).click();
+    await expect(page).toHaveURL(/.*\/prompts/);
+  });
+
   test('should navigate to Reliability tab', async ({ gotoPage, page }) => {
     await gotoPage();
     await page.getByRole('tab', { name: 'Reliability' }).click();
