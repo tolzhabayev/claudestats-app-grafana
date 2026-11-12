@@ -158,8 +158,14 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     /** Slash commands by origin: builtin, custom (including plugins) or mcp */
     commandsBySource: `sort_desc(sum by (command_source) (count_over_time(${commands} [$__range])))`,
 
-    /** Typed prompts per length bucket, in PROMPT_LENGTH_BUCKETS order */
-    promptLengthBuckets: PROMPT_LENGTH_BUCKETS.map((b) => `sum(count_over_time(${typed} ${b.filter} [$__range]))`),
+    /**
+     * Typed prompts per length bucket, in PROMPT_LENGTH_BUCKETS order. An empty
+     * bucket is 0 when there are typed prompts, so all four bars stay; with no
+     * typed prompts at all the panel shows its no-events hint.
+     */
+    promptLengthBuckets: PROMPT_LENGTH_BUCKETS.map(
+      (b) => `sum(count_over_time(${typed} ${b.filter} [$__range])) or sum(count_over_time(${typed} [$__range])) * 0`
+    ),
 
     // ---------- Workflow ----------
 
