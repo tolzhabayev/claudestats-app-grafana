@@ -3,6 +3,7 @@ import { panelByTitle, legendItem } from './mocks/panels';
 import {
   ACTIVE_TIME_TYPES,
   DISPLAY,
+  LEADERBOARD,
   MODELS,
   MEMBERS,
   TOKEN_TYPES,
@@ -21,6 +22,42 @@ test.describe('Overview scene', () => {
     await expect(panelByTitle(app, selectors, 'Total Tokens')).toContainText(DISPLAY.TotalTokens);
     await expect(panelByTitle(app, selectors, 'Sessions')).toContainText(DISPLAY.TotalSessions);
     await expect(panelByTitle(app, selectors, 'Active Users')).toContainText(DISPLAY.ActiveUsers);
+  });
+
+  test('renders the efficiency ratios', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage();
+
+    await expect(panelByTitle(app, selectors, 'Cache Hit Rate')).toContainText(DISPLAY.CacheHitRate);
+    await expect(panelByTitle(app, selectors, 'Cost per Session')).toContainText(DISPLAY.CostPerSession);
+    await expect(panelByTitle(app, selectors, 'Cost per Active Hour')).toContainText(DISPLAY.CostPerActiveHour);
+  });
+
+  test('renders the team leaderboard, sorted by cost, linking each member', async ({
+    mockData,
+    gotoPage,
+    selectors,
+  }) => {
+    const app = await gotoPage();
+    const table = panelByTitle(app, selectors, 'Team Leaderboard');
+
+    for (const column of ['Team Member', 'Cost', 'Tokens', 'Sessions', 'Commits', 'Acceptance Rate']) {
+      await expect(table.getByRole('columnheader', { name: column })).toBeVisible();
+    }
+    // Highest cost first; every member's row merges all columns.
+    const rows = table.getByRole('row');
+    await expect(rows.nth(1)).toContainText(MEMBERS[0]);
+    for (const member of MEMBERS) {
+      const row = table.getByRole('row').filter({ hasText: member });
+      await expect(row).toContainText(`$${LEADERBOARD.Cost[member].toFixed(2)}`);
+      await expect(row).toContainText(String(LEADERBOARD.Commits[member]));
+      const href = await row.getByRole('link', { name: member }).getAttribute('href');
+      expect(href).toContain(`var-member=${encodeURIComponent(member)}`);
+      // The other filters are kept, so following the link only changes the member.
+      for (const variable of ['prometheus_ds', 'model', 'repository']) {
+        expect(href).toContain(`var-${variable}=`);
+      }
+    }
+    await expect(table).not.toContainText('Unattributed');
   });
 
   test('renders cost charts with model and member series', async ({ mockData, gotoPage, selectors }) => {
