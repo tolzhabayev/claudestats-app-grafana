@@ -20,6 +20,24 @@ export function getPrometheusDataSourceVariable() {
   });
 }
 
+/** Name of the Loki data source variable (Claude Code events). */
+export const LOKI_DS_VARIABLE = 'loki_ds';
+
+/**
+ * Creates the data source variable for Claude Code events in Loki. It is
+ * hidden so the metrics tabs don't show it; the Reliability tab adds its
+ * picker explicitly.
+ */
+export function getLokiDataSourceVariable() {
+  return new DataSourceVariable({
+    name: LOKI_DS_VARIABLE,
+    label: 'Events',
+    pluginId: 'loki',
+    includeAll: false,
+    hide: VariableHide.hideVariable,
+  });
+}
+
 /**
  * Creates the team member filter variable. Members are identified by
  * `user_email`, else `enduser_id`, else the anonymous `user_id`, so API-key and
@@ -119,6 +137,7 @@ export function getSharedVariables(
   return new SceneVariableSet({
     variables: [
       getPrometheusDataSourceVariable(),
+      getLokiDataSourceVariable(),
       getTeamMemberVariable(metrics),
       getModelVariable(metrics),
       ...dimensions.map(getDimensionVariable),
@@ -135,7 +154,7 @@ export function getSharedVariables(
 export function getControlsWithoutModel(variables: SceneVariableSet) {
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
-    .filter((name) => !['prometheus_ds', 'member', 'model'].includes(name));
+    .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
   return [
     new VariableValueControl({ variableName: 'prometheus_ds' }),
     new VariableValueControl({ variableName: 'member' }),

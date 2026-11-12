@@ -18,6 +18,7 @@ Before you set up the app, ensure you have:
 - **Grafana version:** Grafana 13.2.0 or later.
 - **A Prometheus-compatible data source:** The app queries Claude Code metrics with PromQL. Grafana Cloud stacks include a Prometheus (Mimir) data source by default. Self-hosted setups can use Prometheus.
 - **Claude Code with telemetry enabled:** Each team member's Claude Code must export OpenTelemetry metrics, as described in [Connect your data](#connect-your-data).
+- **For the Reliability tab only, a Loki data source:** The **Reliability** tab reads Claude Code events from Loki. Grafana Cloud stacks include a Loki data source by default. For details, refer to [Send events to Loki](#send-events-to-loki).
 
 ## Enable the app
 
@@ -89,6 +90,26 @@ Claude Code exports metrics every 60 seconds by default. Use Claude Code for a f
 
 When the query returns series, open the app. If it returns nothing, refer to [Troubleshooting](./troubleshooting.md).
 
+### Send events to Loki
+
+The **Reliability** tab reads the events Claude Code sends as OpenTelemetry logs, such as API errors and refusals. To send them:
+
+1. Add this variable to each team member's shell profile, next to the ones above:
+
+   ```bash
+   export OTEL_LOGS_EXPORTER=otlp
+   ```
+
+   Events go to the same OTLP endpoint as the metrics.
+
+1. Get the events into Loki:
+   - **Grafana Cloud:** The OTLP gateway sends logs to your stack's Loki. No other change is needed.
+   - **OpenTelemetry Collector:** Add a `logs` pipeline that exports to Loki's OTLP endpoint, such as `http://<loki-host>:3100/otlp`, with the `otlp_http` exporter.
+
+1. Restart Claude Code.
+
+The app expects Loki's native OTLP ingestion, which stores `service.name` as the `service_name` label and the event attributes as structured metadata. On the **Reliability** tab, pick the Loki data source in **Events**.
+
 ### Optional telemetry settings
 
 Some panels need an extra Claude Code setting or a minimum Claude Code version. Set the variables in each team member's shell profile, next to the ones above, and restart Claude Code.
@@ -100,6 +121,7 @@ Some panels need an extra Claude Code setting or a minimum Claude Code version. 
 | **Repository** filter, **Cost by Repository** and **Tokens by Repository**                                                                          | `OTEL_METRICS_INCLUDE_REPOSITORY=true`, Claude Code v2.1.269 or later. For details, refer to [Filter by repository](#filter-by-repository).                                                                                                                            |
 | Your own filters, such as team or cost center                                                                                                       | The attribute in `OTEL_RESOURCE_ATTRIBUTES`, and the label under [Filters](./configure.md#filters). For details, refer to [Filter by your own attributes](#filter-by-your-own-attributes).                                                                             |
 | Readable names for team members who use an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry                                               | `enduser.id` in `OTEL_RESOURCE_ATTRIBUTES`. For details, refer to [Name team members who don't sign in with a Claude account](#name-team-members-who-dont-sign-in-with-a-claude-account).                                                                              |
+| The **Reliability** tab                                                                                                                             | `OTEL_LOGS_EXPORTER=otlp` and a Loki data source. For details, refer to [Send events to Loki](#send-events-to-loki).                                                                                                                                                   |
 | **Lines of Code by Model**                                                                                                                          | Claude Code v2.1.172 or later. Lines from older versions appear as `unknown`.                                                                                                                                                                                          |
 
 #### Filter by repository

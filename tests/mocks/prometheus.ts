@@ -143,6 +143,19 @@ const ACTIVE_TIME_BY_MEMBER = { [MEMBERS[0]]: 30600, [MEMBERS[1]]: 25200, [MEMBE
 // The same 20 hours split into interaction (user) and processing (cli) time.
 const ACTIVE_TIME_BY_TYPE = { user: 27000, cli: 45000 };
 
+// Reliability tab (Loki events): API errors, retries and refusals.
+export const RELIABILITY = {
+  errorsByStatus: { '529': 14, '500': 6, 'No status': 3 },
+  errorsByModel: { [MODELS[1]]: 15, [MODELS[0]]: 8 },
+  errorsByAttempt: { '11': 9, '3': 8, '1': 6 },
+  refusalsByCategory: { cyber: 3, 'Categorized (needs OTEL_LOG_TOOL_DETAILS=1)': 2, 'No category': 1 },
+  refusalsByModel: { [MODELS[1]]: 4, [MODELS[0]]: 2 },
+  apiErrors: 23,
+  errorRate: 1.9,
+  retriesExhausted: 9,
+  refusals: 6,
+};
+
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
   // Unattributed usage (no identity) comes back from the query but isn't listed.
@@ -206,6 +219,8 @@ interface FieldSpec {
   labels?: Record<string, string>;
   // Series name the Prometheus backend sets from a multi-label `legendFormat`.
   displayNameFromDS?: string;
+  // Time-field interval (ms) the data source reports, which Grafana uses as the bar width.
+  interval?: number;
   values: Array<number | string>;
 }
 
@@ -226,6 +241,7 @@ function makeFrame(refId: string, fields: FieldSpec[], meta?: Record<string, unk
         typeInfo: TYPE_INFO[f.type],
         ...(f.labels ? { labels: f.labels } : {}),
         ...(f.displayNameFromDS ? { config: { displayNameFromDS: f.displayNameFromDS } } : {}),
+        ...(f.interval ? { config: { interval: f.interval } } : {}),
       })),
     },
     data: { values: fields.map((f) => f.values) },
@@ -334,7 +350,7 @@ function tableFrame(
 
 // ==================== refId -> frames ====================
 
-type FrameBuilder = (refId: string, range: { from: number; to: number }) => object[];
+type FrameBuilder = (refId: string, range: { from: number; to: number; step?: number }) => object[];
 
 const DATASET: Record<string, FrameBuilder> = {
   // --- scalars (stat panels) ---
@@ -404,6 +420,69 @@ const DATASET: Record<string, FrameBuilder> = {
   ActiveTimeByMember: (id) => instantSeriesFrames(id, 'member', ACTIVE_TIME_BY_MEMBER),
 };
 
+// --- reliability (Loki) ---
+// Loki returns instant metric results as `numeric-multi` frames, one per label
+// set; the Loki data source frontend relies on that meta to turn them into a table.
+function lokiInstantFrames(refId: string, labelKey: string | null, breakdown: Breakdown) {
+  return Object.entries(breakdown).map(([label, value]) =>
+    makeFrame(
+      refId,
+      [
+        { name: 'Time', type: 'time', values: [0] },
+        { name: 'Value', type: 'number', ...(labelKey ? { labels: { [labelKey]: label } } : {}), values: [value] },
+      ],
+      { type: 'numeric-multi', typeVersion: [0, 1] }
+    )
+  );
+}
+
+// Loki range results have one point per query step. Grafana's Loki data source
+// splits long ranges into roughly day-long requests, so each request gets the
+// points of its own [from, to] at the requested step, valued by time of day
+// (ACTIVITY) so the chunks join into one smooth week.
+function lokiRangeFrames(
+  refId: string,
+  labelKey: string,
+  breakdown: Breakdown,
+  range: { from: number; to: number; step?: number }
+) {
+  const step = range.step || 3 * 60 * 60 * 1000;
+  const first = Math.ceil(range.from / step) * step;
+  const times: number[] = [];
+  for (let t = first; t <= range.to; t += step) {
+    times.push(t);
+  }
+  const shapeAt = (t: number) => ACTIVITY[Math.floor(t / (12 * 60 * 60 * 1000)) % ACTIVITY.length];
+  return Object.entries(breakdown).map(([label, total], idx) =>
+    makeFrame(
+      refId,
+      [
+        { name: 'Time', type: 'time', interval: step, values: times },
+        {
+          name: 'Value',
+          type: 'number',
+          labels: { [labelKey]: label },
+          values: times.map((t) => Math.round((total / 6) * shapeAt(t) * (1 + 0.6 * Math.sin(t / step + idx * 2)))),
+        },
+      ],
+      { type: 'timeseries-multi', typeVersion: [0, 1] }
+    )
+  );
+}
+
+Object.assign(DATASET, {
+  ApiErrors: (id: string) => lokiInstantFrames(id, null, { total: RELIABILITY.apiErrors }),
+  ErrorRate: (id: string) => lokiInstantFrames(id, null, { total: RELIABILITY.errorRate }),
+  RetriesExhausted: (id: string) => lokiInstantFrames(id, null, { total: RELIABILITY.retriesExhausted }),
+  Refusals: (id: string) => lokiInstantFrames(id, null, { total: RELIABILITY.refusals }),
+  ApiErrorsOverTime: (id: string, r: { from: number; to: number; step?: number }) =>
+    lokiRangeFrames(id, 'status_code', RELIABILITY.errorsByStatus, r),
+  ErrorsByModel: (id: string) => lokiInstantFrames(id, 'model', RELIABILITY.errorsByModel),
+  ErrorsByAttempt: (id: string) => lokiInstantFrames(id, 'attempt', RELIABILITY.errorsByAttempt),
+  RefusalsByCategory: (id: string) => lokiInstantFrames(id, 'category', RELIABILITY.refusalsByCategory),
+  RefusalsByModel: (id: string) => lokiInstantFrames(id, 'model', RELIABILITY.refusalsByModel),
+} satisfies Record<string, FrameBuilder>);
+
 // Team Leaderboard columns: one table-format frame per member, labelled with `member`.
 for (const [column, byMember] of Object.entries(LEADERBOARD)) {
   DATASET[`Leaderboard${column}`] = (id, r) =>
@@ -418,7 +497,7 @@ for (const [column, byMember] of Object.entries(LEADERBOARD)) {
 // ==================== Route handlers ====================
 
 interface DsQueryBody {
-  queries?: Array<{ refId: string }>;
+  queries?: Array<{ refId: string; intervalMs?: number }>;
   from?: string;
   to?: string;
 }
@@ -438,7 +517,7 @@ function buildQueryResponse(body: DsQueryBody, emptyRefIds: readonly string[] = 
       status: 200,
       // Unknown refIds resolve to a NaN scalar frame so missing fixtures are obvious
       // while still returning a valid query response (avoids panel errors).
-      frames: builder ? builder(query.refId, { from, to }) : scalarFrame(query.refId, NaN),
+      frames: builder ? builder(query.refId, { from, to, step: query.intervalMs }) : scalarFrame(query.refId, NaN),
     };
   }
 
