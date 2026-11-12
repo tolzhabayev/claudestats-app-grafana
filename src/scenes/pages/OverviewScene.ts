@@ -15,6 +15,25 @@ import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { ACTIVE_TIME_TYPE_NAMES, QUERIES, Queries } from '../queries';
 import { OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
+import { teamLeaderboard } from './leaderboard';
+
+/** A single-value stat for an efficiency ratio. */
+function ratioStat(refId: string, expr: string, title: string, unit: string, description: string) {
+  return PanelBuilders.stat()
+    .setTitle(title)
+    .setDescription(description)
+    .setUnit(unit)
+    .setDecimals(unit === 'percent' ? 1 : 2)
+    .setData(
+      new SceneQueryRunner({
+        datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+        queries: [{ refId, expr, instant: true }],
+      })
+    )
+    .setOption('graphMode', BigValueGraphMode.None)
+    .setColor({ mode: 'fixed', fixedColor: 'text' })
+    .build();
+}
 
 export function getOverviewScene(
   timeRange: SceneTimeRange,
@@ -238,6 +257,40 @@ export function getOverviewScene(
             }),
           ],
         }),
+        // Row 1b: Efficiency ratios
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.STAT,
+          children: [
+            new SceneFlexItem({
+              body: ratioStat(
+                'CacheHitRate',
+                queries.cacheHitRate,
+                'Cache Hit Rate',
+                'percent',
+                'Share of prompt tokens read from the prompt cache: cacheRead / (input + cacheRead + cacheCreation). Cache reads cost much less than input, so this is the main cost lever.'
+              ),
+            }),
+            new SceneFlexItem({
+              body: ratioStat(
+                'CostPerSession',
+                queries.costPerSession,
+                'Cost per Session',
+                'currencyUSD',
+                'Estimated cost divided by the number of sessions in the period. Launches of the claude agents dashboard are not counted as sessions.'
+              ),
+            }),
+            new SceneFlexItem({
+              body: ratioStat(
+                'CostPerActiveHour',
+                queries.costPerActiveHour,
+                'Cost per Active Hour',
+                'currencyUSD',
+                'Estimated cost divided by active time (User plus CLI) in hours. Active time is not recorded per model, so with a Model filter this compares that model with all active time.'
+              ),
+            }),
+          ],
+        }),
         // Row 2: Cost Charts
         new SceneFlexLayout({
           direction: 'row',
@@ -272,6 +325,12 @@ export function getOverviewScene(
                 .build(),
             }),
           ],
+        }),
+        // Row 2b: Team leaderboard
+        new SceneFlexLayout({
+          direction: 'row',
+          height: PANEL_HEIGHTS.LARGE,
+          children: [new SceneFlexItem({ body: teamLeaderboard(queries) })],
         }),
         // Row 3: Token and Session Charts
         new SceneFlexLayout({

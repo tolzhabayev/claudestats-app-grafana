@@ -24,6 +24,20 @@ The top row shows four totals:
 
 Cost is the estimate Claude Code reports. For billing data, use your Anthropic or cloud provider console.
 
+## Check efficiency
+
+The second row shows three ratios for the period:
+
+| Panel                    | What it shows                                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cache Hit Rate**       | The share of prompt tokens read from the prompt cache: cache reads divided by input, cache reads and cache writes. Cache reads cost much less than input. |
+| **Cost per Session**     | Estimated cost divided by **Sessions**.                                                                                                                   |
+| **Cost per Active Hour** | Estimated cost divided by active time, in hours.                                                                                                          |
+
+## Compare team members
+
+**Team Leaderboard** has one row per team member with their cost, tokens, sessions, active time, lines added and removed, commits, pull requests and edit acceptance rate. It's sorted by cost. Click a column header to sort by it, or click a member's name to filter every tab to that member.
+
 ## See trends over time
 
 | Panel                      | What it shows                                                                                                             |
@@ -40,4 +54,4 @@ The bottom row shows how usage splits across environments, weighted by cost: **O
 
 ## Filters on this tab
 
-**Team Member** applies to every panel except **Cost by Team Member**. **Model** applies to the cost and token panels only: **Total Cost**, **Total Tokens**, **Cost Over Time**, **Cost by Team Member** and **Token Usage Over Time**. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.
+**Team Member** applies to every panel except **Cost by Team Member** and **Team Leaderboard**. **Model** applies to the cost and token panels only: **Total Cost**, **Total Tokens**, **Cache Hit Rate**, **Cost per Session**, **Cost per Active Hour**, **Cost Over Time**, **Cost by Team Member**, **Token Usage Over Time** and the cost and tokens columns of **Team Leaderboard**. Active time isn't recorded per model, so with a model selected **Cost per Active Hour** divides that model's cost by all active time. **Repository** and any [filter labels](../configure.md#filters) apply to every panel.
