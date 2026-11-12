@@ -9,6 +9,7 @@ import {
   SceneControlsSpacer,
   SceneTimePicker,
   SceneRefreshPicker,
+  VariableValueControl,
 } from '@grafana/scenes';
 import {
   BigValueGraphMode,
@@ -18,7 +19,9 @@ import {
   VizOrientation,
 } from '@grafana/schema';
 import { DECISION_SOURCE_COLORS, DECISION_SOURCE_NAMES, QUERIES, Queries } from '../queries';
-import { getControlsWithoutModel } from '../variables';
+import { getControlsWithoutModel, LOKI_DS_VARIABLE } from '../variables';
+import { buildLogQueries, LogQueries } from '../logQueries';
+import { toolPerformanceRows } from './toolPerformance';
 import { BAR_GAUGE_COLOR, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
@@ -34,7 +37,8 @@ const ACCEPTANCE_RATE_STEPS = [
 export function getToolsScene(
   timeRange: SceneTimeRange,
   variables: SceneVariableSet,
-  queries: Queries = QUERIES
+  queries: Queries = QUERIES,
+  logQueries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
   const toolDecisionsQuery = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
@@ -113,6 +117,8 @@ export function getToolsScene(
     $variables: variables,
     controls: [
       ...getControlsWithoutModel(variables),
+      // Events (Loki) data source for the Tool Performance section.
+      new VariableValueControl({ variableName: LOKI_DS_VARIABLE }),
       new SceneControlsSpacer(),
       new SceneTimePicker({ isOnCanvas: true }),
       new SceneRefreshPicker({ intervals: ['30s', '1m', '5m', '15m', '30m'] }),
@@ -249,6 +255,8 @@ export function getToolsScene(
             }),
           ],
         }),
+        // Rows 4-5: Tool performance from tool_result events (Loki)
+        ...toolPerformanceRows(logQueries),
       ],
     }),
   });

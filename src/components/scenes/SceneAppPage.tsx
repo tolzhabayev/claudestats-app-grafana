@@ -60,7 +60,7 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
             title: 'Tools',
             url: prefixRoute(ROUTES.Tools),
             routePath: `/${ROUTES.Tools}`,
-            getScene: () => getToolsScene(timeRange, variables, queries),
+            getScene: () => getToolsScene(timeRange, variables, queries, logQueries),
           }),
           new SceneAppPage({
             title: 'Productivity',

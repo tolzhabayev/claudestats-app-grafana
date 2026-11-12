@@ -156,6 +156,16 @@ export const RELIABILITY = {
   refusals: 6,
 };
 
+// Tool performance on the Tools tab (tool_result events in Loki).
+export const TOOL_PERFORMANCE = {
+  calls: { Bash: 812, Read: 1490, Edit: 402, Grep: 377 },
+  failureRate: { Bash: 6.4, Read: 1.2, Edit: 0.7, Grep: 0.3 },
+  p50: { Bash: 840, Read: 12, Edit: 35, Grep: 95 },
+  p95: { Bash: 14200, Read: 60, Edit: 180, Grep: 610 },
+  errorTypes: { ShellError: 41, 'Error:ENOENT': 18, Timeout: 6 },
+  p95BySource: { 'Config rule (auto)': 4100, 'User: allow once': 9800, 'User: always allow': 6200 },
+};
+
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
   // Unattributed usage (no identity) comes back from the query but isn't listed.
@@ -481,6 +491,12 @@ Object.assign(DATASET, {
   ErrorsByAttempt: (id: string) => lokiInstantFrames(id, 'attempt', RELIABILITY.errorsByAttempt),
   RefusalsByCategory: (id: string) => lokiInstantFrames(id, 'category', RELIABILITY.refusalsByCategory),
   RefusalsByModel: (id: string) => lokiInstantFrames(id, 'model', RELIABILITY.refusalsByModel),
+  ToolCalls: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.calls),
+  ToolFailureRate: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.failureRate),
+  ToolP50: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.p50),
+  ToolP95: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.p95),
+  ToolErrorTypes: (id: string) => lokiInstantFrames(id, 'error_type', TOOL_PERFORMANCE.errorTypes),
+  ToolLatencyBySource: (id: string) => lokiInstantFrames(id, 'decision_source', TOOL_PERFORMANCE.p95BySource),
 } satisfies Record<string, FrameBuilder>);
 
 // Team Leaderboard columns: one table-format frame per member, labelled with `member`.
