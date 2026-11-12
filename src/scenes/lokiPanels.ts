@@ -1,4 +1,4 @@
-import { PanelBuilders, SceneQueryRunner } from '@grafana/scenes';
+import { PanelBuilders, SceneDataTransformer, SceneQueryRunner } from '@grafana/scenes';
 import { BarGaugeDisplayMode, BarGaugeValueMode, BigValueGraphMode, VizOrientation } from '@grafana/schema';
 import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS } from './panelStyle';
 import { LOKI_DS_VARIABLE } from './variables';
@@ -77,4 +77,57 @@ export function lokiBreakdown(
       .setDisplayName(`\${__data.fields.${label}}`)
       .build()
   );
+}
+
+/** One numeric column of a Loki table: an instant query grouped by the table's label. */
+export interface LokiColumn {
+  refId: string;
+  name: string;
+  expr: string;
+  unit: string;
+  decimals: number;
+}
+
+/**
+ * A table with one row per value of `label` and one column per query. The Loki
+ * data source returns each instant metric query as its own table, so they're
+ * merged on the label and renamed.
+ */
+export function lokiTable(
+  title: string,
+  description: string,
+  label: string,
+  labelTitle: string,
+  columns: LokiColumn[]
+) {
+  const data = new SceneDataTransformer({
+    $data: new SceneQueryRunner({
+      datasource: LOKI,
+      queries: columns.map((c) => ({ refId: c.refId, expr: c.expr, queryType: 'instant' })),
+    }),
+    transformations: [
+      { id: 'merge', options: {} },
+      {
+        id: 'organize',
+        options: {
+          excludeByName: { Time: true },
+          indexByName: Object.fromEntries([[label, 0], ...columns.map((c, i) => [`Value #${c.refId}`, i + 1])]),
+          renameByName: Object.fromEntries([[label, labelTitle], ...columns.map((c) => [`Value #${c.refId}`, c.name])]),
+        },
+      },
+    ],
+  });
+
+  return PanelBuilders.table()
+    .setTitle(title)
+    .setDescription(description)
+    .setData(data)
+    .setNoValue(NO_EVENTS)
+    .setOption('sortBy', [{ displayName: columns[0].name, desc: true }])
+    .setOverrides((b) => {
+      for (const c of columns) {
+        b.matchFieldsWithName(c.name).overrideUnit(c.unit).overrideDecimals(c.decimals);
+      }
+    })
+    .build();
 }
