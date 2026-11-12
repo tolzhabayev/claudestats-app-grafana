@@ -10,6 +10,7 @@ import { getCostsScene } from '../../scenes/pages/CostsScene';
 import { getTokensScene } from '../../scenes/pages/TokensScene';
 import { getToolsScene } from '../../scenes/pages/ToolsScene';
 import { getReliabilityScene } from '../../scenes/pages/ReliabilityScene';
+import { getTracesScene } from '../../scenes/pages/TracesScene';
 import { getPromptsScene } from '../../scenes/pages/PromptsScene';
 import { getWorkflowScene } from '../../scenes/pages/WorkflowScene';
 import { getSecurityScene } from '../../scenes/pages/SecurityScene';
@@ -94,6 +95,12 @@ function getSceneApp(meta: AppPluginMeta<ClaudeStatsSettings>) {
             url: prefixRoute(ROUTES.Security),
             routePath: `/${ROUTES.Security}`,
             getScene: () => getSecurityScene(timeRange, variables, logQueries),
+          }),
+          new SceneAppPage({
+            title: 'Traces',
+            url: prefixRoute(ROUTES.Traces),
+            routePath: `/${ROUTES.Traces}`,
+            getScene: () => getTracesScene(timeRange, variables),
           }),
         ],
       }),

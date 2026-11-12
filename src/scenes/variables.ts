@@ -1,5 +1,11 @@
 import { VariableHide, VariableRefresh } from '@grafana/schema';
-import { QueryVariable, DataSourceVariable, SceneVariableSet, VariableValueControl } from '@grafana/scenes';
+import {
+  QueryVariable,
+  DataSourceVariable,
+  SceneVariableSet,
+  TextBoxVariable,
+  VariableValueControl,
+} from '@grafana/scenes';
 import { getMetrics, LABELS, MetricNames } from '../constants';
 import { memberValuesQuery } from './queries';
 import { FilterDimension, getFilterDimensions } from './dimensions';
@@ -22,6 +28,34 @@ export function getPrometheusDataSourceVariable() {
 
 /** Name of the Loki data source variable (Claude Code events). */
 export const LOKI_DS_VARIABLE = 'loki_ds';
+/** Name of the Tempo data source variable (Claude Code traces, beta). */
+export const TEMPO_DS_VARIABLE = 'tempo_ds';
+/** Name of the variable holding the trace shown on the Traces tab. */
+export const TRACE_VARIABLE = 'trace';
+
+/**
+ * Creates the data source variable for Claude Code traces in Tempo, hidden like
+ * the Loki one; the Traces tab adds its picker explicitly.
+ */
+export function getTempoDataSourceVariable() {
+  return new DataSourceVariable({
+    name: TEMPO_DS_VARIABLE,
+    label: 'Traces',
+    pluginId: 'tempo',
+    includeAll: false,
+    hide: VariableHide.hideVariable,
+  });
+}
+
+/** The trace ID shown in the Traces tab's waterfall. Set by clicking a trace, or typed in. */
+export function getTraceVariable() {
+  return new TextBoxVariable({
+    name: TRACE_VARIABLE,
+    label: 'Trace ID',
+    value: '',
+    hide: VariableHide.hideVariable,
+  });
+}
 
 /**
  * Creates the data source variable for Claude Code events in Loki. It is
@@ -138,6 +172,8 @@ export function getSharedVariables(
     variables: [
       getPrometheusDataSourceVariable(),
       getLokiDataSourceVariable(),
+      getTempoDataSourceVariable(),
+      getTraceVariable(),
       getTeamMemberVariable(metrics),
       getModelVariable(metrics),
       ...dimensions.map(getDimensionVariable),
@@ -154,7 +190,10 @@ export function getSharedVariables(
 export function getControlsWithoutModel(variables: SceneVariableSet) {
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
-    .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
+    .filter(
+      (name) =>
+        !['prometheus_ds', LOKI_DS_VARIABLE, TEMPO_DS_VARIABLE, TRACE_VARIABLE, 'member', 'model'].includes(name)
+    );
   return [
     new VariableValueControl({ variableName: 'prometheus_ds' }),
     new VariableValueControl({ variableName: 'member' }),

@@ -8,7 +8,7 @@ keywords:
 sidebar_position: 3
 ---
 
-Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has nine tabs. Each one answers a different question about how your team uses Claude Code:
+Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under **More apps**. It has ten tabs. Each one answers a different question about how your team uses Claude Code:
 
 | Tab                               | Read it to                                                                               |
 | --------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -21,6 +21,7 @@ Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under
 | [Workflow](./workflow.md)         | Check model latency, subagents, compaction, skills, MCP servers and hooks.               |
 | [Reliability](./reliability.md)   | Track API errors, exhausted retries and refusals.                                        |
 | [Security](./security-audit.md)   | Audit permission escalations, rejected tool calls, logins, plugins and managed settings. |
+| [Traces](./traces.md)             | Inspect one prompt end to end: model requests, tool calls and their timing.              |
 
 ## Filter the data
 

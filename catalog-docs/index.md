@@ -19,6 +19,7 @@ Before you set up the app, ensure you have:
 - **A Prometheus-compatible data source:** The app queries Claude Code metrics with PromQL. Grafana Cloud stacks include a Prometheus (Mimir) data source by default. Self-hosted setups can use Prometheus.
 - **Claude Code with telemetry enabled:** Each team member's Claude Code must export OpenTelemetry metrics, as described in [Connect your data](#connect-your-data).
 - **For the event-based views, a Loki data source:** The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the tool performance panels on the **Tools** tab read Claude Code events from Loki. Grafana Cloud stacks include a Loki data source by default. For details, refer to [Send events to Loki](#send-events-to-loki).
+- **For the Traces tab, a Tempo data source:** The **Traces** tab reads Claude Code traces from Tempo. Grafana Cloud stacks include a Tempo data source by default. For details, refer to [Send traces to Tempo](#send-traces-to-tempo).
 
 ## Enable the app
 
@@ -110,6 +111,27 @@ The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the too
 
 The app expects Loki's native OTLP ingestion, which stores `service.name` as the `service_name` label and the event attributes as structured metadata. On the **Prompts**, **Workflow**, **Reliability**, **Security** and **Tools** tabs, pick the Loki data source in **Events**.
 
+### Send traces to Tempo
+
+The **Traces** tab reads the traces Claude Code sends, which link each prompt to its model requests and tool calls. Tracing is a beta feature of Claude Code. To send traces:
+
+1. Add these variables to each team member's shell profile, next to the ones above:
+
+   ```bash
+   export CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1
+   export OTEL_TRACES_EXPORTER=otlp
+   ```
+
+   Traces go to the same OTLP endpoint as the metrics.
+
+1. Get the traces into Tempo:
+   - **Grafana Cloud:** The OTLP gateway sends traces to your stack's Tempo. No other change is needed.
+   - **OpenTelemetry Collector:** Add a `traces` pipeline that exports to Tempo's OTLP endpoint, such as `<tempo-host>:4317`, with the `otlp_grpc` exporter.
+
+1. Restart Claude Code.
+
+On the **Traces** tab, pick the Tempo data source in **Traces**.
+
 ### Optional telemetry settings
 
 Some panels need an extra Claude Code setting or a minimum Claude Code version. Set the variables in each team member's shell profile, next to the ones above, and restart Claude Code.
@@ -122,6 +144,7 @@ Some panels need an extra Claude Code setting or a minimum Claude Code version. 
 | Your own filters, such as team or cost center                                                                                                       | The attribute in `OTEL_RESOURCE_ATTRIBUTES`, and the label under [Filters](./configure.md#filters). For details, refer to [Filter by your own attributes](#filter-by-your-own-attributes).                                                                             |
 | Readable names for team members who use an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry                                               | `enduser.id` in `OTEL_RESOURCE_ATTRIBUTES`. For details, refer to [Name team members who don't sign in with a Claude account](#name-team-members-who-dont-sign-in-with-a-claude-account).                                                                              |
 | The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the tool performance panels on the **Tools** tab                           | `OTEL_LOGS_EXPORTER=otlp` and a Loki data source. For details, refer to [Send events to Loki](#send-events-to-loki).                                                                                                                                                   |
+| The **Traces** tab                                                                                                                                  | `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`, `OTEL_TRACES_EXPORTER=otlp` and a Tempo data source. For details, refer to [Send traces to Tempo](#send-traces-to-tempo).                                                                                                     |
 | **Surface** on the **Overview** tab                                                                                                                 | `OTEL_METRICS_INCLUDE_ENTRYPOINT=true`.                                                                                                                                                                                                                                |
 | **Lines of Code by Model**                                                                                                                          | Claude Code v2.1.172 or later. Lines from older versions appear as `unknown`.                                                                                                                                                                                          |
 
