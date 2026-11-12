@@ -36,6 +36,17 @@ export const NO_STATUS = 'No status';
 export const CATEGORY_HIDDEN = 'Categorized (needs OTEL_LOG_TOOL_DETAILS=1)';
 export const NO_CATEGORY = 'No category';
 
+/**
+ * Prompt length buckets (characters) for the Prompt Length panel, in display
+ * order. Each is its own query, so the panel keeps this order.
+ */
+export const PROMPT_LENGTH_BUCKETS = [
+  { name: 'Under 100', filter: '| prompt_length < 100' },
+  { name: '100 to 499', filter: '| prompt_length >= 100 | prompt_length < 500' },
+  { name: '500 to 1,999', filter: '| prompt_length >= 500 | prompt_length < 2000' },
+  { name: '2,000 or more', filter: '| prompt_length >= 2000' },
+] as const;
+
 // Counts fall back to 0 only when there are API request events in the period: with
 // none at all (events not exported) they stay empty, so the panels can say so.
 export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensions()) {
@@ -44,6 +55,11 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
   // tool_result events carry no model, so the tool queries skip the Model filter.
   const toolFilters = [MEMBER_FILTER, ...dims].join(' | ');
   const tools = events('tool_result', toolFilters);
+  // user_prompt events carry no model either.
+  const prompts = events('user_prompt', toolFilters);
+  // A prompt that invokes a slash command has command_name; a typed prompt has none.
+  const typed = `${prompts} | command_name=""`;
+  const commands = `${prompts} | command_name!=""`;
   const sourceName = Object.entries(DECISION_SOURCE_NAMES).reduceRight(
     (rest, [value, name]) => `{{ if eq .decision_source "${value}" }}${name}{{ else }}${rest}{{ end }}`,
     '{{ .decision_source }}'
@@ -104,6 +120,32 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
 
     /** 95th percentile execution time by who allowed the call (config rule, hook or the user) */
     toolLatencyP95BySource: `sort_desc(quantile_over_time(0.95, ${tools} | label_format decision_source=\`${sourceName}\` | unwrap duration_ms [$__range]) by (decision_source))`,
+
+    // ---------- Prompts (user_prompt events) ----------
+
+    /** Prompts in the period, typed prompts and slash commands */
+    prompts: `sum(count_over_time(${prompts} [$__range]))`,
+
+    /** Share of prompts that invoked a slash command; 0% with prompts but no commands */
+    commandShare: `(sum(count_over_time(${commands} [$__range])) or sum(count_over_time(${prompts} [$__range])) * 0) / sum(count_over_time(${prompts} [$__range])) * 100`,
+
+    /** Average number of prompts per session */
+    promptsPerSession: `avg(sum by (session_id) (count_over_time(${prompts} [$__range])))`,
+
+    /** Median length of typed prompts, in characters (slash commands left out) */
+    promptLengthP50: `quantile_over_time(0.5, ${typed} | unwrap prompt_length [$__range]) by (service_name)`,
+
+    /** Prompts per interval, split into typed prompts and slash commands */
+    promptsOverTime: `sum by (kind) (count_over_time(${prompts} | label_format kind=\`{{ if .command_name }}Slash command{{ else }}Typed prompt{{ end }}\` [$__interval]))`,
+
+    /** Most-used slash commands; custom, plugin and MCP names collapse unless OTEL_LOG_TOOL_DETAILS=1 */
+    topCommands: `sort_desc(sum by (command_name) (count_over_time(${commands} [$__range])))`,
+
+    /** Slash commands by origin: builtin, custom (including plugins) or mcp */
+    commandsBySource: `sort_desc(sum by (command_source) (count_over_time(${commands} [$__range])))`,
+
+    /** Typed prompts per length bucket, in PROMPT_LENGTH_BUCKETS order */
+    promptLengthBuckets: PROMPT_LENGTH_BUCKETS.map((b) => `sum(count_over_time(${typed} ${b.filter} [$__range]))`),
 
     /** Refusals by model */
     refusalsByModel: `sort_desc(sum by (model) (count_over_time(${refusals} [$__range])))`,

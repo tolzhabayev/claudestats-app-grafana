@@ -25,12 +25,19 @@ export function lokiRunner(refId: string, expr: string, opts: { instant?: boolea
   });
 }
 
-export function lokiCountStat(refId: string, expr: string, title: string, description: string, unit = 'none') {
+export function lokiCountStat(
+  refId: string,
+  expr: string,
+  title: string,
+  description: string,
+  unit = 'none',
+  decimals = unit === 'percent' ? 1 : 0
+) {
   return PanelBuilders.stat()
     .setTitle(title)
     .setDescription(description)
     .setUnit(unit)
-    .setDecimals(unit === 'percent' ? 1 : 0)
+    .setDecimals(decimals)
     .setData(lokiRunner(refId, expr, { instant: true }))
     .setOption('graphMode', BigValueGraphMode.None)
     .setColor({ mode: 'fixed', fixedColor: 'text' })
