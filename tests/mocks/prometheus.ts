@@ -230,6 +230,28 @@ export const TRACES = {
   ],
 };
 
+// Security tab (permission, decision, auth, plugin and managed settings events in Loki).
+export const SECURITY = {
+  escalations: 7,
+  loginFailures: 3,
+  unofficialPlugins: 2,
+  refusedSessions: 1,
+  escalationsByMember: { [MEMBERS[0]]: 4, [MEMBERS[2]]: 3 },
+  modeChanges: {
+    'default → acceptEdits': 41,
+    'plan → default': 33,
+    'default → auto': 5,
+    'default → bypassPermissions': 2,
+  },
+  decisionsByMode: { default: 1820, acceptEdits: 960, auto: 410, plan: 75 },
+  classifierVerdicts: { allow: 371, block: 29, no_verdict: 6, unavailable: 4 },
+  classifierBlocks: { data_exfiltration: 11, 'Rule not sent': 18 },
+  rejectionsBySource: { 'User: reject': 118, 'Config rule (auto)': 64, 'User: cancel': 28, 'Hook (auto)': 9 },
+  authFailures: { network: 2, invalid_grant: 1 },
+  pluginInstalls: { Official: 14, Unofficial: 2 },
+  helperState: { ok: 212, stale: 6, failed: 1 },
+};
+
 // Per-member values for the Team Leaderboard (each column sums to its tab's total).
 export const LEADERBOARD = {
   // Unattributed usage (no identity) comes back from the query but isn't listed.
@@ -558,6 +580,20 @@ Object.assign(DATASET, {
   RefusalsByModel: (id: string) => lokiInstantFrames(id, 'model', RELIABILITY.refusalsByModel),
   ToolCalls: (id: string) => lokiInstantFrames(id, 'tool_name', TOOL_PERFORMANCE.calls),
   Prompts: (id: string) => lokiInstantFrames(id, null, { total: PROMPTS.total }),
+  Escalations: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.escalations }),
+  LoginFailures: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.loginFailures }),
+  UnofficialPluginInstalls: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.unofficialPlugins }),
+  RefusedSessions: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.refusedSessions }),
+  EscalationsByMember: (id: string) => lokiInstantFrames(id, 'member', SECURITY.escalationsByMember),
+  ModeChanges: (id: string) => lokiInstantFrames(id, 'change', SECURITY.modeChanges),
+  DecisionsByMode: (id: string) => lokiInstantFrames(id, 'permission_mode', SECURITY.decisionsByMode),
+  ClassifierVerdicts: (id: string) => lokiInstantFrames(id, 'classifier_verdict', SECURITY.classifierVerdicts),
+  ClassifierBlocks: (id: string) => lokiInstantFrames(id, 'classifier_category', SECURITY.classifierBlocks),
+  RejectionsBySource: (id: string) => lokiInstantFrames(id, 'source', SECURITY.rejectionsBySource),
+  AuthFailuresByCategory: (id: string) => lokiInstantFrames(id, 'error_category', SECURITY.authFailures),
+  PluginInstallsByMarketplace: (id: string) => lokiInstantFrames(id, 'marketplace', SECURITY.pluginInstalls),
+  ManagedSettingsHelperState: (id: string) =>
+    lokiInstantFrames(id, 'managed_settings_helper_state', SECURITY.helperState),
   RequestsByModel: (id: string) => lokiInstantFrames(id, 'model', WORKFLOW.requests),
   RequestLatencyP50: (id: string) => lokiInstantFrames(id, 'model', WORKFLOW.latencyP50),
   RequestLatencyP95: (id: string) => lokiInstantFrames(id, 'model', WORKFLOW.latencyP95),

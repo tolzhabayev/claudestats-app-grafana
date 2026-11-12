@@ -13,6 +13,7 @@ export const ROUTES = {
   Traces: 'traces',
   Prompts: 'prompts',
   Workflow: 'workflow',
+  Security: 'security',
   Productivity: 'productivity',
 } as const;
 

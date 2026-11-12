@@ -18,7 +18,7 @@ Before you set up the app, ensure you have:
 - **Grafana version:** Grafana 13.2.0 or later.
 - **A Prometheus-compatible data source:** The app queries Claude Code metrics with PromQL. Grafana Cloud stacks include a Prometheus (Mimir) data source by default. Self-hosted setups can use Prometheus.
 - **Claude Code with telemetry enabled:** Each team member's Claude Code must export OpenTelemetry metrics, as described in [Connect your data](#connect-your-data).
-- **For the event-based views, a Loki data source:** The **Prompts**, **Workflow** and **Reliability** tabs and the tool performance panels on the **Tools** tab read Claude Code events from Loki. Grafana Cloud stacks include a Loki data source by default. For details, refer to [Send events to Loki](#send-events-to-loki).
+- **For the event-based views, a Loki data source:** The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the tool performance panels on the **Tools** tab read Claude Code events from Loki. Grafana Cloud stacks include a Loki data source by default. For details, refer to [Send events to Loki](#send-events-to-loki).
 
 ## Enable the app
 
@@ -92,7 +92,7 @@ When the query returns series, open the app. If it returns nothing, refer to [Tr
 
 ### Send events to Loki
 
-The **Prompts**, **Workflow** and **Reliability** tabs and the tool performance panels on the **Tools** tab read the events Claude Code sends as OpenTelemetry logs, such as prompts, API requests and errors, refusals, tool results, subagents and hooks. To send them:
+The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the tool performance panels on the **Tools** tab read the events Claude Code sends as OpenTelemetry logs, such as prompts, API requests and errors, refusals, tool results, subagents, hooks, permission changes and logins. To send them:
 
 1. Add this variable to each team member's shell profile, next to the ones above:
 
@@ -108,7 +108,7 @@ The **Prompts**, **Workflow** and **Reliability** tabs and the tool performance 
 
 1. Restart Claude Code.
 
-The app expects Loki's native OTLP ingestion, which stores `service.name` as the `service_name` label and the event attributes as structured metadata. On the **Prompts**, **Workflow**, **Reliability** and **Tools** tabs, pick the Loki data source in **Events**.
+The app expects Loki's native OTLP ingestion, which stores `service.name` as the `service_name` label and the event attributes as structured metadata. On the **Prompts**, **Workflow**, **Reliability**, **Security** and **Tools** tabs, pick the Loki data source in **Events**.
 
 ### Optional telemetry settings
 
@@ -121,7 +121,7 @@ Some panels need an extra Claude Code setting or a minimum Claude Code version. 
 | **Repository** filter, **Cost by Repository** and **Tokens by Repository**                                                                          | `OTEL_METRICS_INCLUDE_REPOSITORY=true`, Claude Code v2.1.269 or later. For details, refer to [Filter by repository](#filter-by-repository).                                                                                                                            |
 | Your own filters, such as team or cost center                                                                                                       | The attribute in `OTEL_RESOURCE_ATTRIBUTES`, and the label under [Filters](./configure.md#filters). For details, refer to [Filter by your own attributes](#filter-by-your-own-attributes).                                                                             |
 | Readable names for team members who use an API key, Amazon Bedrock, Google Cloud or Microsoft Foundry                                               | `enduser.id` in `OTEL_RESOURCE_ATTRIBUTES`. For details, refer to [Name team members who don't sign in with a Claude account](#name-team-members-who-dont-sign-in-with-a-claude-account).                                                                              |
-| The **Prompts**, **Workflow** and **Reliability** tabs and the tool performance panels on the **Tools** tab                                         | `OTEL_LOGS_EXPORTER=otlp` and a Loki data source. For details, refer to [Send events to Loki](#send-events-to-loki).                                                                                                                                                   |
+| The **Prompts**, **Workflow**, **Reliability** and **Security** tabs and the tool performance panels on the **Tools** tab                           | `OTEL_LOGS_EXPORTER=otlp` and a Loki data source. For details, refer to [Send events to Loki](#send-events-to-loki).                                                                                                                                                   |
 | **Lines of Code by Model**                                                                                                                          | Claude Code v2.1.172 or later. Lines from older versions appear as `unknown`.                                                                                                                                                                                          |
 
 #### Filter by repository
@@ -151,5 +151,5 @@ For every Claude Code telemetry setting, refer to [Monitoring usage](https://cod
 - [Find what drives token usage](./features/tokens.md)
 - [Check how often Claude's edits are accepted](./features/tools.md)
 - [Track commits, pull requests and active time](./features/productivity.md)
-- [Get alerted when a team member's spend spikes](./configure.md#set-up-alerts)
+- [Get alerted on spend spikes, API errors, refusals and permission escalations](./configure.md#set-up-alerts)
 - [Fix panels that show no data](./troubleshooting.md)
