@@ -12,7 +12,7 @@ Claude Code Stats opens from **Claude Code Stats** in the navigation menu, under
 
 | Tab                               | Read it to                                                                             |
 | --------------------------------- | -------------------------------------------------------------------------------------- |
-| [Overview](./overview.md)         | Check spend, tokens, sessions and active users at a glance.                            |
+| [Overview](./overview.md)         | Check spend, efficiency and active users at a glance, and compare team members.        |
 | [Costs](./costs.md)               | See where cost goes: models, team members, subagents, skills, plugins and MCP servers. |
 | [Tokens](./tokens.md)             | See token volume by type, model and team member, and what drives it.                   |
 | [Tools](./tools.md)               | Check how often team members accept Claude's file edits.                               |
@@ -39,4 +39,4 @@ The **Over Time** charts draw one stacked bar per interval. An interval is wide 
 
 Your choices carry over when you switch tabs and are saved in the URL, so you can share a filtered view by copying the link.
 
-A few comparison panels skip their own filter so you can compare: **Cost by Team Member**, **Cost Distribution by Member**, **Tokens by Team Member** and **Active Time by Team Member** always show every member, and **Cost by Model**, **Tokens by Model** and **Lines of Code by Model** always show every model. Other panels, including the **Over Time** charts, follow both filters. Each tab's page lists exactly which filters apply.
+A few comparison panels skip their own filter so you can compare: **Cost by Team Member**, **Cost Distribution by Member**, **Tokens by Team Member**, **Active Time by Team Member** and **Team Leaderboard** always show every member, and **Cost by Model**, **Tokens by Model** and **Lines of Code by Model** always show every model. Other panels, including the **Over Time** charts, follow both filters. Each tab's page lists exactly which filters apply.
