@@ -40,6 +40,13 @@ export const NO_STATUS = 'No status';
 export const CATEGORY_HIDDEN = 'Categorized (needs OTEL_LOG_TOOL_DETAILS=1)';
 export const NO_CATEGORY = 'No category';
 
+/** Permission modes that loosen the checks: everything is allowed, or the classifier decides. */
+export const ESCALATED_MODES = ['bypassPermissions', 'auto'] as const;
+
+/** Member name with the same identity fallback as the metrics, for grouping events by person. */
+const MEMBER_TEMPLATE =
+  '{{ if .user_email }}{{ .user_email }}{{ else if .enduser_id }}{{ .enduser_id }}{{ else if .user_id }}{{ .user_id }}{{ else }}Unattributed{{ end }}';
+
 /**
  * Prompt length buckets (characters) for the Prompt Length panel, in display
  * order. Each is its own query, so the panel keeps this order.
@@ -73,15 +80,26 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     return `(sum${g} (count_over_time(${numerator} [$__range])) or sum${g} (count_over_time(${all} [$__range])) * 0) / sum${g} (count_over_time(${all} [$__range])) * 100`;
   };
 
+  // Security events (none carry a model).
+  const modeChanges = events('permission_mode_changed', toolFilters);
+  const escalations = `${modeChanges} | to_mode=~"${ESCALATED_MODES.join('|')}"`;
+  const decisions = events('tool_decision', toolFilters);
+  // Only logins: a failed logout isn't a login failure.
+  const logins = `${events('auth', toolFilters)} | action="login"`;
+  const pluginInstalls = events('plugin_installed', toolFilters);
+  const managedSettings = events('managed_settings_resolved', toolFilters);
+
   // user_prompt events carry no model either.
   const prompts = events('user_prompt', toolFilters);
   // A prompt that invokes a slash command has command_name; a typed prompt has none.
   const typed = `${prompts} | command_name=""`;
   const commands = `${prompts} | command_name!=""`;
-  const sourceName = Object.entries(DECISION_SOURCE_NAMES).reduceRight(
-    (rest, [value, name]) => `{{ if eq .decision_source "${value}" }}${name}{{ else }}${rest}{{ end }}`,
-    '{{ .decision_source }}'
-  );
+  /** Template mapping a decision source field to the names the Tools tab uses. */
+  const sourceNameOf = (field: string) =>
+    Object.entries(DECISION_SOURCE_NAMES).reduceRight(
+      (rest, [value, name]) => `{{ if eq .${field} "${value}" }}${name}{{ else }}${rest}{{ end }}`,
+      `{{ .${field} }}`
+    );
 
   const errors = events('api_error', filters);
   const requests = events('api_error|api_request', filters);
@@ -137,7 +155,7 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     toolErrorTypes: `sort_desc(sum by (error_type) (count_over_time(${tools} | success="false" | label_format error_type=\`{{ if .error_type }}{{ .error_type }}{{ else }}Unknown{{ end }}\` [$__range])))`,
 
     /** 95th percentile execution time by who allowed the call (config rule, hook or the user) */
-    toolLatencyP95BySource: `sort_desc(quantile_over_time(0.95, ${tools} | label_format decision_source=\`${sourceName}\` | unwrap duration_ms | __error__="" [$__range]) by (decision_source))`,
+    toolLatencyP95BySource: `sort_desc(quantile_over_time(0.95, ${tools} | label_format decision_source=\`${sourceNameOf('decision_source')}\` | unwrap duration_ms | __error__="" [$__range]) by (decision_source))`,
 
     // ---------- Prompts (user_prompt events) ----------
 
@@ -224,6 +242,39 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
     hookBlocking: `sum by (hook_event) (sum_over_time(${hooks} | unwrap num_blocking | __error__="" [$__range]))`,
     /** Hooks that failed without blocking, per hook event */
     hookErrors: `sum by (hook_event) (sum_over_time(${hooks} | unwrap num_non_blocking_error | __error__="" [$__range]))`,
+
+    // ---------- Security ----------
+
+    /** Switches to bypassPermissions or auto mode */
+    escalations: `sum(count_over_time(${escalations} [$__range])) or sum(count_over_time(${modeChanges} [$__range])) * 0`,
+    /** Escalations per team member */
+    escalationsByMember: `sort_desc(sum by (member) (count_over_time(${escalations} | label_format member=\`${MEMBER_TEMPLATE}\` [$__range])))`,
+    /** Permission mode changes as "from -> to" */
+    modeChanges: `sort_desc(sum by (change) (count_over_time(${modeChanges} | label_format change=\`{{ .from_mode }} → {{ .to_mode }}\` [$__range])))`,
+
+    /** Tool decisions by the permission mode the check ran in */
+    decisionsByMode: `sort_desc(sum by (permission_mode) (count_over_time(${decisions} | permission_mode!="" [$__range])))`,
+    /** Auto mode classifier verdicts: allow, block, no_verdict or unavailable */
+    classifierVerdicts: `sort_desc(sum by (classifier_verdict) (count_over_time(${decisions} | classifier_verdict!="" [$__range])))`,
+    /** Classifier blocks by rule; the rule is only sent with OTEL_LOG_TOOL_DETAILS=1 */
+    classifierBlocks: `sort_desc(sum by (classifier_category) (count_over_time(${decisions} | classifier_verdict="block" | label_format classifier_category=\`{{ if .classifier_category }}{{ .classifier_category }}{{ else }}Rule not sent{{ end }}\` [$__range])))`,
+    /** Rejected tool calls by who rejected them: config (rules, policy, mode, classifier), hook or the user */
+    rejectionsBySource: `sort_desc(sum by (source) (count_over_time(${decisions} | decision="reject" | label_format source=\`${sourceNameOf('source')}\` [$__range])))`,
+
+    /** Failed logins */
+    loginFailures: `sum(count_over_time(${logins} | success="false" [$__range])) or sum(count_over_time(${logins} [$__range])) * 0`,
+    /** Failed logins by error category */
+    authFailuresByCategory: `sort_desc(sum by (error_category) (count_over_time(${logins} | success="false" | label_format error_category=\`{{ if .error_category }}{{ .error_category }}{{ else }}Unknown{{ end }}\` [$__range])))`,
+
+    /** Plugins installed from marketplaces that aren't official Anthropic ones */
+    unofficialPluginInstalls: `sum(count_over_time(${pluginInstalls} | marketplace_is_official="false" [$__range])) or sum(count_over_time(${pluginInstalls} [$__range])) * 0`,
+    /** Plugin installs by official vs unofficial marketplace */
+    pluginInstallsByMarketplace: `sort_desc(sum by (marketplace) (count_over_time(${pluginInstalls} | label_format marketplace=\`{{ if eq .marketplace_is_official "true" }}Official{{ else }}Unofficial{{ end }}\` [$__range])))`,
+
+    /** Sessions that a managed settings policy stopped */
+    refusedSessions: `sum(count_over_time(${managedSettings} | managed_settings_trigger="refused" [$__range])) or sum(count_over_time(${managedSettings} [$__range])) * 0`,
+    /** Managed settings policy helper state, from session starts and later changes */
+    managedSettingsHelperState: `sort_desc(sum by (managed_settings_helper_state) (count_over_time(${managedSettings} | managed_settings_helper_state!="" [$__range])))`,
 
     /** Refusals by model */
     refusalsByModel: `sort_desc(sum by (model) (count_over_time(${refusals} [$__range])))`,

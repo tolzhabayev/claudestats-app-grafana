@@ -12,6 +12,7 @@ export const ROUTES = {
   Reliability: 'reliability',
   Prompts: 'prompts',
   Workflow: 'workflow',
+  Security: 'security',
   Productivity: 'productivity',
 } as const;
 
