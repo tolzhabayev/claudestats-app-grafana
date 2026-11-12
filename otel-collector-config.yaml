@@ -25,6 +25,12 @@ exporters:
     resource_to_telemetry_conversion:
       enabled: true
 
+  # Export events (OTel logs) to Loki's native OTLP endpoint
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
   # Debug exporter for troubleshooting
   debug:
     verbosity: detailed
@@ -35,3 +41,7 @@ service:
       receivers: [otlp]
       processors: [deltatocumulative, batch]
       exporters: [prometheusremotewrite, debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/loki]

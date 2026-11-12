@@ -11,3 +11,9 @@ datasources:
       httpMethod: POST
       manageAlerts: true
       prometheusType: Prometheus
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
