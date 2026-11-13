@@ -11,7 +11,7 @@
     "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
     "server": "docker compose up --build",
     "test": "jest --watch --onlyChanged",
-    "test:ci": "jest --passWithNoTests --maxWorkers 4",
+    "test:ci": "jest --maxWorkers 4",
     "typecheck": "tsc --noEmit",
     "sign": "sign-plugin",
     "docs:serve": "plugin-docs-cli serve --port 3001 --reload",
