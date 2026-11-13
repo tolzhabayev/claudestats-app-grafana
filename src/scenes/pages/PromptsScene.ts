@@ -14,7 +14,7 @@ import {
 import { BarGaugeDisplayMode, BarGaugeValueMode, LegendDisplayMode, VizOrientation } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries, PROMPT_LENGTH_BUCKETS } from '../logQueries';
-import { LOKI, lokiBreakdown, lokiCountStat, lokiRunner, NO_EVENTS } from '../lokiPanels';
+import { emptyHint, LOKI, lokiBreakdown, lokiCountStat, lokiRunner, NO_EVENTS } from '../lokiPanels';
 import { BAR_GAUGE_COLOR, overTimeBars } from '../panelStyle';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
@@ -60,6 +60,7 @@ export function getPromptsScene(
   variables: SceneVariableSet,
   queries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
+  const none = emptyHint(queries.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
@@ -150,7 +151,7 @@ export function getPromptsScene(
                 'Top Slash Commands',
                 'The most-used slash commands. Built-in commands show their name; custom, plugin and MCP commands show as custom or mcp unless team members set OTEL_LOG_TOOL_DETAILS=1.',
                 'none',
-                'No slash commands in this period.'
+                none('No slash commands in this period.')
               ),
             }),
             new SceneFlexItem({
@@ -161,7 +162,7 @@ export function getPromptsScene(
                 'Slash Commands by Source',
                 'Where the slash commands come from: builtin, custom (including plugins) or mcp.',
                 'none',
-                'No slash commands in this period.'
+                none('No slash commands in this period.')
               ),
             }),
             new SceneFlexItem({ body: promptLengthPanel(queries) }),

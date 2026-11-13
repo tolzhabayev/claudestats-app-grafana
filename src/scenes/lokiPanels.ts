@@ -3,7 +3,6 @@ import { BarGaugeDisplayMode, BarGaugeValueMode, BigValueGraphMode, VizOrientati
 import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS } from './panelStyle';
 import { LOKI_DS_VARIABLE } from './variables';
 import { withEmptyHint } from './HintWhenEmpty';
-import { buildLogQueries } from './logQueries';
 
 // Panels over Claude Code events in Loki, shared by the Reliability and Tools tabs.
 
@@ -28,13 +27,24 @@ export function lokiRunner(refId: string, expr: string, opts: { instant?: boolea
 }
 
 /**
- * Shows `empty` when `data` has no rows but Claude Code sent other events in
- * the period, and the setup hint when it sent none, so missing telemetry never
- * reads as a clean result like "No failed logins".
+ * What an empty Loki panel says. `message` is shown when nothing matched but
+ * `anyEvents` (every Claude Code event under the same filters) has rows, and
+ * the setup hint when it has none, so missing telemetry never reads as a clean
+ * result like "No failed logins".
  */
-function withEventHints(panel: VizPanel, data: SceneDataProvider, empty: string) {
-  const anyEvents = lokiRunner('AnyEvents', buildLogQueries().anyEvents, { instant: true });
-  return withEmptyHint(panel, data, empty, { data: anyEvents, message: NO_EVENTS });
+export interface EmptyHint {
+  message: string;
+  anyEvents: string;
+}
+
+/** Builds the `EmptyHint`s of one tab from its `anyEvents` query. */
+export const emptyHint =
+  (anyEvents: string) =>
+  (message: string): EmptyHint => ({ message, anyEvents });
+
+function withEventHints(panel: VizPanel, data: SceneDataProvider, { message, anyEvents }: EmptyHint) {
+  const events = lokiRunner('AnyEvents', anyEvents, { instant: true });
+  return withEmptyHint(panel, data, message, { data: events, message: NO_EVENTS });
 }
 
 export function lokiCountStat(
@@ -68,7 +78,7 @@ export function lokiBreakdown(
   title: string,
   description: string,
   unit = 'none',
-  empty?: string
+  empty?: EmptyHint
 ) {
   const data = lokiRunner(refId, expr, { instant: true });
   const panel = PanelBuilders.bargauge()
@@ -114,7 +124,7 @@ export function lokiTable(
   label: string,
   labelTitle: string,
   columns: LokiColumn[],
-  empty?: string
+  empty?: EmptyHint
 ) {
   const data = new SceneDataTransformer({
     $data: new SceneQueryRunner({

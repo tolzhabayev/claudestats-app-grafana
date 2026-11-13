@@ -13,7 +13,7 @@ import { LegendDisplayMode } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries } from '../logQueries';
 import { overTimeBars } from '../panelStyle';
-import { lokiBreakdown as breakdown, lokiCountStat as countStat, lokiRunner as runner } from '../lokiPanels';
+import { emptyHint, lokiBreakdown as breakdown, lokiCountStat as countStat, lokiRunner as runner } from '../lokiPanels';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
@@ -27,6 +27,7 @@ export function getReliabilityScene(
   variables: SceneVariableSet,
   queries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
+  const none = emptyHint(queries.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
@@ -117,7 +118,7 @@ export function getReliabilityScene(
                 'Errors by Model',
                 'API errors per model.',
                 'none',
-                'No API errors in this period.'
+                none('No API errors in this period.')
               ),
             }),
             new SceneFlexItem({
@@ -128,7 +129,7 @@ export function getReliabilityScene(
                 'Errors by Attempts',
                 'API errors by how many attempts were made, including the first request. By default Claude Code gives up after 11.',
                 'none',
-                'No API errors in this period.'
+                none('No API errors in this period.')
               ),
             }),
           ],
@@ -146,7 +147,7 @@ export function getReliabilityScene(
                 'Refusals by Category',
                 'Refusals the user saw, by category: cyber, bio, frontier_llm or reasoning_extraction. Claude Code sends the category only with OTEL_LOG_TOOL_DETAILS=1.',
                 'none',
-                'No refusals in this period.'
+                none('No refusals in this period.')
               ),
             }),
             new SceneFlexItem({
@@ -157,7 +158,7 @@ export function getReliabilityScene(
                 'Refusals by Model',
                 'Refusals the user saw, per model.',
                 'none',
-                'No refusals in this period.'
+                none('No refusals in this period.')
               ),
             }),
           ],

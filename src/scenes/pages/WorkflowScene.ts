@@ -15,7 +15,7 @@ import {
 import { LegendDisplayMode } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries } from '../logQueries';
-import { LOKI, lokiBreakdown, lokiCountStat, lokiTable, NO_EVENTS } from '../lokiPanels';
+import { emptyHint, LOKI, lokiBreakdown, lokiCountStat, lokiTable, NO_EVENTS } from '../lokiPanels';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
@@ -77,6 +77,7 @@ export function getWorkflowScene(
   variables: SceneVariableSet,
   q: LogQueries = buildLogQueries()
 ): EmbeddedScene {
+  const none = emptyHint(q.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
@@ -110,7 +111,7 @@ export function getWorkflowScene(
                 { refId: 'RequestLatencyP50', name: 'p50', expr: q.requestLatencyP50, unit: 'ms', decimals: 1 },
                 { refId: 'RequestLatencyP95', name: 'p95', expr: q.requestLatencyP95, unit: 'ms', decimals: 1 },
               ],
-              'No API requests in this period.'
+              none('No API requests in this period.')
             ),
           },
           {
@@ -122,7 +123,7 @@ export function getWorkflowScene(
               'p95 Latency by Effort',
               '95th percentile API request duration by effort level. Requests sent without an effort level show as default.',
               'ms',
-              'No API requests with an effort level in this period.'
+              none('No request durations in this period.')
             ),
           },
           { width: '25%', body: cacheLifetimePanel(q) },
@@ -166,7 +167,7 @@ export function getWorkflowScene(
                 decimals: 0,
               },
             ],
-            'No subagent ran in this period.'
+            none('No subagent ran in this period.')
           )
         ),
         // Context compaction (compaction)
@@ -211,7 +212,7 @@ export function getWorkflowScene(
             'Skill Activations',
             'Skill activations per skill. User-defined and third-party plugin skills show as custom_skill unless OTEL_LOG_TOOL_DETAILS=1.',
             'none',
-            'No skill was activated in this period.'
+            none('No skill was activated in this period.')
           ),
           lokiBreakdown(
             'SkillTriggers',
@@ -220,7 +221,7 @@ export function getWorkflowScene(
             'Skills by Trigger',
             'How skills were started: user-slash (a person ran it as a command), claude-proactive (Claude picked it up on its own) or nested-skill (another skill started it).',
             'none',
-            'No skill was activated in this period.'
+            none('No skill was activated in this period.')
           ),
           lokiBreakdown(
             'McpConnections',
@@ -229,7 +230,7 @@ export function getWorkflowScene(
             'MCP Server Connections',
             'MCP server connection events by status: connected, failed or disconnected.',
             'none',
-            'No MCP server connections in this period.'
+            none('No MCP server connections in this period.')
           ),
           lokiBreakdown(
             'McpFailures',
@@ -238,7 +239,7 @@ export function getWorkflowScene(
             'MCP Connection Failures',
             'Failed MCP server connections by error code. Server names need OTEL_LOG_TOOL_DETAILS=1 and are not shown here.',
             'none',
-            'No MCP connection failed in this period.'
+            none('No MCP connection failed in this period.')
           )
         ),
         // Hooks (hook_execution_complete)
@@ -255,7 +256,7 @@ export function getWorkflowScene(
               { refId: 'HookBlocking', name: 'Blocking', expr: q.hookBlocking, unit: 'none', decimals: 0 },
               { refId: 'HookErrors', name: 'Errors', expr: q.hookErrors, unit: 'none', decimals: 0 },
             ],
-            'No hooks ran in this period.'
+            none('No hooks ran in this period.')
           )
         ),
       ],
