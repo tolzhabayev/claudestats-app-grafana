@@ -34,7 +34,7 @@ The bar gauges attribute cost to what issued each request, largest first:
 | **Cost by Skill**             | Which skill was active.                                        |
 | **Cost by MCP Server**        | Which MCP server's tool result the request used.               |
 | **Cost by Plugin**            | Which plugin owns the active skill or subagent.                |
-| **Cost by MCP Tool**          | Which MCP tool's result the request used, as `server / tool`.  |
+| **Cost by MCP Tool**          | Which MCP tool's result the request used, as `tool · server`.  |
 | **Cost by Repository**        | Which Git repository Claude Code was working in.               |
 | **Cost by Speed (Fast Mode)** | `fast` for fast mode, `normal` otherwise.                      |
 | **Cost by Effort**            | The effort level, or `default` when the model doesn't use one. |
