@@ -186,14 +186,16 @@ export function getWorkflowScene(
             q.compactionAutoShare,
             'Auto Compactions',
             'The share of compactions Claude Code triggered on its own when the context filled up, rather than /compact. A high share points to long sessions.',
-            'percent'
+            'percent',
+            0
           ),
           lokiCountStat(
             'CompactionFailureRate',
             q.compactionFailureRate,
             'Failed Compactions',
             'The share of compactions that failed.',
-            'percent'
+            'percent',
+            0
           ),
           lokiCountStat(
             'CompactionTokensReclaimed',

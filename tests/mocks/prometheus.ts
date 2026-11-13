@@ -984,6 +984,22 @@ export async function mockEmptyPanels(page: Page, refIds: readonly string[]): Pr
 }
 
 /**
+ * Answers one instant breakdown query with `values` (one series per label value)
+ * and leaves every other query to the mocks registered before it.
+ */
+export async function mockBreakdown(page: Page, refId: string, labelKey: string, values: Breakdown): Promise<void> {
+  await page.route('**/api/ds/query*', async (route: Route) => {
+    const body = (route.request().postDataJSON() ?? {}) as DsQueryBody;
+    if (!(body.queries ?? []).some((q) => q.refId === refId)) {
+      return route.fallback();
+    }
+    await route.fulfill({
+      json: { results: { [refId]: { status: 200, frames: instantSeriesFrames(refId, labelKey, values) } } },
+    });
+  });
+}
+
+/**
  * Registers Playwright routes that mock all datasource traffic for the plugin.
  * Must be called before navigating to the app so the initial queries are caught.
  */

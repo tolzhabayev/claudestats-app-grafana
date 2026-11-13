@@ -14,14 +14,14 @@ The **Costs** tab breaks down the estimated cost Claude Code reports after each 
 
 ## See spend by model and team member
 
-| Panel                             | What it shows                                                  |
-| --------------------------------- | -------------------------------------------------------------- |
-| **Total Cost**                    | Estimated cost in US dollars for the period.                   |
-| **Cost by Model**                 | Each model's share of cost.                                    |
-| **Cost Over Time by Model**       | Cost per interval, one series per model.                       |
-| **Cost Over Time by Team Member** | Cost per interval, one series per member.                      |
-| **Cost Distribution by Member**   | Each member's share of cost.                                   |
-| **Cost Breakdown**                | A table with one row per model and team member and their cost. |
+| Panel                             | What it shows                                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Total Cost**                    | Estimated cost in US dollars for the period.                                                       |
+| **Cost by Model**                 | Each model's share of cost.                                                                        |
+| **Cost Over Time by Model**       | Cost per interval, one series per model.                                                           |
+| **Cost Over Time by Team Member** | Cost per interval, one series per member.                                                          |
+| **Cost Distribution by Member**   | Each member's share of cost.                                                                       |
+| **Cost Breakdown**                | A table with one row per team member and model: Team Member, Model and Cost, in dollars and cents. |
 
 ## Find what drives spend
 

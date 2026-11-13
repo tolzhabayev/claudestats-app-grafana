@@ -99,7 +99,12 @@ export function attributionBarGauge(
     queries: [{ refId, expr, legendFormat, instant: true }],
   });
 
-  const panel = horizontalBars().setTitle(title).setDescription(description).setUnit(unit);
+  const panel = horizontalBars()
+    .setTitle(title)
+    .setDescription(description)
+    .setUnit(unit)
+    // Cents for money: $42.30 rather than $42.3, and no six-digit fractions.
+    .setDecimals(unit === 'currencyUSD' ? 2 : undefined);
   // With a hint, show it in place of an empty bar gauge (which draws a grey unfilled track).
   return noValue ? withEmptyHint(panel.build(), data, noValue) : panel.setData(data).build();
 }
