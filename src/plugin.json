@@ -38,8 +38,24 @@
     ],
     "screenshots": [
       {
-        "name": "Tokens",
-        "path": "img/screenshots/screenshot-1.png"
+        "name": "Overview",
+        "path": "img/screenshots/overview.png"
+      },
+      {
+        "name": "Costs",
+        "path": "img/screenshots/costs.png"
+      },
+      {
+        "name": "Tools",
+        "path": "img/screenshots/tools.png"
+      },
+      {
+        "name": "Security",
+        "path": "img/screenshots/security.png"
+      },
+      {
+        "name": "Traces",
+        "path": "img/screenshots/traces.png"
       }
     ],
     "version": "%VERSION%",
