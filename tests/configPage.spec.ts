@@ -67,6 +67,18 @@ test.describe('Setup Guide script', () => {
     await expect(script(page)).not.toContainText('OTEL_LOGS_EXPORTER');
   });
 
+  test('keeps a separate endpoint for each destination', async ({ appConfigPage, page }) => {
+    await page.getByPlaceholder('http://<collector-host>:4318').fill('http://collector.internal:4318');
+    await expect(script(page)).toContainText('http://collector.internal:4318');
+
+    await page.getByRole('radio', { name: 'Grafana Cloud' }).click();
+    await expect(script(page)).toContainText('https://otlp-gateway-prod-<region>.grafana.net/otlp');
+    await expect(script(page)).not.toContainText('collector.internal');
+
+    await page.getByRole('radio', { name: 'OpenTelemetry Collector' }).click();
+    await expect(script(page)).toContainText('http://collector.internal:4318');
+  });
+
   test('offers to switch the ingestion path to match Grafana Cloud', async ({ appConfigPage, page }) => {
     await page.getByRole('radio', { name: 'Grafana Cloud' }).click();
     await page.getByPlaceholder('Base64 of instanceID:token').fill('dGVzdA==');

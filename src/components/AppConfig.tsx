@@ -41,12 +41,13 @@ export function AppConfig({ plugin }: AppConfigProps) {
   const invalidLabels = customLabels.filter((l) => !isUsableCustomLabel(l));
   const customLabelsChanged = customLabels.join('\n') !== savedCustomLabels.join('\n');
   const [destination, setDestination] = useState<Destination>(metricFormat === 'otlp' ? 'cloud' : 'collector');
-  const [otlpEndpoint, setOtlpEndpoint] = useState('');
+  const [endpoints, setEndpoints] = useState<Record<Destination, string>>({ cloud: '', collector: '' });
+  const setEndpoint = (value: string) => setEndpoints((current) => ({ ...current, [destination]: value }));
   const [otlpToken, setOtlpToken] = useState('');
   const [features, setFeatures] = useState<string[]>(DEFAULT_FEATURES);
   const envScript = buildEnvScript({
     destination,
-    endpoint: otlpEndpoint,
+    endpoint: endpoints[destination],
     token: otlpToken,
     features,
     customLabels: savedCustomLabels.filter(isUsableCustomLabel),
@@ -270,8 +271,8 @@ export function AppConfig({ plugin }: AppConfigProps) {
                         <Field label="OTLP Endpoint" description="Your Grafana Cloud OTLP endpoint">
                           <Input
                             placeholder="https://otlp-gateway-prod-us-east-0.grafana.net/otlp"
-                            value={otlpEndpoint}
-                            onChange={(e) => setOtlpEndpoint(e.currentTarget.value)}
+                            value={endpoints[destination]}
+                            onChange={(e) => setEndpoint(e.currentTarget.value)}
                           />
                         </Field>
                         <Field
@@ -296,8 +297,8 @@ export function AppConfig({ plugin }: AppConfigProps) {
                         <Field label="Collector Endpoint" description="The Collector's OTLP HTTP endpoint">
                           <Input
                             placeholder="http://<collector-host>:4318"
-                            value={otlpEndpoint}
-                            onChange={(e) => setOtlpEndpoint(e.currentTarget.value)}
+                            value={endpoints[destination]}
+                            onChange={(e) => setEndpoint(e.currentTarget.value)}
                           />
                         </Field>
                       </Stack>
