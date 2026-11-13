@@ -77,4 +77,18 @@ test.describe('Security scene', () => {
       panelByTitle(app, selectors, 'Permission Mode Changes').getByTestId('data-testid Bar gauge value').first()
     ).toBeVisible();
   });
+
+  test('asks for the event exporter when Loki has no events at all', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    await mockEmptyPanels(page, ['AnyEvents', 'AuthFailuresByCategory']);
+    const app = await gotoPage('security');
+
+    const panel = panelByTitle(app, selectors, 'Login Failures by Category');
+    await expect(panel).toContainText('Needs OTEL_LOGS_EXPORTER=otlp');
+    await expect(panel).not.toContainText('No failed logins in this period.');
+  });
 });

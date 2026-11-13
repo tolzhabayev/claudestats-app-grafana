@@ -117,6 +117,13 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
   const zeroIfRequests = `sum(count_over_time(${requests} [$__range])) * 0`;
 
   return {
+    /**
+     * Every Claude Code event in the period, for the selected members and
+     * dimensions. Empty when events aren't exported at all, which an empty
+     * breakdown can't tell apart from "nothing matched" on its own.
+     */
+    anyEvents: `sum(count_over_time(${events('.+', toolFilters)} [$__range]))`,
+
     /** API errors in the period. Each is the final error of a request, after Claude Code's own retries. */
     apiErrors: `sum(count_over_time(${errors} [$__range])) or ${zeroIfRequests}`,
 

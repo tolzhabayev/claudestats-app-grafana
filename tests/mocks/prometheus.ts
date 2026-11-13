@@ -619,6 +619,7 @@ Object.assign(DATASET, {
   LoginFailures: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.loginFailures }),
   UnofficialPluginInstalls: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.unofficialPlugins }),
   RefusedSessions: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.refusedSessions }),
+  AnyEvents: (id: string) => lokiInstantFrames(id, null, { total: 2048 }),
   EscalationsByMember: (id: string) => lokiInstantFrames(id, 'member', SECURITY.escalationsByMember),
   ModeChanges: (id: string) => lokiInstantFrames(id, 'change', SECURITY.modeChanges),
   DecisionsByMode: (id: string) => lokiInstantFrames(id, 'permission_mode', SECURITY.decisionsByMode),

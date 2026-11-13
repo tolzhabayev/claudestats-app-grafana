@@ -1,8 +1,9 @@
-import { PanelBuilders, SceneDataTransformer, SceneQueryRunner } from '@grafana/scenes';
+import { PanelBuilders, SceneDataProvider, SceneDataTransformer, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 import { BarGaugeDisplayMode, BarGaugeValueMode, BigValueGraphMode, VizOrientation } from '@grafana/schema';
 import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS } from './panelStyle';
 import { LOKI_DS_VARIABLE } from './variables';
 import { withEmptyHint } from './HintWhenEmpty';
+import { buildLogQueries } from './logQueries';
 
 // Panels over Claude Code events in Loki, shared by the Reliability and Tools tabs.
 
@@ -24,6 +25,16 @@ export function lokiRunner(refId: string, expr: string, opts: { instant?: boolea
       },
     ],
   });
+}
+
+/**
+ * Shows `empty` when `data` has no rows but Claude Code sent other events in
+ * the period, and the setup hint when it sent none, so missing telemetry never
+ * reads as a clean result like "No failed logins".
+ */
+function withEventHints(panel: VizPanel, data: SceneDataProvider, empty: string) {
+  const anyEvents = lokiRunner('AnyEvents', buildLogQueries().anyEvents, { instant: true });
+  return withEmptyHint(panel, data, empty, { data: anyEvents, message: NO_EVENTS });
 }
 
 export function lokiCountStat(
@@ -80,7 +91,7 @@ export function lokiBreakdown(
     // row's label column.
     .setOption('reduceOptions', { values: true, calcs: [], fields: '' })
     .setDisplayName(`\${__data.fields.${label}}`);
-  return empty ? withEmptyHint(panel.build(), data, empty) : panel.setData(data).build();
+  return empty ? withEventHints(panel.build(), data, empty) : panel.setData(data).build();
 }
 
 /** One numeric column of a Loki table: an instant query grouped by the table's label. */
@@ -133,5 +144,5 @@ export function lokiTable(
         b.matchFieldsWithName(c.name).overrideUnit(c.unit).overrideDecimals(c.decimals);
       }
     });
-  return empty ? withEmptyHint(panel.build(), data, empty) : panel.setData(data).build();
+  return empty ? withEventHints(panel.build(), data, empty) : panel.setData(data).build();
 }
