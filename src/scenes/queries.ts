@@ -43,14 +43,21 @@ function resolveMember(expr: string): string {
 }
 
 /**
+ * The same query over the previous period of the same length: every
+ * `[$__range]` window shifted back by `offset $__range`.
+ */
+export function previousPeriod(expr: string): string {
+  return expr.split('[$__range])').join('[$__range] offset $__range)');
+}
+
+/**
  * Percent change of a period total against the previous period of the same
- * length: the same query with every `[$__range]` window shifted back by
- * `offset $__range`. Empty when the previous period total was 0 or missing:
- * there is nothing to compare with, and dividing by 0 would show infinity.
- * An empty current period with a previous total is a drop to 0 (-100%).
+ * length (see `previousPeriod`). Empty when the previous period total was 0 or
+ * missing: there is nothing to compare with, and dividing by 0 would show
+ * infinity. An empty current period with a previous total is a drop to 0 (-100%).
  */
 export function changeVsPrevious(expr: string): string {
-  const previous = expr.split('[$__range])').join('[$__range] offset $__range)');
+  const previous = previousPeriod(expr);
   // An empty current period counts as 0, so a drop to nothing shows -100%.
   return `((${expr} or ${previous} * 0) - ${previous}) / (${previous} > 0) * 100`;
 }

@@ -52,6 +52,28 @@ test.describe('Overview scene', () => {
     }
   });
 
+  test('hides the change row when there is no previous period', async ({ mockData, gotoPage, page, selectors }) => {
+    await mockEmptyPanels(page, ['PreviousPeriodCost']);
+    const app = await gotoPage();
+
+    await expect(panelByTitle(app, selectors, 'Total Cost')).toContainText(DISPLAY.TotalCost);
+    for (const [, name] of TREND_PANELS) {
+      await expect(panelByTitle(app, selectors, `${name} vs Previous Period`)).toHaveCount(0);
+    }
+  });
+
+  test('sizes the leaderboard to its members', async ({ mockData, gotoPage, selectors }) => {
+    const app = await gotoPage();
+    const table = panelByTitle(app, selectors, 'Team Leaderboard');
+    await expect(table.getByText(MEMBERS[2], { exact: true })).toBeVisible();
+
+    // Three members need far less than the 300 px a long list gets, and every row still shows.
+    await expect.poll(async () => (await table.boundingBox())?.height ?? 0).toBeLessThan(250);
+    for (const member of MEMBERS) {
+      await expect(table.getByText(member, { exact: true })).toBeVisible();
+    }
+  });
+
   test('shows usage by surface, with a hint when entrypoints are not sent', async ({
     mockData,
     gotoPage,

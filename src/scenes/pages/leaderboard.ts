@@ -70,7 +70,7 @@ export function teamLeaderboard(queries: Queries, variables: SceneVariableSet) {
     ],
   });
 
-  return PanelBuilders.table()
+  const panel = PanelBuilders.table()
     .setTitle('Team Leaderboard')
     .setDescription(
       'One row per team member for the period. Added and Removed are lines of code, PRs are pull requests, and Accept % is the edit acceptance rate. Click a column header to sort, or a member to filter the app to them. Shows every member regardless of the Team Member filter; cost and tokens follow the Model filter.'
@@ -94,4 +94,6 @@ export function teamLeaderboard(queries: Queries, variables: SceneVariableSet) {
         ]);
     })
     .build();
+  // The data too, so the row can size itself to the number of members.
+  return { panel, data };
 }

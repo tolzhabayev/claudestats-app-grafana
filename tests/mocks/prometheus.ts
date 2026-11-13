@@ -295,6 +295,8 @@ export const LEADERBOARD = {
 // Scalar values rendered by stat panels.
 export const SCALARS = {
   TotalCost: sum(COST.byMember),
+  // Cost in the period before, which the Overview checks before showing the change row.
+  PreviousPeriodCost: 390,
   TotalTokens: sum(TOKENS.byType),
   TotalSessions: sum(SESSIONS_BY_START_TYPE) - SESSIONS_BY_START_TYPE.agents_view,
   ActiveUsers: MEMBERS.length,
