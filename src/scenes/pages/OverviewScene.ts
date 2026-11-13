@@ -12,7 +12,8 @@ import {
   SceneRefreshPicker,
 } from '@grafana/scenes';
 import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
-import { ACTIVE_TIME_TYPE_NAMES, changeVsPrevious, QUERIES, Queries } from '../queries';
+import { ACTIVE_TIME_TYPE_NAMES, changeVsPrevious, previousPeriod, QUERIES, Queries } from '../queries';
+import { fitHeightToRows, hideWhileEmpty } from '../fitToData';
 import { OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { LABELS, PANEL_HEIGHTS } from '../../constants';
 import { teamLeaderboard } from './leaderboard';
@@ -242,8 +243,29 @@ export function getOverviewScene(
     ],
   });
 
+  // Change of the totals against the previous period. Hidden while the previous
+  // period has no cost (missing or 0), since every panel would say "No previous period".
+  const trendRow = new SceneFlexLayout({
+    direction: 'row',
+    height: 80,
+    children: TRENDS.map(([refId, name, key]) => new SceneFlexItem({ body: trendStat(refId, name, queries[key]) })),
+  });
+  const previousPeriodCost = new SceneQueryRunner({
+    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+    queries: [{ refId: 'PreviousPeriodCost', expr: `${previousPeriod(queries.totalCost)} > 0`, instant: true }],
+  });
+
+  const leaderboard = teamLeaderboard(queries, variables);
+  const leaderboardRow = new SceneFlexLayout({
+    direction: 'row',
+    height: PANEL_HEIGHTS.LARGE,
+    children: [new SceneFlexItem({ body: leaderboard.panel })],
+    $behaviors: [fitHeightToRows(leaderboard.data, PANEL_HEIGHTS.LARGE)],
+  });
+
   return new EmbeddedScene({
     $timeRange: timeRange,
+    $behaviors: [previousPeriodCost, hideWhileEmpty(trendRow, previousPeriodCost)],
     $variables: variables,
     controls: [
       new VariableValueSelectors({}),
@@ -306,13 +328,7 @@ export function getOverviewScene(
           ],
         }),
         // Row 1a: Change of the totals against the previous period
-        new SceneFlexLayout({
-          direction: 'row',
-          height: 80,
-          children: TRENDS.map(
-            ([refId, name, key]) => new SceneFlexItem({ body: trendStat(refId, name, queries[key]) })
-          ),
-        }),
+        trendRow,
         // Row 1b: Efficiency ratios
         new SceneFlexLayout({
           direction: 'row',
@@ -382,12 +398,8 @@ export function getOverviewScene(
             }),
           ],
         }),
-        // Row 2b: Team leaderboard
-        new SceneFlexLayout({
-          direction: 'row',
-          height: PANEL_HEIGHTS.LARGE,
-          children: [new SceneFlexItem({ body: teamLeaderboard(queries, variables) })],
-        }),
+        // Row 2b: Team leaderboard, as tall as its rows
+        leaderboardRow,
         // Row 3: Token and Session Charts
         new SceneFlexLayout({
           direction: 'row',

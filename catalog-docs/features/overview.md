@@ -24,7 +24,7 @@ The top row shows four totals:
 
 Cost is the estimate Claude Code reports. For billing data, use your Anthropic or cloud provider console.
 
-The row under the totals compares cost, tokens, sessions and active users with the previous period of the same length, such as the 7 days before the last 7 days. Each shows **No previous period** when the previous period had none to compare with, and -100% when it had some but this period has none.
+The row under the totals compares cost, tokens, sessions and active users with the previous period of the same length, such as the 7 days before the last 7 days. The row is hidden when the previous period had no cost, such as in a new setup. Otherwise each panel shows **No previous period** when its own total had nothing to compare with, and -100% when the previous period had some but this period has none.
 
 ## Check efficiency
 
@@ -38,7 +38,7 @@ The second row shows three ratios for the period:
 
 ## Compare team members
 
-**Team Leaderboard** has one row per team member with their cost, tokens, sessions, active time, lines added and removed, commits, pull requests and edit acceptance rate. It's sorted by cost. Click a column header to sort by it, or click a member's name to filter every tab to that member, keeping your other filters. Usage that can't be attributed to anyone isn't listed, but still counts in the totals and the other per-member panels.
+**Team Leaderboard** has one row per team member with their cost, tokens, sessions, active time, lines added and removed, commits, pull requests and edit acceptance rate. It grows with the number of members and scrolls past about five. It's sorted by cost. Click a column header to sort by it, or click a member's name to filter every tab to that member, keeping your other filters. Usage that can't be attributed to anyone isn't listed, but still counts in the totals and the other per-member panels.
 
 ## See trends over time
 
