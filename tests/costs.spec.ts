@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 import { barFillWidths, panelByTitle, legendItem } from './mocks/panels';
 import {
+  mockBreakdown,
   mockEmptyPanels,
   DISPLAY,
   MODELS,
@@ -58,6 +59,18 @@ test.describe('Costs scene', () => {
     for (const model of MODELS) {
       await expect(table.getByText(model, { exact: true }).first()).toBeVisible();
     }
+  });
+
+  test('attribution costs show dollars and cents', async ({ mockData, gotoPage, page, selectors }) => {
+    await mockBreakdown(page, 'CostByEffort', 'effort', { high: 42.3, low: 0.000284 });
+    const app = await gotoPage('costs');
+
+    // A trailing zero is kept, and a fraction of a cent doesn't run to six digits.
+    await expect(panelByTitle(app, selectors, 'Cost by Subagent')).toContainText('$61.20');
+    const effort = panelByTitle(app, selectors, 'Cost by Effort');
+    await expect(effort).toContainText('$42.30');
+    await expect(effort).toContainText('$0.00');
+    await expect(effort).not.toContainText('0.000284');
   });
 
   test('bar gauges start at zero, so the smallest bar is still drawn', async ({ mockData, gotoPage, selectors }) => {
