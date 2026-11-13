@@ -244,7 +244,7 @@ export function getOverviewScene(
   });
 
   // Change of the totals against the previous period. Hidden while the previous
-  // period has no cost, since every panel in it would say "No previous period".
+  // period has no cost (missing or 0), since every panel would say "No previous period".
   const trendRow = new SceneFlexLayout({
     direction: 'row',
     height: 80,
@@ -252,7 +252,7 @@ export function getOverviewScene(
   });
   const previousPeriodCost = new SceneQueryRunner({
     datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
-    queries: [{ refId: 'PreviousPeriodCost', expr: previousPeriod(queries.totalCost), instant: true }],
+    queries: [{ refId: 'PreviousPeriodCost', expr: `${previousPeriod(queries.totalCost)} > 0`, instant: true }],
   });
 
   const leaderboard = teamLeaderboard(queries, variables);
