@@ -48,8 +48,10 @@ test.describe('Costs scene', () => {
     const app = await gotoPage('costs');
     const table = panelByTitle(app, selectors, 'Cost Breakdown');
 
-    // Column override from the scene definition.
-    await expect(table).toContainText('Team Member');
+    // Readable headers, no Time column, and the cost in dollars and cents.
+    const headers = table.getByRole('columnheader');
+    await expect(headers).toHaveText(['Team Member', 'Model', 'Cost']);
+    await expect(table.getByText('$120.40', { exact: true })).toBeVisible();
     for (const member of MEMBERS) {
       await expect(table.getByText(member, { exact: true }).first()).toBeVisible();
     }
