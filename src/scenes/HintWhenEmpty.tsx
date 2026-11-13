@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoadingState } from '@grafana/data';
+import { LoadingState, PanelData } from '@grafana/data';
 import {
   PanelBuilders,
   SceneComponentProps,
@@ -12,9 +12,15 @@ import {
 
 interface HintWhenEmptyState extends SceneObjectState {
   /** The panel to show when the query has rows. It reads its data from this object. */
-  panel: VizPanel | HintWhenEmpty;
+  panel: VizPanel;
   /** A text panel with the same title, shown when the query returns no rows. */
   hint: VizPanel;
+  /**
+   * A query for any event under the same filters, and the text panel shown
+   * instead of `hint` when it is empty too. The query runs as one of this
+   * object's behaviors, so it is active while the panel is.
+   */
+  noEvents?: { data: SceneDataProvider; hint: VizPanel };
 }
 
 /**
@@ -27,14 +33,30 @@ export class HintWhenEmpty extends SceneObjectBase<HintWhenEmptyState> {
   static Component = HintWhenEmptyRenderer;
 }
 
+const isEmpty = (data?: PanelData) =>
+  data?.state === LoadingState.Done && data.series.every((frame) => frame.length === 0);
+
 function HintWhenEmptyRenderer({ model }: SceneComponentProps<HintWhenEmpty>) {
-  const { panel, hint } = model.useState();
+  const { panel, hint, noEvents } = model.useState();
   const { data } = sceneGraph.getData(model).useState();
-  const empty = data?.state === LoadingState.Done && data.series.every((frame) => frame.length === 0);
-  if (empty) {
+  if (!isEmpty(data)) {
+    return <panel.Component model={panel} />;
+  }
+  if (!noEvents) {
     return <hint.Component model={hint} />;
   }
-  return panel instanceof HintWhenEmpty ? <panel.Component model={panel} /> : <panel.Component model={panel} />;
+  return <EmptyWithEventCheck panel={panel} hint={hint} noEvents={noEvents} />;
+}
+
+/**
+ * The panel came back empty: say why only once the event check has an answer.
+ * While it loads, or if it fails, show the panel itself rather than claim that
+ * nothing happened or that events are missing.
+ */
+function EmptyWithEventCheck({ panel, hint, noEvents }: Required<Omit<HintWhenEmptyState, keyof SceneObjectState>>) {
+  const { data } = noEvents.data.useState();
+  const child = data?.state !== LoadingState.Done ? panel : isEmpty(data) ? noEvents.hint : hint;
+  return <child.Component model={child} />;
 }
 
 /**
@@ -53,6 +75,12 @@ export function withEmptyHint(
   const { title, description } = panel.state;
   const text = (content: string) =>
     PanelBuilders.text().setTitle(title).setDescription(description).setOption('content', content).build();
-  const hinted = new HintWhenEmpty({ $data: data, panel, hint: text(message) });
-  return noEvents ? new HintWhenEmpty({ $data: noEvents.data, panel: hinted, hint: text(noEvents.message) }) : hinted;
+  return new HintWhenEmpty({
+    $data: data,
+    panel,
+    hint: text(message),
+    ...(noEvents
+      ? { noEvents: { data: noEvents.data, hint: text(noEvents.message) }, $behaviors: [noEvents.data] }
+      : {}),
+  });
 }

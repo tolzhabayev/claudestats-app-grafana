@@ -91,4 +91,27 @@ test.describe('Security scene', () => {
     await expect(panel).toContainText('Needs OTEL_LOGS_EXPORTER=otlp');
     await expect(panel).not.toContainText('No failed logins in this period.');
   });
+
+  test('makes no claim about an empty breakdown when the event check fails', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    await mockEmptyPanels(page, ['AuthFailuresByCategory']);
+    // Registered last, so it answers the event check before the mocks do.
+    await page.route('**/api/ds/query*', async (route) => {
+      const body = route.request().postDataJSON() as { queries?: Array<{ refId?: string }> };
+      if (!(body.queries ?? []).some((q) => q.refId === 'AnyEvents')) {
+        return route.fallback();
+      }
+      await route.fulfill({ json: { results: { AnyEvents: { status: 500, error: 'query timed out' } } } });
+    });
+    const app = await gotoPage('security');
+
+    const panel = panelByTitle(app, selectors, 'Login Failures by Category');
+    await expect(panel).toContainText('No data');
+    await expect(panel).not.toContainText('No failed logins in this period.');
+    await expect(panel).not.toContainText('Needs OTEL_LOGS_EXPORTER=otlp');
+  });
 });
