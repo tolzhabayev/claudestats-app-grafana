@@ -347,9 +347,9 @@ export function getTokensScene(
                 'short',
                 {
                   noValue: 'No MCP tool result was used in this period',
-                  legendFormat: '{{mcp_server_name}} / {{mcp_tool_name}}',
+                  legendFormat: '{{mcp_tool_name}} · {{mcp_server_name}}',
                   description:
-                    'Tokens by MCP tool, shown as server / tool, for requests that used an MCP tool result. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
+                    'Tokens by MCP tool, shown as tool · server, for requests that used an MCP tool result. User-defined and third-party names show as custom or third-party unless team members set OTEL_LOG_TOOL_DETAILS=1. Empty when nothing used one.',
                 }
               ),
             }),

@@ -69,6 +69,22 @@ test.describe('Costs scene', () => {
     }
   });
 
+  test('bar gauges with few bars keep their text small instead of scaling it to the panel', async ({
+    mockData,
+    gotoPage,
+    selectors,
+  }) => {
+    const app = await gotoPage('costs');
+
+    // Two bars each, which Grafana would otherwise draw at heading size.
+    for (const title of ['Cost by Subagent', 'Cost by Speed (Fast Mode)']) {
+      const value = panelByTitle(app, selectors, title).getByTestId('data-testid Bar gauge value').first();
+      await expect(value).toBeVisible();
+      const size = await value.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+      expect(size, title).toBeLessThanOrEqual(16);
+    }
+  });
+
   test('renders the attribution bar gauges by source, subagent, skill, and MCP server', async ({
     mockData,
     gotoPage,

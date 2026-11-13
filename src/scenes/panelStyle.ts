@@ -51,6 +51,12 @@ export function overTimeBars() {
 export const BAR_GAUGE_COLOR = { mode: 'continuous-BlPu' } as const;
 
 /**
+ * Fixed bar gauge text sizes. Left to Grafana, a gauge with one or two bars scales
+ * its labels to fill the panel, far larger than anything else on the page.
+ */
+export const BAR_GAUGE_TEXT = { titleSize: 14, valueSize: 16 };
+
+/**
  * A horizontal bar gauge, one bar per series, labelled with the series name.
  * Bars start at zero: without a min, Grafana scales from the smallest value,
  * so the smallest bar (or a single bar) is drawn empty.
@@ -61,6 +67,7 @@ export function horizontalBars() {
     .setOption('displayMode', BarGaugeDisplayMode.Gradient)
     .setColor(BAR_GAUGE_COLOR)
     .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('text', BAR_GAUGE_TEXT)
     .setOption('valueMode', BarGaugeValueMode.Text)
     .setOption('showUnfilled', true)
     .setOption('minVizWidth', 150)
