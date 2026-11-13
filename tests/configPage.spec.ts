@@ -1,3 +1,4 @@
+import { Page } from '@playwright/test';
 import { test, expect } from './fixtures';
 
 test.describe('Configuration Page', () => {
@@ -17,7 +18,7 @@ test.describe('Configuration Page', () => {
   });
 
   test('should show Setup Guide content by default', async ({ appConfigPage, page }) => {
-    await expect(page.getByText('Step 1: Get Grafana Cloud OTLP Credentials')).toBeVisible();
+    await expect(page.getByText('Step 1: Choose a Destination')).toBeVisible();
   });
 
   test('should navigate to Troubleshooting tab', async ({ appConfigPage, page }) => {
@@ -26,12 +27,12 @@ test.describe('Configuration Page', () => {
   });
 
   test('should have OTLP endpoint input field', async ({ appConfigPage, page }) => {
-    // Input field with placeholder
+    await page.getByRole('radio', { name: 'Grafana Cloud' }).click();
     await expect(page.getByPlaceholder('https://otlp-gateway-prod-us-east-0.grafana.net/otlp')).toBeVisible();
   });
 
   test('should have API Token input field', async ({ appConfigPage, page }) => {
-    // Input field with placeholder
+    await page.getByRole('radio', { name: 'Grafana Cloud' }).click();
     await expect(page.getByPlaceholder('Base64 of instanceID:token')).toBeVisible();
   });
 
@@ -40,6 +41,50 @@ test.describe('Configuration Page', () => {
     await expect(page.getByText('Metrics Reference')).toBeVisible();
     // Use first() to handle multiple matches in code editor
     await expect(page.getByText('claude_code_cost_usage_USD_total').first()).toBeVisible();
+  });
+});
+
+test.describe('Setup Guide script', () => {
+  const script = (page: Page) => page.locator('.monaco-editor').first();
+
+  test('follows the destination from the saved ingestion path', async ({ appConfigPage, page }) => {
+    // The provisioned app has no metricFormat, so the Collector path is picked.
+    await expect(page.getByRole('radio', { name: 'OpenTelemetry Collector' })).toBeChecked();
+    await expect(script(page)).toContainText('http://<collector-host>:4318');
+    await expect(script(page)).not.toContainText('OTEL_EXPORTER_OTLP_HEADERS');
+    await expect(page.getByText("Ingestion path doesn't match")).toHaveCount(0);
+  });
+
+  test('adds the settings for the features picked', async ({ appConfigPage, page }) => {
+    await expect(script(page)).toContainText('OTEL_LOGS_EXPORTER');
+    await expect(script(page)).not.toContainText('OTEL_TRACES_EXPORTER');
+
+    await page.getByText('Traces (beta)').click();
+    await page.getByText('Events', { exact: true }).click();
+
+    await expect(script(page)).toContainText('OTEL_TRACES_EXPORTER');
+    await expect(script(page)).toContainText('CLAUDE_CODE_ENHANCED_TELEMETRY_BETA');
+    await expect(script(page)).not.toContainText('OTEL_LOGS_EXPORTER');
+  });
+
+  test('offers to switch the ingestion path to match Grafana Cloud', async ({ appConfigPage, page }) => {
+    await page.getByRole('radio', { name: 'Grafana Cloud' }).click();
+    await page.getByPlaceholder('Base64 of instanceID:token').fill('dGVzdA==');
+    await expect(script(page)).toContainText('Authorization=Basic dGVzdA==');
+    await expect(script(page)).toContainText('OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE');
+
+    await page.route('**/api/plugins/*/settings', async (route) => {
+      if (route.request().method() !== 'POST') {
+        return route.continue();
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+    const settingsPost = page.waitForRequest(
+      (req) => req.url().includes('/api/plugins/') && req.url().includes('/settings') && req.method() === 'POST'
+    );
+    await page.getByRole('button', { name: 'Switch ingestion path' }).click();
+    const body = (await settingsPost).postDataJSON() as { jsonData: Record<string, unknown> };
+    expect(body.jsonData).toMatchObject({ metricFormat: 'otlp' });
   });
 });
 

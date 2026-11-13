@@ -14,6 +14,7 @@
   - **Workflow**: request latency by model and effort, cache lifetimes, subagents, compaction, skills, MCP connections and hooks (#62, #83)
   - **Security**: permission escalations, auto mode verdicts, rejected tool calls, login failures, plugin installs and managed settings (#63, #84)
 - **Traces** tab (beta), built from traces in Tempo: interactions, model requests with time to first token, and a trace waterfall (#38, #87)
+- **Setup Guide** on the configuration page picks the destination and features, then builds the matching environment variables, including events and traces
 - Filters:
   - **Repository** filter, plus pickers for your own labels such as cost center, set on the configuration page (#27, #72)
   - **Team** filter from the identity-provider groups (`user_groups`) of Claude apps gateway sessions (#61, #89)
