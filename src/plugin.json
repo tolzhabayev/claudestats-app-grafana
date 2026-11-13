@@ -4,8 +4,21 @@
   "name": "Claude Code Stats",
   "id": "timurdigital-claudestats-app",
   "info": {
-    "keywords": ["claude", "anthropic", "usage", "analytics", "opentelemetry", "team"],
-    "description": "Team usage analytics for Claude Code powered by OpenTelemetry",
+    "keywords": [
+      "claude",
+      "claude code",
+      "anthropic",
+      "usage",
+      "analytics",
+      "cost",
+      "tokens",
+      "llm",
+      "ai",
+      "observability",
+      "opentelemetry",
+      "team"
+    ],
+    "description": "Team usage analytics for Claude Code from OpenTelemetry: cost, tokens, tools, productivity, reliability, security audit and traces",
     "author": {
       "name": "Timur Olzhabayev"
     },
@@ -19,18 +32,30 @@
         "url": "https://github.com/tolzhabayev/claudestats-app-grafana"
       },
       {
-        "name": "documentation",
-        "url": "https://github.com/tolzhabayev/claudestats-app-grafana/blob/HEAD/src/README.md"
-      },
-      {
         "name": "license",
         "url": "https://github.com/tolzhabayev/claudestats-app-grafana/blob/HEAD/LICENSE"
       }
     ],
     "screenshots": [
       {
-        "name": "Tokens",
-        "path": "img/screenshots/screenshot-1.png"
+        "name": "Overview",
+        "path": "img/screenshots/overview.png"
+      },
+      {
+        "name": "Costs",
+        "path": "img/screenshots/costs.png"
+      },
+      {
+        "name": "Tools",
+        "path": "img/screenshots/tools.png"
+      },
+      {
+        "name": "Security",
+        "path": "img/screenshots/security.png"
+      },
+      {
+        "name": "Traces",
+        "path": "img/screenshots/traces.png"
       }
     ],
     "version": "%VERSION%",

@@ -54,6 +54,7 @@
 - The Traces tables show their key columns with readable names, and a Model Requests trace ID opens the trace (#92)
 - Counts show whole numbers, costs show cents, and the Cost Breakdown table has Team Member, Model and Cost columns without the query time (#95)
 - Narrow panels stay readable: bar gauge text no longer grows to heading size, MCP tool labels lead with the tool, leaderboard headers and pie legends fit, and the Surface hint is no longer cut off (#96)
+- The catalog listing has current screenshots, description and keywords, and the root README points to the docs (#97)
 
 ## 1.1.0
 
