@@ -17,12 +17,12 @@ Tracing is a beta feature of Claude Code, so the span names and attributes can s
 
 ## Find a prompt
 
-| Panel              | What it shows                                                                                                                 |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Interactions**   | One row per prompt (a `claude_code.interaction` trace), newest first, with its start time and duration.                       |
-| **Model Requests** | Model requests (`claude_code.llm_request` spans) with their model, time to first token (`ttft_ms`), duration and stop reason. |
+| Panel              | What it shows                                                                                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Interactions**   | One row per prompt (a `claude_code.interaction` trace), newest first, with its start time and duration.                                                   |
+| **Model Requests** | Model requests (`claude_code.llm_request` spans) with their start time, model, time to first token (**First token**), duration, stop reason and trace ID. |
 
-Click a trace ID and choose **Show this trace**, or enter a trace ID in **Trace ID**, to show that trace below. Your other filters stay as they are.
+Click a trace ID in either list, or enter one in **Trace ID**, to show that trace below. Your other filters stay as they are.
 
 ## Read the waterfall
 
