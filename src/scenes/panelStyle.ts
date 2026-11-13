@@ -98,11 +98,15 @@ export function attributionBarGauge(
     queries: [{ refId, expr, legendFormat, instant: true }],
   });
 
-  return horizontalBars()
-    .setTitle(title)
-    .setDescription(description)
-    .setUnit(unit)
-    .setData(data)
-    .setNoValue(noValue)
-    .build();
+  return (
+    horizontalBars()
+      .setTitle(title)
+      .setDescription(description)
+      .setUnit(unit)
+      // Cents for money: $42.30 rather than $42.3, and no six-digit fractions.
+      .setDecimals(unit === 'currencyUSD' ? 2 : undefined)
+      .setData(data)
+      .setNoValue(noValue)
+      .build()
+  );
 }

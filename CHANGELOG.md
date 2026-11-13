@@ -51,6 +51,7 @@
 - Bar gauges start at zero, so the smallest bar or a single bar is no longer drawn empty (#91)
 - The Traces tab no longer shows an error and sends failing Tempo queries before a trace is picked (#93)
 - The Traces tables show their key columns with readable names, and a Model Requests trace ID opens the trace (#92)
+- Counts show whole numbers, costs show cents, and the Cost Breakdown table has Team Member, Model and Cost columns without the query time (#95)
 
 ## 1.1.0
 
