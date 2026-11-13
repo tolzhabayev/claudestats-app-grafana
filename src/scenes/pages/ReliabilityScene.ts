@@ -32,7 +32,7 @@ export function getReliabilityScene(
   variables: SceneVariableSet,
   queries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
-  const none = emptyHints(queries.anyEvents);
+  const none = emptyHints(queries.anyRequests);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
