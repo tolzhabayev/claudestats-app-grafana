@@ -59,6 +59,14 @@ describe('event check', () => {
   });
 });
 
+describe('Reliability event check', () => {
+  it('counts API requests and errors under the same model filter as the panels', () => {
+    expect(queries.anyRequests).toContain('event_name=~"api_error|api_request"');
+    expect(queries.anyRequests).toContain('model=~"$model"');
+    expect(queries.apiErrors).toContain('model=~"$model"');
+  });
+});
+
 describe('buildTraceQueries', () => {
   it('scopes spans to a member by email, else enduser.id, else user.id', () => {
     const { interactions, llmRequests } = buildTraceQueries();
