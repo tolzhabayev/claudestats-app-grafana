@@ -16,6 +16,7 @@ import { ACTIVE_TIME_TYPE_NAMES, changeVsPrevious, QUERIES, Queries } from '../q
 import { OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
 import { LABELS, PANEL_HEIGHTS } from '../../constants';
 import { teamLeaderboard } from './leaderboard';
+import { withEmptyHint } from '../HintWhenEmpty';
 
 /** A single-value stat for an efficiency ratio. */
 // The totals compared against the previous period of the same length.
@@ -479,16 +480,19 @@ export function getOverviewScene(
             }),
             new SceneFlexItem({
               width: '20%',
-              body: PanelBuilders.piechart()
-                .setTitle('Surface')
-                .setDescription(
-                  'Usage split by where Claude Code ran: the CLI, the VS Code extension, the desktop app or the SDK, weighted by cost.'
-                )
-                .setData(usageByEntrypointQuery)
-                .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
-                .setOption('pieType', 'donut' as never)
-                .setNoValue('Needs OTEL_METRICS_INCLUDE_ENTRYPOINT=true')
-                .build(),
+              body: withEmptyHint(
+                PanelBuilders.piechart()
+                  .setTitle('Surface')
+                  .setDescription(
+                    'Usage split by where Claude Code ran: the CLI, the VS Code extension, the desktop app or the SDK, weighted by cost. Needs OTEL_METRICS_INCLUDE_ENTRYPOINT=true.'
+                  )
+                  .setOption('legend', { displayMode: LegendDisplayMode.List, placement: 'bottom' })
+                  .setOption('pieType', 'donut' as never)
+                  .build(),
+                usageByEntrypointQuery,
+                // The setting name doesn't fit the narrow panel, so it's in the description.
+                'Needs the entrypoint setting. See the panel info.'
+              ),
             }),
           ],
         }),

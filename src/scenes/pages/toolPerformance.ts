@@ -1,10 +1,13 @@
 import { SceneFlexItem, SceneFlexLayout } from '@grafana/scenes';
 import { PANEL_HEIGHTS } from '../../constants';
 import { LogQueries } from '../logQueries';
-import { lokiBreakdown, lokiTable } from '../lokiPanels';
+import { EmptyHint, lokiBreakdown, lokiTable } from '../lokiPanels';
 
-/** Rows for the Tools tab: tool execution performance from `tool_result` events in Loki. */
-export function toolPerformanceRows(queries: LogQueries) {
+/**
+ * Rows for the Tools tab: tool execution performance from `tool_result` events in
+ * Loki. `none` builds the empty-panel hints, and the Tools tab activates its check.
+ */
+export function toolPerformanceRows(queries: LogQueries, none: (message: string) => EmptyHint) {
   return [
     new SceneFlexLayout({
       direction: 'row',
@@ -27,7 +30,8 @@ export function toolPerformanceRows(queries: LogQueries) {
               },
               { refId: 'ToolP50', name: 'p50', expr: queries.toolLatencyP50, unit: 'ms', decimals: 1 },
               { refId: 'ToolP95', name: 'p95', expr: queries.toolLatencyP95, unit: 'ms', decimals: 1 },
-            ]
+            ],
+            none('No tool results in this period.')
           ),
         }),
       ],
@@ -42,7 +46,9 @@ export function toolPerformanceRows(queries: LogQueries) {
             queries.toolErrorTypes,
             'error_type',
             'Failures by Error Type',
-            'Failed tool calls by error category, such as Error:ENOENT or ShellError. The full message needs OTEL_LOG_TOOL_DETAILS=1 and is not shown here.'
+            'Failed tool calls by error category, such as Error:ENOENT or ShellError. The full message needs OTEL_LOG_TOOL_DETAILS=1 and is not shown here.',
+            'none',
+            none('No tool call failed in this period.')
           ),
         }),
         new SceneFlexItem({
@@ -52,7 +58,8 @@ export function toolPerformanceRows(queries: LogQueries) {
             'decision_source',
             'p95 Execution Time by Decision Source',
             '95th percentile tool execution time by who allowed the call: a config rule or hook (automatic) or the user.',
-            'ms'
+            'ms',
+            none('No tool execution times in this period.')
           ),
         }),
       ],

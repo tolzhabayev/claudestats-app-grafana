@@ -14,14 +14,14 @@ The **Costs** tab breaks down the estimated cost Claude Code reports after each 
 
 ## See spend by model and team member
 
-| Panel                             | What it shows                                                  |
-| --------------------------------- | -------------------------------------------------------------- |
-| **Total Cost**                    | Estimated cost in US dollars for the period.                   |
-| **Cost by Model**                 | Each model's share of cost.                                    |
-| **Cost Over Time by Model**       | Cost per interval, one series per model.                       |
-| **Cost Over Time by Team Member** | Cost per interval, one series per member.                      |
-| **Cost Distribution by Member**   | Each member's share of cost.                                   |
-| **Cost Breakdown**                | A table with one row per model and team member and their cost. |
+| Panel                             | What it shows                                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Total Cost**                    | Estimated cost in US dollars for the period.                                                       |
+| **Cost by Model**                 | Each model's share of cost.                                                                        |
+| **Cost Over Time by Model**       | Cost per interval, one series per model.                                                           |
+| **Cost Over Time by Team Member** | Cost per interval, one series per member.                                                          |
+| **Cost Distribution by Member**   | Each member's share of cost.                                                                       |
+| **Cost Breakdown**                | A table with one row per team member and model: Team Member, Model and Cost, in dollars and cents. |
 
 ## Find what drives spend
 
@@ -34,7 +34,7 @@ The bar gauges attribute cost to what issued each request, largest first:
 | **Cost by Skill**             | Which skill was active.                                        |
 | **Cost by MCP Server**        | Which MCP server's tool result the request used.               |
 | **Cost by Plugin**            | Which plugin owns the active skill or subagent.                |
-| **Cost by MCP Tool**          | Which MCP tool's result the request used, as `server / tool`.  |
+| **Cost by MCP Tool**          | Which MCP tool's result the request used, as `tool · server`.  |
 | **Cost by Repository**        | Which Git repository Claude Code was working in.               |
 | **Cost by Speed (Fast Mode)** | `fast` for fast mode, `normal` otherwise.                      |
 | **Cost by Effort**            | The effort level, or `default` when the model doesn't use one. |

@@ -58,7 +58,7 @@ export const MCP_TOOLS = [
   { server: 'github', tool: 'search_code' },
   { server: 'filesystem', tool: 'read_file' },
 ] as const;
-export const mcpToolLabel = (t: { server: string; tool: string }) => `${t.server} / ${t.tool}`;
+export const mcpToolLabel = (t: { server: string; tool: string }) => `${t.tool} · ${t.server}`;
 // `normal` and `default` are the buckets the queries fold absent labels into.
 export const SPEEDS = ['normal', 'fast'] as const;
 export const EFFORTS = ['high', 'medium', 'default'] as const;
@@ -619,6 +619,7 @@ Object.assign(DATASET, {
   LoginFailures: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.loginFailures }),
   UnofficialPluginInstalls: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.unofficialPlugins }),
   RefusedSessions: (id: string) => lokiInstantFrames(id, null, { total: SECURITY.refusedSessions }),
+  AnyEvents: (id: string) => lokiInstantFrames(id, null, { total: 2048 }),
   EscalationsByMember: (id: string) => lokiInstantFrames(id, 'member', SECURITY.escalationsByMember),
   ModeChanges: (id: string) => lokiInstantFrames(id, 'change', SECURITY.modeChanges),
   DecisionsByMode: (id: string) => lokiInstantFrames(id, 'permission_mode', SECURITY.decisionsByMode),
@@ -979,6 +980,22 @@ export async function mockEmptyPanels(page: Page, refIds: readonly string[]): Pr
   await page.route('**/api/ds/query*', async (route: Route) => {
     const body = (route.request().postDataJSON() ?? {}) as DsQueryBody;
     await route.fulfill({ json: buildQueryResponse(body, refIds) });
+  });
+}
+
+/**
+ * Answers one instant breakdown query with `values` (one series per label value)
+ * and leaves every other query to the mocks registered before it.
+ */
+export async function mockBreakdown(page: Page, refId: string, labelKey: string, values: Breakdown): Promise<void> {
+  await page.route('**/api/ds/query*', async (route: Route) => {
+    const body = (route.request().postDataJSON() ?? {}) as DsQueryBody;
+    if (!(body.queries ?? []).some((q) => q.refId === refId)) {
+      return route.fallback();
+    }
+    await route.fulfill({
+      json: { results: { [refId]: { status: 200, frames: instantSeriesFrames(refId, labelKey, values) } } },
+    });
   });
 }
 

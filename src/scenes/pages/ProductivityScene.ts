@@ -227,7 +227,7 @@ export function getProductivityScene(
                 .setData(linesOfCodeByTypeQuery)
                 .setOption('legend', {
                   displayMode: LegendDisplayMode.Table,
-                  placement: 'right',
+                  placement: 'bottom',
                   values: ['value', 'percent'] as never,
                 })
                 .setOption('pieType', 'donut' as never)
@@ -244,7 +244,7 @@ export function getProductivityScene(
                 .setData(linesOfCodeByModelQuery)
                 .setOption('legend', {
                   displayMode: LegendDisplayMode.Table,
-                  placement: 'right',
+                  placement: 'bottom',
                   values: ['value', 'percent'] as never,
                 })
                 .build(),
@@ -304,7 +304,7 @@ export function getProductivityScene(
                 .setData(activeTimeByTypeQuery)
                 .setOption('legend', {
                   displayMode: LegendDisplayMode.Table,
-                  placement: 'right',
+                  placement: 'bottom',
                   values: ['value', 'percent'] as never,
                 })
                 .setOption('pieType', 'donut' as never)

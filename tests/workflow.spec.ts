@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures';
 import { legendItem, panelByTitle } from './mocks/panels';
-import { WORKFLOW } from './mocks/prometheus';
+import { mockEmptyPanels, WORKFLOW } from './mocks/prometheus';
 
 test.describe('Workflow scene', () => {
   test('renders request latency by model, by effort and cache lifetimes', async ({ mockData, gotoPage, selectors }) => {
@@ -33,7 +33,7 @@ test.describe('Workflow scene', () => {
       await expect(subagents.getByRole('row').filter({ hasText: agent })).toContainText(String(runs));
     }
     await expect(panelByTitle(app, selectors, 'Compactions')).toContainText(String(WORKFLOW.compactions));
-    await expect(panelByTitle(app, selectors, 'Auto Compactions')).toContainText(`${WORKFLOW.autoShare}%`);
+    await expect(panelByTitle(app, selectors, 'Auto Compactions')).toContainText(`${Math.round(WORKFLOW.autoShare)}%`);
     for (const skill of Object.keys(WORKFLOW.skills)) {
       await expect(legendItem(app, selectors, 'Skill Activations', skill)).toBeVisible();
     }
@@ -50,5 +50,25 @@ test.describe('Workflow scene', () => {
     for (const [hook, runs] of Object.entries(WORKFLOW.hooks.runs)) {
       await expect(hooks.getByRole('row').filter({ hasText: hook })).toContainText(String(runs));
     }
+  });
+
+  test('says when no subagent ran or no skill was activated', async ({ mockData, gotoPage, page, selectors }) => {
+    await mockEmptyPanels(page, [
+      'SubagentRuns',
+      'SubagentDurationP95',
+      'SubagentToolUses',
+      'SubagentAsyncShare',
+      'SubagentModelSwapShare',
+      'SkillActivations',
+    ]);
+    const app = await gotoPage('workflow');
+
+    const subagents = panelByTitle(app, selectors, 'Subagents');
+    await expect(subagents).toContainText('No subagent ran in this period.');
+    await expect(subagents).not.toContainText('OTEL_LOGS_EXPORTER');
+    await expect(subagents.getByRole('columnheader')).toHaveCount(0);
+    await expect(panelByTitle(app, selectors, 'Skill Activations')).toContainText(
+      'No skill was activated in this period.'
+    );
   });
 });

@@ -13,7 +13,12 @@ import { LegendDisplayMode } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries } from '../logQueries';
 import { overTimeBars } from '../panelStyle';
-import { lokiBreakdown as breakdown, lokiCountStat as countStat, lokiRunner as runner } from '../lokiPanels';
+import {
+  emptyHints,
+  lokiBreakdown as breakdown,
+  lokiCountStat as countStat,
+  lokiRunner as runner,
+} from '../lokiPanels';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
@@ -27,12 +32,15 @@ export function getReliabilityScene(
   variables: SceneVariableSet,
   queries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
+  const none = emptyHints(queries.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
 
   return new EmbeddedScene({
     $timeRange: timeRange,
+    // The one event check every empty Loki panel on this tab waits for.
+    $behaviors: [none.check],
     $variables: variables,
     controls: [
       new VariableValueControl({ variableName: LOKI_DS_VARIABLE }),
@@ -115,7 +123,9 @@ export function getReliabilityScene(
                 queries.errorsByModel,
                 'model',
                 'Errors by Model',
-                'API errors per model.'
+                'API errors per model.',
+                'none',
+                none('No API errors in this period.')
               ),
             }),
             new SceneFlexItem({
@@ -124,7 +134,9 @@ export function getReliabilityScene(
                 queries.errorsByAttempt,
                 'attempt',
                 'Errors by Attempts',
-                'API errors by how many attempts were made, including the first request. By default Claude Code gives up after 11.'
+                'API errors by how many attempts were made, including the first request. By default Claude Code gives up after 11.',
+                'none',
+                none('No API errors in this period.')
               ),
             }),
           ],
@@ -140,7 +152,9 @@ export function getReliabilityScene(
                 queries.refusalsByCategory,
                 'category',
                 'Refusals by Category',
-                'Refusals the user saw, by category: cyber, bio, frontier_llm or reasoning_extraction. Claude Code sends the category only with OTEL_LOG_TOOL_DETAILS=1.'
+                'Refusals the user saw, by category: cyber, bio, frontier_llm or reasoning_extraction. Claude Code sends the category only with OTEL_LOG_TOOL_DETAILS=1.',
+                'none',
+                none('No refusals in this period.')
               ),
             }),
             new SceneFlexItem({
@@ -149,7 +163,9 @@ export function getReliabilityScene(
                 queries.refusalsByModel,
                 'model',
                 'Refusals by Model',
-                'Refusals the user saw, per model.'
+                'Refusals the user saw, per model.',
+                'none',
+                none('No refusals in this period.')
               ),
             }),
           ],

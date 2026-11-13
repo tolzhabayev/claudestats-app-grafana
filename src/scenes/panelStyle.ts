@@ -8,6 +8,7 @@ import {
   VisibilityMode,
   VizOrientation,
 } from '@grafana/schema';
+import { withEmptyHint } from './HintWhenEmpty';
 
 /**
  * Query options for the "Over Time" panels. Each point is the amount for one
@@ -50,6 +51,12 @@ export function overTimeBars() {
 export const BAR_GAUGE_COLOR = { mode: 'continuous-BlPu' } as const;
 
 /**
+ * Fixed bar gauge text sizes. Left to Grafana, a gauge with one or two bars scales
+ * its labels to fill the panel, far larger than anything else on the page.
+ */
+export const BAR_GAUGE_TEXT = { titleSize: 14, valueSize: 16 };
+
+/**
  * A horizontal bar gauge, one bar per series, labelled with the series name.
  * Bars start at zero: without a min, Grafana scales from the smallest value,
  * so the smallest bar (or a single bar) is drawn empty.
@@ -60,6 +67,7 @@ export function horizontalBars() {
     .setOption('displayMode', BarGaugeDisplayMode.Gradient)
     .setColor(BAR_GAUGE_COLOR)
     .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('text', BAR_GAUGE_TEXT)
     .setOption('valueMode', BarGaugeValueMode.Text)
     .setOption('showUnfilled', true)
     .setOption('minVizWidth', 150)
@@ -87,7 +95,7 @@ export function attributionBarGauge(
   }: {
     /** Series name, when it's built from more than `labelKey`. */
     legendFormat?: string;
-    /** Shown instead of "No data", to say what the panel needs. */
+    /** Shown in place of the bars when nothing matched, to say why or what the panel needs. */
     noValue?: string;
     /** Panel description, shown as an (i) icon next to the title. */
     description?: string;
@@ -98,11 +106,12 @@ export function attributionBarGauge(
     queries: [{ refId, expr, legendFormat, instant: true }],
   });
 
-  return horizontalBars()
+  const panel = horizontalBars()
     .setTitle(title)
     .setDescription(description)
     .setUnit(unit)
-    .setData(data)
-    .setNoValue(noValue)
-    .build();
+    // Cents for money: $42.30 rather than $42.3, and no six-digit fractions.
+    .setDecimals(unit === 'currencyUSD' ? 2 : undefined);
+  // With a hint, show it in place of an empty bar gauge (which draws a grey unfilled track).
+  return noValue ? withEmptyHint(panel.build(), data, noValue) : panel.setData(data).build();
 }

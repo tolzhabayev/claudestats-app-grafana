@@ -224,16 +224,16 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     // ==================== PRODUCTIVITY QUERIES ====================
 
     /** Total lines of code (added + removed) */
-    totalLinesOfCode: `sum(${scoped('increase', m.LINES_OF_CODE, '$__range')})`,
+    totalLinesOfCode: `round(sum(${scoped('increase', m.LINES_OF_CODE, '$__range')}))`,
 
     /** Lines of code by type (added, removed) */
-    linesOfCodeByType: `sum by (${LABELS.LOC_TYPE}) (${scoped('increase', m.LINES_OF_CODE, '$__range')})`,
+    linesOfCodeByType: `round(sum by (${LABELS.LOC_TYPE}) (${scoped('increase', m.LINES_OF_CODE, '$__range')}))`,
 
     /**
      * Lines of code by model. The `model` label only exists from Claude Code v2.1.172;
      * series from older clients fold into an "unknown" bucket so the split still adds up to the total.
      */
-    linesOfCodeByModel: `sort_desc(sum by (${LABELS.MODEL}) (label_replace(${scoped('increase', m.LINES_OF_CODE, '$__range')}, "${LABELS.MODEL}", "unknown", "${LABELS.MODEL}", "^$")))`,
+    linesOfCodeByModel: `sort_desc(round(sum by (${LABELS.MODEL}) (label_replace(${scoped('increase', m.LINES_OF_CODE, '$__range')}, "${LABELS.MODEL}", "unknown", "${LABELS.MODEL}", "^$"))))`,
 
     /** Lines of code by member */
     linesOfCodeByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.LINES_OF_CODE)}[$__range])`)})`,
@@ -242,7 +242,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     linesOfCodeOverTime: `(sum(${scoped('rate', m.LINES_OF_CODE, '$__rate_interval')}) by (${LABELS.LOC_TYPE})) * $__interval_ms / 1000`,
 
     /** Total commits */
-    totalCommits: `sum(${scoped('increase', m.COMMITS, '$__range')})`,
+    totalCommits: `round(sum(${scoped('increase', m.COMMITS, '$__range')}))`,
 
     /** Commits by member */
     commitsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.COMMITS)}[$__range])`)})`,
@@ -251,7 +251,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     commitsOverTime: `(sum(${scoped('rate', m.COMMITS, '$__rate_interval')})) * $__interval_ms / 1000`,
 
     /** Total pull requests */
-    totalPullRequests: `sum(${scoped('increase', m.PULL_REQUESTS, '$__range')})`,
+    totalPullRequests: `round(sum(${scoped('increase', m.PULL_REQUESTS, '$__range')}))`,
 
     /** Pull requests by member */
     pullRequestsByMember: `sum by (${LABELS.MEMBER}) (${withMember(`increase(${sel(m.PULL_REQUESTS)}[$__range])`)})`,
@@ -276,10 +276,10 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     // ==================== TOOL QUERIES ====================
 
     /** Tool decisions (accepted, rejected) */
-    toolDecisions: `sum by (${LABELS.DECISION}) (${scoped('increase', m.TOOL_DECISION, '$__range')})`,
+    toolDecisions: `round(sum by (${LABELS.DECISION}) (${scoped('increase', m.TOOL_DECISION, '$__range')}))`,
 
     /** Tool decisions by tool */
-    toolDecisionsByTool: `sum by (${LABELS.TOOL}) (${scoped('increase', m.TOOL_DECISION, '$__range')})`,
+    toolDecisionsByTool: `round(sum by (${LABELS.TOOL}) (${scoped('increase', m.TOOL_DECISION, '$__range')}))`,
 
     /** Tool acceptance rate */
     toolAcceptanceRate: `sum(${scoped('increase', m.TOOL_DECISION, '$__range', `${LABELS.DECISION}="accept"`)}) / clamp_min(sum(${scoped('increase', m.TOOL_DECISION, '$__range')}), 1) * 100`,
@@ -292,7 +292,7 @@ function buildQueries(m: MetricNames, dimensions: FilterDimension[] = getFilterD
     toolAcceptanceRateByLanguage: `sort_desc((sum by (${LABELS.LANGUAGE}) (${scoped('increase', m.TOOL_DECISION, '$__range', `${LABELS.DECISION}="accept"`)}) or sum by (${LABELS.LANGUAGE}) (${scoped('increase', m.TOOL_DECISION, '$__range')}) * 0) / clamp_min(sum by (${LABELS.LANGUAGE}) (${scoped('increase', m.TOOL_DECISION, '$__range')}), 1) * 100)`,
 
     /** Tool decisions by who made them: config rule, hook, or the user (allow once/always, reject, abort) */
-    toolDecisionsBySource: `sort_desc(sum by (${LABELS.DECISION_SOURCE}) (${scoped('increase', m.TOOL_DECISION, '$__range')}))`,
+    toolDecisionsBySource: `sort_desc(round(sum by (${LABELS.DECISION_SOURCE}) (${scoped('increase', m.TOOL_DECISION, '$__range')})))`,
 
     /** Tool decisions over time */
     toolDecisionsOverTime: `(sum(${scoped('rate', m.TOOL_DECISION, '$__rate_interval')}) by (${LABELS.DECISION})) * $__interval_ms / 1000`,

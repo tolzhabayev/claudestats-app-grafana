@@ -138,6 +138,17 @@ test.describe('Filter dimensions', () => {
     await requests;
   });
 
+  test('the event check behind empty Loki panels uses the configured labels too', async ({
+    mockData,
+    gotoPage,
+    page,
+  }) => {
+    await withCustomLabels(page, ['team.id']);
+    const requests = queriesWith(page, 'team_id', ['AnyEvents', 'EscalationsByMember']);
+    await gotoPage('security');
+    await requests;
+  });
+
   test('the Team picker stays hidden without gateway groups', async ({ mockData, gotoPage, page }) => {
     await gotoPage('costs');
     await expect(picker(page, 'Team Member')).toBeVisible();
