@@ -24,4 +24,5 @@ jobs:
       - uses: grafana/plugin-actions/build-plugin@build-plugin/v2.0.0
         with:
           attestation: true
+          node-version: '24' # sign-plugin needs Node 24.5 or later, the action defaults to 22
           policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
