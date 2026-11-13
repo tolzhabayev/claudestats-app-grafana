@@ -62,6 +62,33 @@ test.describe('Overview scene', () => {
     }
   });
 
+  test('brings the change row back when a refresh finds a previous period', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    let previous = false;
+    // Registered last, so it answers the check before the mocks do.
+    await page.route('**/api/ds/query*', async (route) => {
+      const body = route.request().postDataJSON() as { queries?: Array<{ refId?: string }> };
+      if (previous || !(body.queries ?? []).some((q) => q.refId === 'PreviousPeriodCost')) {
+        return route.fallback();
+      }
+      await route.fulfill({ json: { results: { PreviousPeriodCost: { status: 200, frames: [] } } } });
+    });
+    const app = await gotoPage();
+    await expect(panelByTitle(app, selectors, 'Total Cost')).toContainText(DISPLAY.TotalCost);
+    await expect(panelByTitle(app, selectors, 'Cost vs Previous Period')).toHaveCount(0);
+
+    // Same mounted scene: the check keeps running while the row is hidden.
+    previous = true;
+    await page.getByTestId('data-testid RefreshPicker run button').click();
+    for (const [refId, name] of TREND_PANELS) {
+      await expect(panelByTitle(app, selectors, `${name} vs Previous Period`)).toContainText(`${TRENDS[refId]}%`);
+    }
+  });
+
   test('sizes the leaderboard to its members', async ({ mockData, gotoPage, selectors }) => {
     const app = await gotoPage();
     const table = panelByTitle(app, selectors, 'Team Leaderboard');
