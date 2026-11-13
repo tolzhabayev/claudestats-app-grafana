@@ -51,6 +51,28 @@ These issues occur when the app loads but panels show **No data**.
 | **Cost by Repository** or **Tokens by Repository** says to set `OTEL_METRICS_INCLUDE_REPOSITORY=true`.                  | Claude Code doesn't send repository attributes. Set the variable for team members. For details, refer to [Filter by repository](./index.md#filter-by-repository). |
 | Claude Code redacts user-defined subagent, third-party skill and plugin, and user-configured MCP server and tool names. | Set `OTEL_LOG_TOOL_DETAILS=1` for team members. For details, refer to [Optional telemetry settings](./index.md#optional-telemetry-settings).                      |
 
+### Event panels say to set `OTEL_LOGS_EXPORTER`
+
+**Symptoms:** On the **Prompts**, **Workflow**, **Reliability** or **Security** tab, or in the tool performance panels on **Tools**, panels show `No events. Needs OTEL_LOGS_EXPORTER=otlp`.
+
+On the counts, breakdowns and tables, the text means Loki has no Claude Code events at all for the period and filters. After events arrive, a count with nothing to count shows **0**, and a breakdown says what didn't happen, such as **No refusals in this period**.
+
+Some panels need a particular event or measurement and show the text while it's missing, even when other events arrive:
+
+- **Auto Compactions**, **Failed Compactions** and **Tokens Freed per Compaction** on **Workflow**, until a compaction happens
+- **Cache Writes by Lifetime** on **Workflow**, until a request reports cache writes (Claude Code v2.1.300 or later)
+- **Slash Command Share**, **Prompts per Session**, **Median Prompt Length** and **Prompt Length** on **Prompts**, until a prompt is sent
+
+If other panels on the tab show data, events are reaching Loki and these panels only need that activity.
+
+**Possible causes and solutions:**
+
+| Cause                                 | Solution                                                                                                                                             |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Code isn't exporting events.   | Set `OTEL_LOGS_EXPORTER=otlp` for team members and restart Claude Code. For details, refer to [Send events to Loki](./index.md#send-events-to-loki). |
+| The wrong data source is selected.    | Pick the Loki data source that receives Claude Code events in the **Events** control at the top of the tab.                                          |
+| The filters or time range match none. | Set **Team Member** to **All** or widen the time range.                                                                                              |
+
 ### A team member shows as a random ID
 
 **Symptoms:** A team member appears in **Team Member** and the per-member panels as a long random string instead of an email address.
