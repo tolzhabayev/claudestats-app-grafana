@@ -1,6 +1,6 @@
 import { PanelBuilders, SceneDataProvider, SceneDataTransformer, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 import { BarGaugeDisplayMode, BarGaugeValueMode, BigValueGraphMode, VizOrientation } from '@grafana/schema';
-import { BAR_GAUGE_COLOR, OVER_TIME_QUERY_OPTIONS } from './panelStyle';
+import { BAR_GAUGE_COLOR, BAR_GAUGE_TEXT, OVER_TIME_QUERY_OPTIONS } from './panelStyle';
 import { LOKI_DS_VARIABLE } from './variables';
 import { withEmptyHint } from './HintWhenEmpty';
 
@@ -94,6 +94,7 @@ export function lokiBreakdown(
     .setOption('displayMode', BarGaugeDisplayMode.Gradient)
     .setColor(BAR_GAUGE_COLOR)
     .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('text', BAR_GAUGE_TEXT)
     .setOption('valueMode', BarGaugeValueMode.Text)
     .setOption('showUnfilled', true)
     .setOption('minVizWidth', 150)

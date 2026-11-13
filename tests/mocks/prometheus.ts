@@ -58,7 +58,7 @@ export const MCP_TOOLS = [
   { server: 'github', tool: 'search_code' },
   { server: 'filesystem', tool: 'read_file' },
 ] as const;
-export const mcpToolLabel = (t: { server: string; tool: string }) => `${t.server} / ${t.tool}`;
+export const mcpToolLabel = (t: { server: string; tool: string }) => `${t.tool} · ${t.server}`;
 // `normal` and `default` are the buckets the queries fold absent labels into.
 export const SPEEDS = ['normal', 'fast'] as const;
 export const EFFORTS = ['high', 'medium', 'default'] as const;

@@ -15,7 +15,7 @@ import { BarGaugeDisplayMode, BarGaugeValueMode, LegendDisplayMode, VizOrientati
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries, PROMPT_LENGTH_BUCKETS } from '../logQueries';
 import { emptyHints, LOKI, lokiBreakdown, lokiCountStat, lokiRunner, NO_EVENTS } from '../lokiPanels';
-import { BAR_GAUGE_COLOR, overTimeBars } from '../panelStyle';
+import { BAR_GAUGE_COLOR, BAR_GAUGE_TEXT, overTimeBars } from '../panelStyle';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
@@ -39,6 +39,7 @@ function promptLengthPanel(queries: LogQueries) {
     .setOption('displayMode', BarGaugeDisplayMode.Gradient)
     .setColor(BAR_GAUGE_COLOR)
     .setOption('orientation', VizOrientation.Horizontal)
+    .setOption('text', BAR_GAUGE_TEXT)
     .setOption('valueMode', BarGaugeValueMode.Text)
     .setOption('showUnfilled', true)
     .setOption('minVizWidth', 150)

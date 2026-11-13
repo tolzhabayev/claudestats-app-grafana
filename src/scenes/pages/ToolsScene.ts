@@ -23,7 +23,13 @@ import { getControlsWithoutModel, LOKI_DS_VARIABLE } from '../variables';
 import { buildLogQueries, LogQueries } from '../logQueries';
 import { toolPerformanceRows } from './toolPerformance';
 import { emptyHints } from '../lokiPanels';
-import { horizontalBars, OVER_TIME_MIN_STEP, OVER_TIME_QUERY_OPTIONS, overTimeBars } from '../panelStyle';
+import {
+  BAR_GAUGE_TEXT,
+  horizontalBars,
+  OVER_TIME_MIN_STEP,
+  OVER_TIME_QUERY_OPTIONS,
+  overTimeBars,
+} from '../panelStyle';
 import { PANEL_HEIGHTS } from '../../constants';
 
 // A low acceptance rate means many proposed edits are rejected, so red/yellow/green
@@ -212,6 +218,7 @@ export function getToolsScene(
                 .setData(toolAcceptanceRateByLanguageQuery)
                 .setOption('displayMode', BarGaugeDisplayMode.Gradient)
                 .setOption('orientation', VizOrientation.Horizontal)
+                .setOption('text', BAR_GAUGE_TEXT)
                 .setOption('valueMode', BarGaugeValueMode.Text)
                 .setOption('showUnfilled', true)
                 .setOption('minVizWidth', 150)

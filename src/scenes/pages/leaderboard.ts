@@ -8,11 +8,11 @@ const COLUMNS = [
   ['Tokens', 'Tokens', 'tokensByMember', 'short', 1],
   ['Sessions', 'Sessions', 'sessionsByMember', 'none', 0],
   ['ActiveTime', 'Active Time', 'activeTimeByMember', 's', 0],
-  ['LinesAdded', 'Lines Added', 'linesAddedByMember', 'none', 0],
-  ['LinesRemoved', 'Lines Removed', 'linesRemovedByMember', 'none', 0],
+  ['LinesAdded', 'Added', 'linesAddedByMember', 'none', 0],
+  ['LinesRemoved', 'Removed', 'linesRemovedByMember', 'none', 0],
   ['Commits', 'Commits', 'commitsByMember', 'none', 0],
-  ['PullRequests', 'Pull Requests', 'pullRequestsByMember', 'none', 0],
-  ['AcceptanceRate', 'Acceptance Rate', 'toolAcceptanceRateByMember', 'percent', 0],
+  ['PullRequests', 'PRs', 'pullRequestsByMember', 'none', 0],
+  ['AcceptanceRate', 'Accept %', 'toolAcceptanceRateByMember', 'percent', 0],
 ] as const satisfies ReadonlyArray<readonly [string, string, keyof Queries, string, number]>;
 
 /**
@@ -73,7 +73,7 @@ export function teamLeaderboard(queries: Queries, variables: SceneVariableSet) {
   return PanelBuilders.table()
     .setTitle('Team Leaderboard')
     .setDescription(
-      'One row per team member for the period. Click a column header to sort, or a member to filter the app to them. Shows every member regardless of the Team Member filter; cost and tokens follow the Model filter.'
+      'One row per team member for the period. Added and Removed are lines of code, PRs are pull requests, and Accept % is the edit acceptance rate. Click a column header to sort, or a member to filter the app to them. Shows every member regardless of the Team Member filter; cost and tokens follow the Model filter.'
     )
     .setData(data)
     .setOption('sortBy', [{ displayName: 'Cost', desc: true }])

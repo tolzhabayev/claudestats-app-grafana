@@ -64,7 +64,11 @@ test.describe('Overview scene', () => {
     }
     await mockEmptyPanels(page, ['UsageByEntrypoint']);
     app = await gotoPage();
-    await expect(panelByTitle(app, selectors, 'Surface')).toContainText('OTEL_METRICS_INCLUDE_ENTRYPOINT=true');
+    const surface = panelByTitle(app, selectors, 'Surface');
+    await expect(surface).toContainText('Needs the entrypoint setting.');
+    // The hint wraps inside the narrow panel instead of being cut off.
+    const hint = surface.getByText('Needs the entrypoint setting.');
+    expect(await hint.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   });
 
   test('renders the efficiency ratios', async ({ mockData, gotoPage, selectors }) => {
@@ -83,7 +87,17 @@ test.describe('Overview scene', () => {
     const app = await gotoPage();
     const table = panelByTitle(app, selectors, 'Team Leaderboard');
 
-    for (const column of ['Team Member', 'Cost', 'Tokens', 'Sessions', 'Commits', 'Acceptance Rate']) {
+    for (const column of [
+      'Team Member',
+      'Cost',
+      'Tokens',
+      'Sessions',
+      'Added',
+      'Removed',
+      'Commits',
+      'PRs',
+      'Accept %',
+    ]) {
       await expect(table.getByRole('columnheader', { name: column })).toBeVisible();
     }
     // Highest cost first; every member's row merges all columns.
