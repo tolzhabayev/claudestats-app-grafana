@@ -13,7 +13,12 @@ import { LegendDisplayMode } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries } from '../logQueries';
 import { overTimeBars } from '../panelStyle';
-import { emptyHint, lokiBreakdown as breakdown, lokiCountStat as countStat, lokiRunner as runner } from '../lokiPanels';
+import {
+  emptyHints,
+  lokiBreakdown as breakdown,
+  lokiCountStat as countStat,
+  lokiRunner as runner,
+} from '../lokiPanels';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
@@ -27,13 +32,15 @@ export function getReliabilityScene(
   variables: SceneVariableSet,
   queries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
-  const none = emptyHint(queries.anyEvents);
+  const none = emptyHints(queries.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
 
   return new EmbeddedScene({
     $timeRange: timeRange,
+    // The one event check every empty Loki panel on this tab waits for.
+    $behaviors: [none.check],
     $variables: variables,
     controls: [
       new VariableValueControl({ variableName: LOKI_DS_VARIABLE }),

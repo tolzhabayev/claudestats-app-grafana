@@ -45,6 +45,20 @@ describe('buildLogQueries', () => {
   });
 });
 
+describe('event check', () => {
+  it('counts any Claude Code event under the same member and dimension filters', () => {
+    const [pipeline] = queries.anyEvents.match(/\{service_name="claude-code"\}[^[]*/) ?? [''];
+    expect(queries.anyEvents).toMatch(/^sum\(count_over_time\(\{service_name="claude-code"\} \| event_name=~"\.\+" /);
+    for (const matcher of [
+      'user_email=~"$member"',
+      'vcs_repository_name=~"$repository"',
+      'team_id=~"$label_team_id"',
+    ]) {
+      expect(pipeline).toContain(matcher);
+    }
+  });
+});
+
 describe('buildTraceQueries', () => {
   it('scopes spans to a member by email, else enduser.id, else user.id', () => {
     const { interactions, llmRequests } = buildTraceQueries();

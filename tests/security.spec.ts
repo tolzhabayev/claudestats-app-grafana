@@ -92,6 +92,34 @@ test.describe('Security scene', () => {
     await expect(panel).not.toContainText('No failed logins in this period.');
   });
 
+  test('empty panels share one event check instead of each asking Loki', async ({
+    mockData,
+    gotoPage,
+    page,
+    selectors,
+  }) => {
+    await mockEmptyPanels(page, ['EscalationsByMember', 'ClassifierBlocks', 'AuthFailuresByCategory']);
+    const sent: Record<string, number> = {};
+    page.on('request', (request) => {
+      if (request.url().includes('/api/ds/query')) {
+        const body = request.postDataJSON() as { queries?: Array<{ refId?: string }> };
+        for (const { refId = '' } of body.queries ?? []) {
+          sent[refId] = (sent[refId] ?? 0) + 1;
+        }
+      }
+    });
+    const app = await gotoPage('security');
+
+    await expect(panelByTitle(app, selectors, 'Login Failures by Category')).toContainText(
+      'No failed logins in this period.'
+    );
+    await expect(panelByTitle(app, selectors, 'Classifier Blocks by Rule')).toContainText(
+      'The classifier blocked no tool calls in this period.'
+    );
+    // The check runs as often as one panel's own query does, not once per empty panel.
+    expect(sent.AnyEvents).toBe(sent.AuthFailuresByCategory);
+  });
+
   test('makes no claim about an empty breakdown when the event check fails', async ({
     mockData,
     gotoPage,

@@ -14,7 +14,7 @@ import {
 import { BarGaugeDisplayMode, BarGaugeValueMode, LegendDisplayMode, VizOrientation } from '@grafana/schema';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries, PROMPT_LENGTH_BUCKETS } from '../logQueries';
-import { emptyHint, LOKI, lokiBreakdown, lokiCountStat, lokiRunner, NO_EVENTS } from '../lokiPanels';
+import { emptyHints, LOKI, lokiBreakdown, lokiCountStat, lokiRunner, NO_EVENTS } from '../lokiPanels';
 import { BAR_GAUGE_COLOR, overTimeBars } from '../panelStyle';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
@@ -60,13 +60,15 @@ export function getPromptsScene(
   variables: SceneVariableSet,
   queries: LogQueries = buildLogQueries()
 ): EmbeddedScene {
-  const none = emptyHint(queries.anyEvents);
+  const none = emptyHints(queries.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
 
   return new EmbeddedScene({
     $timeRange: timeRange,
+    // The one event check every empty Loki panel on this tab waits for.
+    $behaviors: [none.check],
     $variables: variables,
     controls: [
       new VariableValueControl({ variableName: LOKI_DS_VARIABLE }),

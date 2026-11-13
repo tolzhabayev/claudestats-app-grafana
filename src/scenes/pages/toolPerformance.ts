@@ -1,11 +1,13 @@
 import { SceneFlexItem, SceneFlexLayout } from '@grafana/scenes';
 import { PANEL_HEIGHTS } from '../../constants';
 import { LogQueries } from '../logQueries';
-import { emptyHint, lokiBreakdown, lokiTable } from '../lokiPanels';
+import { EmptyHint, lokiBreakdown, lokiTable } from '../lokiPanels';
 
-/** Rows for the Tools tab: tool execution performance from `tool_result` events in Loki. */
-export function toolPerformanceRows(queries: LogQueries) {
-  const none = emptyHint(queries.anyEvents);
+/**
+ * Rows for the Tools tab: tool execution performance from `tool_result` events in
+ * Loki. `none` builds the empty-panel hints, and the Tools tab activates its check.
+ */
+export function toolPerformanceRows(queries: LogQueries, none: (message: string) => EmptyHint) {
   return [
     new SceneFlexLayout({
       direction: 'row',

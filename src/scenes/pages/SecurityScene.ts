@@ -12,7 +12,7 @@ import {
 } from '@grafana/scenes';
 import { PANEL_HEIGHTS } from '../../constants';
 import { buildLogQueries, LogQueries } from '../logQueries';
-import { emptyHint, lokiBreakdown, lokiCountStat } from '../lokiPanels';
+import { emptyHints, lokiBreakdown, lokiCountStat } from '../lokiPanels';
 import { OptionalVariableControl } from '../OptionalVariableControl';
 import { LOKI_DS_VARIABLE } from '../variables';
 
@@ -34,13 +34,15 @@ export function getSecurityScene(
   variables: SceneVariableSet,
   q: LogQueries = buildLogQueries()
 ): EmbeddedScene {
-  const none = emptyHint(q.anyEvents);
+  const none = emptyHints(q.anyEvents);
   const dimensionNames = variables.state.variables
     .map((v) => v.state.name)
     .filter((name) => !['prometheus_ds', LOKI_DS_VARIABLE, 'member', 'model'].includes(name));
 
   return new EmbeddedScene({
     $timeRange: timeRange,
+    // The one event check every empty Loki panel on this tab waits for.
+    $behaviors: [none.check],
     $variables: variables,
     controls: [
       new VariableValueControl({ variableName: LOKI_DS_VARIABLE }),

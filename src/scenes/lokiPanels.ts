@@ -27,24 +27,27 @@ export function lokiRunner(refId: string, expr: string, opts: { instant?: boolea
 }
 
 /**
- * What an empty Loki panel says. `message` is shown when nothing matched but
- * `anyEvents` (every Claude Code event under the same filters) has rows, and
- * the setup hint when it has none, so missing telemetry never reads as a clean
- * result like "No failed logins".
+ * What an empty Loki panel says. `message` is shown when nothing matched but the
+ * tab's event check (every Claude Code event under the same filters) has rows,
+ * and the setup hint when it has none, so missing telemetry never reads as a
+ * clean result like "No failed logins".
  */
 export interface EmptyHint {
   message: string;
-  anyEvents: string;
+  check: SceneQueryRunner;
 }
 
-/** Builds the `EmptyHint`s of one tab from its `anyEvents` query. */
-export const emptyHint =
-  (anyEvents: string) =>
-  (message: string): EmptyHint => ({ message, anyEvents });
+/**
+ * The `EmptyHint`s of one tab. They share one event check, which the tab must
+ * activate by adding `check` to its `$behaviors`.
+ */
+export function emptyHints(anyEvents: string) {
+  const check = lokiRunner('AnyEvents', anyEvents, { instant: true });
+  return Object.assign((message: string): EmptyHint => ({ message, check }), { check });
+}
 
-function withEventHints(panel: VizPanel, data: SceneDataProvider, { message, anyEvents }: EmptyHint) {
-  const events = lokiRunner('AnyEvents', anyEvents, { instant: true });
-  return withEmptyHint(panel, data, message, { data: events, message: NO_EVENTS });
+function withEventHints(panel: VizPanel, data: SceneDataProvider, { message, check }: EmptyHint) {
+  return withEmptyHint(panel, data, message, { check, message: NO_EVENTS });
 }
 
 export function lokiCountStat(
