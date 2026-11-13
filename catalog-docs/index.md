@@ -61,7 +61,7 @@ To send metrics straight to the Grafana Cloud OTLP endpoint:
 1. Reload the shell and restart Claude Code.
 1. In the app's configuration, set **Ingestion path** to **Direct OTLP**.
 
-The configuration page's **Setup Guide** tab builds this script for you from your endpoint and token. For details, refer to [Setup Guide](./configure.md#setup-guide).
+The configuration page's **Setup Guide** tab builds this script for you from your endpoint, token and the features you pick. For details, refer to [Setup Guide](./configure.md#setup-guide).
 
 ### Send metrics through an OpenTelemetry Collector to Prometheus
 

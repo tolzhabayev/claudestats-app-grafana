@@ -71,18 +71,38 @@ Click **Save filters** to save the list and reload the page. Each filter's picke
 
 ### Setup Guide
 
-The **Setup Guide** tab builds the Claude Code environment variables for sending metrics directly to Grafana Cloud:
+The **Setup Guide** tab builds the Claude Code environment variables to add to each team member's shell profile. It has five steps:
+
+1. **Choose a Destination:** **Grafana Cloud** sends telemetry straight to the Grafana Cloud OTLP endpoint. **OpenTelemetry Collector** sends it to your own Collector. The tab starts on the destination that matches **Ingestion path**. If you pick the other one, it shows **Switch ingestion path**, which saves the matching ingestion path and reloads the page.
+1. **Enter the endpoint:** For Grafana Cloud, enter the settings below. For a Collector, enter its OTLP HTTP endpoint, such as `http://<collector-host>:4318`.
+1. **Choose Features:** Metrics are always included. Tick the other features you want:
+
+   | Feature            | Adds                                                                                  | Default |
+   | ------------------ | ------------------------------------------------------------------------------------- | ------- |
+   | **Events**         | `OTEL_LOGS_EXPORTER=otlp`, for the event tabs. Needs Loki.                            | On      |
+   | **Traces (beta)**  | `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` and `OTEL_TRACES_EXPORTER=otlp`. Needs Tempo. | Off     |
+   | **Repository**     | `OTEL_METRICS_INCLUDE_REPOSITORY=true`, for the **Repository** filter and panels.     | On      |
+   | **Surface**        | `OTEL_METRICS_INCLUDE_ENTRYPOINT=true`, for **Surface** on **Overview**.              | On      |
+   | **Tool names**     | `OTEL_LOG_TOOL_DETAILS=1`, for real subagent, skill, plugin and MCP server names.     | Off     |
+   | **Readable names** | `enduser.id=<name>` in `OTEL_RESOURCE_ATTRIBUTES`, to fill in per team member.        | Off     |
+
+   When you've saved **Filter labels**, the script also sets each of them in `OTEL_RESOURCE_ATTRIBUTES`, with a placeholder value to fill in. For what each feature needs, refer to [Optional telemetry settings](./index.md#optional-telemetry-settings).
+
+1. **Add to Shell Profile:** The script follows your choices. Click **Copy Script** to copy it.
+1. **Restart Claude Code.**
+
+For Grafana Cloud, step 2 has these settings:
 
 | Setting                | Description                                                                                                                                                                            | Required |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | **OTLP Endpoint**      | Your Grafana Cloud OTLP endpoint, such as `https://otlp-gateway-prod-us-east-0.grafana.net/otlp`.                                                                                      | No       |
 | **API Token (Base64)** | The Base64 encoding of `<instance-id>:<token>`: the value after `Basic` in the `OTEL_EXPORTER_OTLP_HEADERS` the Grafana Cloud portal generates. The token alone fails to authenticate. | No       |
 
-These fields only fill in the script shown below them. The app doesn't save them. Click **Copy Script** to copy the script, add it to your shell profile and restart Claude Code. When you use this path, set **Ingestion path** to **Direct OTLP**.
+The fields and feature choices only fill in the script. The app doesn't save them.
 
 ### Troubleshooting
 
-The **Troubleshooting** tab lists checks for missing data, authentication errors and a missing data source, and the metric names for each ingestion path. The same checks are in [Troubleshooting](./troubleshooting.md).
+The **Troubleshooting** tab lists checks for missing data, empty event and trace tabs, authentication errors and missing data sources, and the metric names for each ingestion path. The same checks are in [Troubleshooting](./troubleshooting.md).
 
 ## Provision the app
 

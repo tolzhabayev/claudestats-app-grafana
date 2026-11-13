@@ -19,17 +19,14 @@ import {
   Icon,
   Badge,
   TagsInput,
+  Checkbox,
 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { ClaudeStatsSettings, MetricFormat } from '../types';
 import { isUsableCustomLabel, toLabelName } from '../scenes/dimensions';
+import { buildEnvScript, DEFAULT_FEATURES, DESTINATION_FORMAT, Destination, FEATURES } from './setupScript';
 
 export interface AppConfigProps extends PluginConfigPageProps<AppPluginMeta<ClaudeStatsSettings>> {}
-
-interface SetupConfig {
-  otlpEndpoint: string;
-  otlpToken: string;
-}
 
 export function AppConfig({ plugin }: AppConfigProps) {
   const styles = useStyles2(getStyles);
@@ -43,10 +40,20 @@ export function AppConfig({ plugin }: AppConfigProps) {
   const [customLabels, setCustomLabels] = useState<string[]>(savedCustomLabels);
   const invalidLabels = customLabels.filter((l) => !isUsableCustomLabel(l));
   const customLabelsChanged = customLabels.join('\n') !== savedCustomLabels.join('\n');
-  const [setupConfig, setSetupConfig] = useState<SetupConfig>({
-    otlpEndpoint: '',
-    otlpToken: '',
+  const [destination, setDestination] = useState<Destination>(metricFormat === 'otlp' ? 'cloud' : 'collector');
+  const [endpoints, setEndpoints] = useState<Record<Destination, string>>({ cloud: '', collector: '' });
+  const setEndpoint = (value: string) => setEndpoints((current) => ({ ...current, [destination]: value }));
+  const [otlpToken, setOtlpToken] = useState('');
+  const [features, setFeatures] = useState<string[]>(DEFAULT_FEATURES);
+  const envScript = buildEnvScript({
+    destination,
+    endpoint: endpoints[destination],
+    token: otlpToken,
+    features,
+    customLabels: savedCustomLabels.filter(isUsableCustomLabel),
   });
+  const toggleFeature = (id: string) =>
+    setFeatures((current) => (current.includes(id) ? current.filter((f) => f !== id) : [...current, id]));
 
   const updatePluginAndReload = async (pluginId: string, data: Partial<PluginMeta>) => {
     try {
@@ -87,33 +94,6 @@ export function AppConfig({ plugin }: AppConfigProps) {
       enabled: false,
       pinned: false,
     });
-  };
-
-  const generateEnvScript = () => {
-    const endpoint = setupConfig.otlpEndpoint || 'https://otlp-gateway-prod-<region>.grafana.net/otlp';
-    const token = setupConfig.otlpToken || '<base64-of-instance-id:token>';
-
-    return `# Add these to your shell profile (~/.zshrc, ~/.bashrc, or ~/.bash_profile)
-
-# Enable Claude Code telemetry
-export CLAUDE_CODE_ENABLE_TELEMETRY=1
-
-# Configure OpenTelemetry metrics exporter (metrics only, no logs)
-export OTEL_METRICS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
-
-# Grafana Cloud OTLP endpoint
-export OTEL_EXPORTER_OTLP_ENDPOINT="${endpoint}"
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic ${token}"
-
-# IMPORTANT: Use cumulative temporality for Grafana Cloud compatibility
-export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
-
-# Optional: Adjust export interval (in milliseconds, default: 60000)
-export OTEL_METRIC_EXPORT_INTERVAL=60000
-
-# After adding these, restart your shell or run:
-# source ~/.zshrc  # or source ~/.bashrc`;
   };
 
   const tabs = [
@@ -229,70 +209,140 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
             {activeTab === 'setup' && (
               <Stack direction="column" gap={3}>
                 <Alert title="Quick Start" severity="info">
-                  Configure Claude Code to send telemetry to Grafana Cloud in 4 steps.
+                  Pick where Claude Code sends telemetry and the features you want. The script in step 4 follows your
+                  choices.
                 </Alert>
 
                 <Card>
-                  <Card.Heading>Step 1: Get Grafana Cloud OTLP Credentials</Card.Heading>
-                  <Card.Description>
-                    <ol className={styles.numberedList}>
-                      <li>
-                        Go to your{' '}
-                        <a href="https://grafana.com/profile/org" target="_blank" rel="noreferrer">
-                          Grafana Cloud Portal
-                        </a>
-                      </li>
-                      <li>
-                        Select your stack and click <strong>Configure</strong> in the OpenTelemetry tile
-                      </li>
-                      <li>
-                        Click <strong>Generate API Token</strong>
-                      </li>
-                      <li>Copy the OTLP endpoint and the generated OTEL_EXPORTER_OTLP_HEADERS value</li>
-                    </ol>
-                  </Card.Description>
-                </Card>
-
-                <Card>
-                  <Card.Heading>Step 2: Enter Your Credentials</Card.Heading>
+                  <Card.Heading>Step 1: Choose a Destination</Card.Heading>
                   <Card.Description>
                     <Stack direction="column" gap={2}>
-                      <Field label="OTLP Endpoint" description="Your Grafana Cloud OTLP endpoint">
-                        <Input
-                          placeholder="https://otlp-gateway-prod-us-east-0.grafana.net/otlp"
-                          value={setupConfig.otlpEndpoint}
-                          onChange={(e) => setSetupConfig({ ...setupConfig, otlpEndpoint: e.currentTarget.value })}
-                        />
-                      </Field>
-                      <Field
-                        label="API Token (Base64)"
-                        description="Base64 of instanceID:token: the value after Basic in the OTEL_EXPORTER_OTLP_HEADERS the portal generates"
-                      >
-                        <Input
-                          type="password"
-                          placeholder="Base64 of instanceID:token"
-                          value={setupConfig.otlpToken}
-                          onChange={(e) => setSetupConfig({ ...setupConfig, otlpToken: e.currentTarget.value })}
-                        />
-                      </Field>
+                      <RadioButtonGroup
+                        aria-label="Destination"
+                        options={[
+                          { label: 'Grafana Cloud', value: 'cloud' as Destination },
+                          { label: 'OpenTelemetry Collector', value: 'collector' as Destination },
+                        ]}
+                        value={destination}
+                        onChange={setDestination}
+                      />
+                      {DESTINATION_FORMAT[destination] !== metricFormat && (
+                        <Alert title="Ingestion path doesn't match" severity="warning">
+                          <Stack direction="column" gap={1} alignItems="flex-start">
+                            <span>
+                              Metrics sent this way need the{' '}
+                              <strong>{destination === 'cloud' ? 'Direct OTLP' : 'Prometheus / OTEL Collector'}</strong>{' '}
+                              ingestion path, or every panel shows no data.
+                            </span>
+                            <Button size="sm" onClick={() => onSaveMetricFormat(DESTINATION_FORMAT[destination])}>
+                              Switch ingestion path
+                            </Button>
+                          </Stack>
+                        </Alert>
+                      )}
                     </Stack>
                   </Card.Description>
                 </Card>
 
                 <Card>
                   <Card.Heading>
+                    {destination === 'cloud'
+                      ? 'Step 2: Get Grafana Cloud OTLP Credentials'
+                      : 'Step 2: Collector Endpoint'}
+                  </Card.Heading>
+                  <Card.Description>
+                    {destination === 'cloud' ? (
+                      <Stack direction="column" gap={2}>
+                        <ol className={styles.numberedList}>
+                          <li>
+                            Go to your{' '}
+                            <a href="https://grafana.com/profile/org" target="_blank" rel="noreferrer">
+                              Grafana Cloud Portal
+                            </a>
+                          </li>
+                          <li>
+                            Select your stack and click <strong>Configure</strong> in the OpenTelemetry tile
+                          </li>
+                          <li>
+                            Click <strong>Generate API Token</strong>
+                          </li>
+                          <li>Copy the OTLP endpoint and the generated OTEL_EXPORTER_OTLP_HEADERS value</li>
+                        </ol>
+                        <Field label="OTLP Endpoint" description="Your Grafana Cloud OTLP endpoint">
+                          <Input
+                            placeholder="https://otlp-gateway-prod-us-east-0.grafana.net/otlp"
+                            value={endpoints[destination]}
+                            onChange={(e) => setEndpoint(e.currentTarget.value)}
+                          />
+                        </Field>
+                        <Field
+                          label="API Token (Base64)"
+                          description="Base64 of instanceID:token: the value after Basic in the OTEL_EXPORTER_OTLP_HEADERS the portal generates"
+                        >
+                          <Input
+                            type="password"
+                            placeholder="Base64 of instanceID:token"
+                            value={otlpToken}
+                            onChange={(e) => setOtlpToken(e.currentTarget.value)}
+                          />
+                        </Field>
+                      </Stack>
+                    ) : (
+                      <Stack direction="column" gap={2}>
+                        <p>
+                          The Collector receives OTLP, converts delta temporality to cumulative with the{' '}
+                          <code>deltatocumulative</code> processor and exports metrics with{' '}
+                          <code>prometheusremotewrite</code>, events to Loki and traces to Tempo.
+                        </p>
+                        <Field label="Collector Endpoint" description="The Collector's OTLP HTTP endpoint">
+                          <Input
+                            placeholder="http://<collector-host>:4318"
+                            value={endpoints[destination]}
+                            onChange={(e) => setEndpoint(e.currentTarget.value)}
+                          />
+                        </Field>
+                      </Stack>
+                    )}
+                  </Card.Description>
+                </Card>
+
+                <Card>
+                  <Card.Heading>Step 3: Choose Features</Card.Heading>
+                  <Card.Description>
+                    <p>Metrics are always on. Every tab reads them. Add what else you want to see:</p>
+                    <div className={styles.features}>
+                      {FEATURES.map((feature) => (
+                        <Checkbox
+                          key={feature.id}
+                          label={feature.label}
+                          description={feature.description}
+                          value={features.includes(feature.id)}
+                          onChange={() => toggleFeature(feature.id)}
+                        />
+                      ))}
+                    </div>
+                    {savedCustomLabels.some(isUsableCustomLabel) && (
+                      <p className={styles.dataFlowDescription}>
+                        The script also sets your filter labels in <code>OTEL_RESOURCE_ATTRIBUTES</code>.
+                      </p>
+                    )}
+                  </Card.Description>
+                </Card>
+
+                <Card>
+                  <Card.Heading>
                     <Stack justifyContent="space-between" alignItems="center" gap={1}>
-                      <span>Step 3: Add to Shell Profile</span>
-                      <ClipboardButton getText={() => generateEnvScript()} icon="copy">
+                      <span>Step 4: Add to Shell Profile</span>
+                      <ClipboardButton getText={() => envScript} icon="copy">
                         Copy Script
                       </ClipboardButton>
                     </Stack>
                   </Card.Heading>
                   <Card.Description>
                     <CodeEditor
-                      value={generateEnvScript()}
+                      value={envScript}
                       language="shell"
-                      height={380}
+                      height={envScript.split('\n').length * 18 + 8}
                       readOnly
                       showMiniMap={false}
                       showLineNumbers
@@ -301,7 +351,7 @@ export OTEL_METRIC_EXPORT_INTERVAL=60000
                 </Card>
 
                 <Card>
-                  <Card.Heading>Step 4: Restart Claude Code</Card.Heading>
+                  <Card.Heading>Step 5: Restart Claude Code</Card.Heading>
                   <Card.Description>
                     <p>After adding the environment variables, restart your terminal and Claude Code:</p>
                     <CodeEditor
@@ -329,10 +379,11 @@ claude`}
                       <Badge text="Grafana Cloud" color="orange" />
                     </div>
                     <p className={styles.dataFlowDescription}>
-                      Claude Code exports metrics to <strong>Mimir</strong> (Prometheus-compatible). This app queries
-                      the metrics to display your team&apos;s usage analytics. Team members are identified by their{' '}
-                      <code>user_email</code> label, else <code>enduser_id</code>, else the anonymous{' '}
-                      <code>user_id</code>.
+                      Claude Code exports metrics to <strong>Mimir</strong> (Prometheus-compatible), events to{' '}
+                      <strong>Loki</strong> and traces to <strong>Tempo</strong>. Every tab reads the metrics. The
+                      Prompts, Workflow, Reliability and Security tabs and the tool performance panels read the events,
+                      and the Traces tab reads the traces. Team members are identified by their <code>user_email</code>{' '}
+                      label, else <code>enduser_id</code>, else the anonymous <code>user_id</code>.
                     </p>
                   </Card.Description>
                 </Card>
@@ -388,6 +439,26 @@ claude`}
                 </Card>
 
                 <Card>
+                  <Card.Heading>Event or Trace Tabs Empty</Card.Heading>
+                  <Card.Description>
+                    <ul className={styles.list}>
+                      <li>
+                        Panels that say <code>Needs OTEL_LOGS_EXPORTER=otlp</code> mean Loki has no Claude Code events
+                        for the period. Set <code>OTEL_LOGS_EXPORTER=otlp</code> and restart Claude Code.
+                      </li>
+                      <li>
+                        The Traces tab needs <code>CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1</code> and{' '}
+                        <code>OTEL_TRACES_EXPORTER=otlp</code>.
+                      </li>
+                      <li>
+                        Pick the Loki data source in <strong>Events</strong> and the Tempo data source in{' '}
+                        <strong>Traces</strong> at the top of the tab.
+                      </li>
+                    </ul>
+                  </Card.Description>
+                </Card>
+
+                <Card>
                   <Card.Heading>Authentication Errors</Card.Heading>
                   <Card.Description>
                     <ul className={styles.list}>
@@ -403,12 +474,17 @@ claude`}
                 <Card>
                   <Card.Heading>Data Source Not Found</Card.Heading>
                   <Card.Description>
-                    <p>This app requires a Prometheus data source. Grafana Cloud stacks include this by default.</p>
+                    <p>
+                      This app requires a Prometheus data source, plus Loki for the event tabs and Tempo for the Traces
+                      tab. Grafana Cloud stacks include all three by default.
+                    </p>
                     <ol className={styles.numberedList}>
                       <li>
                         Go to <strong>Connections → Data sources</strong>
                       </li>
-                      <li>Your Grafana Cloud Prometheus (Mimir) should be pre-configured</li>
+                      <li>
+                        Your Grafana Cloud Prometheus (Mimir), Loki and Tempo data sources should be pre-configured
+                      </li>
                       <li>If not, add it from the Grafana Cloud connection details</li>
                     </ol>
                   </Card.Description>
@@ -512,6 +588,15 @@ const getStyles = (theme: GrafanaTheme2) => ({
     align-items: center;
     gap: ${theme.spacing(2)};
     margin: ${theme.spacing(2)} 0;
+  `,
+  features: css`
+    display: flex;
+    flex-direction: column;
+    gap: ${theme.spacing(1.5)};
+
+    label {
+      grid-template-columns: min-content 1fr;
+    }
   `,
   dataFlowDescription: css`
     color: ${theme.colors.text.secondary};
