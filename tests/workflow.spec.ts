@@ -33,7 +33,7 @@ test.describe('Workflow scene', () => {
       await expect(subagents.getByRole('row').filter({ hasText: agent })).toContainText(String(runs));
     }
     await expect(panelByTitle(app, selectors, 'Compactions')).toContainText(String(WORKFLOW.compactions));
-    await expect(panelByTitle(app, selectors, 'Auto Compactions')).toContainText(`${WORKFLOW.autoShare}%`);
+    await expect(panelByTitle(app, selectors, 'Auto Compactions')).toContainText(`${Math.round(WORKFLOW.autoShare)}%`);
     for (const skill of Object.keys(WORKFLOW.skills)) {
       await expect(legendItem(app, selectors, 'Skill Activations', skill)).toBeVisible();
     }

@@ -55,7 +55,15 @@ These issues occur when the app loads but panels show **No data**.
 
 **Symptoms:** On the **Prompts**, **Workflow**, **Reliability** or **Security** tab, or in the tool performance panels on **Tools**, panels show `No events. Needs OTEL_LOGS_EXPORTER=otlp`.
 
-The text means Loki has no Claude Code events at all for the period and filters. After events arrive, a count with nothing to count shows **0**, and a breakdown says what didn't happen, such as **No refusals in this period**.
+On the counts, breakdowns and tables, the text means Loki has no Claude Code events at all for the period and filters. After events arrive, a count with nothing to count shows **0**, and a breakdown says what didn't happen, such as **No refusals in this period**.
+
+Some panels need a particular event or measurement and show the text while it's missing, even when other events arrive:
+
+- **Auto Compactions**, **Failed Compactions** and **Tokens Freed per Compaction** on **Workflow**, until a compaction happens
+- **Cache Writes by Lifetime** on **Workflow**, until a request reports cache writes (Claude Code v2.1.300 or later)
+- **Slash Command Share**, **Prompts per Session**, **Median Prompt Length** and **Prompt Length** on **Prompts**, until a prompt is sent
+
+If other panels on the tab show data, events are reaching Loki and these panels only need that activity.
 
 **Possible causes and solutions:**
 

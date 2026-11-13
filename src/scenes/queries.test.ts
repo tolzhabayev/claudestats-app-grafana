@@ -112,6 +112,33 @@ describe.each(['prometheus', 'otlp'] as const)('buildQueries (%s metric names)',
   });
 });
 
+describe('count queries', () => {
+  const queries = buildQueries(getMetrics());
+
+  it('round the extrapolated increase() totals to whole numbers', () => {
+    for (const key of [
+      'totalLinesOfCode',
+      'linesOfCodeByType',
+      'totalCommits',
+      'totalPullRequests',
+      'toolDecisions',
+      'toolDecisionsByTool',
+    ] as const) {
+      expect({ key, expr: queries[key] }).toEqual({
+        key,
+        expr: expect.stringMatching(/^round\(sum(?: by \(\w+\) )?\(.*\)\)$/),
+      });
+    }
+    // Sorted breakdowns round inside sort_desc, so the order still comes from the rounded values.
+    for (const key of ['linesOfCodeByModel', 'toolDecisionsBySource'] as const) {
+      expect({ key, expr: queries[key] }).toEqual({
+        key,
+        expr: expect.stringMatching(/^sort_desc\(round\(sum by \(\w+\) .*\)\)$/),
+      });
+    }
+  });
+});
+
 describe('memberValuesQuery', () => {
   it('lists identified members but never offers Unattributed', () => {
     const expr = memberValuesQuery(getMetrics());

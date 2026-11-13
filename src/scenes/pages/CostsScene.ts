@@ -2,6 +2,7 @@ import {
   EmbeddedScene,
   SceneFlexLayout,
   SceneFlexItem,
+  SceneDataTransformer,
   SceneQueryRunner,
   SceneTimeRange,
   SceneVariableSet,
@@ -85,14 +86,26 @@ export function getCostsScene(
     ],
   });
 
-  const costTableQuery = new SceneQueryRunner({
-    datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
-    queries: [
+  const costTableQuery = new SceneDataTransformer({
+    $data: new SceneQueryRunner({
+      datasource: { type: 'prometheus', uid: '${prometheus_ds}' },
+      queries: [
+        {
+          refId: 'CostTable',
+          expr: queries.costTable,
+          instant: true,
+          format: 'table',
+        },
+      ],
+    }),
+    transformations: [
       {
-        refId: 'CostTable',
-        expr: queries.costTable,
-        instant: true,
-        format: 'table',
+        id: 'organize',
+        options: {
+          // Every row of an instant query has the same timestamp.
+          excludeByName: { Time: true },
+          renameByName: { member: 'Team Member', model: 'Model', Value: 'Cost' },
+        },
       },
     ],
   });
@@ -200,8 +213,9 @@ export function getCostsScene(
                 .setTitle('Cost Breakdown')
                 .setDescription('Estimated cost per team member and model, in US dollars.')
                 .setData(costTableQuery)
-                .setOption('sortBy', [{ displayName: 'Value', desc: true }])
-                .setOverrides((b) => b.matchFieldsWithName('member').overrideDisplayName('Team Member'))
+                .setUnit('currencyUSD')
+                .setDecimals(2)
+                .setOption('sortBy', [{ displayName: 'Cost', desc: true }])
                 .build(),
             }),
           ],
