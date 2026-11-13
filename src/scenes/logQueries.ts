@@ -124,6 +124,13 @@ export function buildLogQueries(dimensions: FilterDimension[] = getFilterDimensi
      */
     anyEvents: `sum(count_over_time(${events('.+', toolFilters)} [$__range]))`,
 
+    /**
+     * API requests and errors in the period, for the selected members, model and
+     * dimensions: the event check of the Reliability tab, whose panels all filter
+     * by model and fall back to 0 on the same events.
+     */
+    anyRequests: `sum(count_over_time(${requests} [$__range]))`,
+
     /** API errors in the period. Each is the final error of a request, after Claude Code's own retries. */
     apiErrors: `sum(count_over_time(${errors} [$__range])) or ${zeroIfRequests}`,
 
