@@ -1,4 +1,6 @@
 {
   "version": "9.0.3",
-  "features": {}
+  "features": {
+    "useRspack": true
+  }
 }
