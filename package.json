@@ -1,6 +1,6 @@
 {
   "name": "timurdigital-claudestats-app",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Claude Code team usage analytics for Grafana Cloud",
   "scripts": {
     "build": "rspack -c ./rspack.config.ts --env production",
@@ -70,7 +70,7 @@
     "@grafana/data": "13.2.4",
     "@grafana/i18n": "13.2.4",
     "@grafana/runtime": "13.2.4",
-    "@grafana/scenes": "^8.17.0",
+    "@grafana/scenes": "^9.2.2",
     "@grafana/schema": "13.2.4",
     "@grafana/ui": "13.2.4",
     "lodash": "^4.17.21",
@@ -85,7 +85,7 @@
     "node": ">=24.5"
   },
   "overrides": {
-    "flatted": "^3.4.2",
-    "serialize-javascript": "^7.0.5"
+    "minimatch@>=7.0.0 <11.0.1": "^11.0.8",
+    "glob@>=9.0.0 <14.0.2": "^14.0.6"
   }
 }
