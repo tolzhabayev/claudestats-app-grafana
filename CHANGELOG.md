@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+
+- The plugin no longer bundles its own copy of React's JSX runtime and uses the one Grafana provides, which clears the React 19 `jsxRuntimeImport` warning from the plugin validator.
+
+### Changed
+
+- The frontend now builds with Rspack 2 instead of webpack, following the create-plugin `rspack` migration.
+
 ## 2.0.0
 
 ### Breaking changes
