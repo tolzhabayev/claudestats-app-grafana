@@ -1,10 +1,20 @@
 # Changelog
 
+## 2.0.2
+
+### Changed
+
+- Updated `@grafana/scenes` to 9.2.2.
+
+### Fixed
+
+- Updated `minimatch` and `glob` in the build and test tooling to patched versions, and dropped the `flatted` and `serialize-javascript` overrides that are no longer needed.
+
 ## 2.0.1
 
 ### Fixed
 
-- The plugin no longer bundles its own copy of React's JSX runtime and uses the one Grafana provides, which clears the React 19 `jsxRuntimeImport` warning from the plugin validator.
+- The plugin no longer bundles its own copy of React's JSX runtime and uses the one Grafana provides, as the Grafana 13 migration guide recommends.
 
 ### Changed
 
